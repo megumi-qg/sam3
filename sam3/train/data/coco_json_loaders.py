@@ -99,6 +99,7 @@ def ann_to_rle(segm, im_info: Dict) -> Dict:
 # ============================================================================
 
 
+
 class COCO_FROM_JSON:
     """
     COCO training API for loading box-only annotations from JSON.
@@ -271,7 +272,6 @@ class COCO_FROM_JSON:
             }
         ]
         return images
-
 
 # ============================================================================
 # SAM3 Evaluation APIs

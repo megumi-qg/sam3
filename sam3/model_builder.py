@@ -68,6 +68,7 @@ def _create_position_encoding(precompute_resolution=None):
 
 def _create_vit_backbone(compile_mode=None):
     """Create ViT backbone for visual feature extraction."""
+    # gaoqi: output(Batch, 1024, 72, 72)
     return ViT(
         img_size=1008,
         pretrain_img_size=336,
@@ -109,6 +110,7 @@ def _create_vit_neck(position_encoding, vit_backbone, enable_inst_interactivity=
 
 def _create_vl_backbone(vit_neck, text_encoder):
     """Create visual-language backbone."""
+    # gaoqi: scalp=1 表示会切掉Sam3DualViTDetNeck输出列表的最后一个元素,即 0.5x 的最低分辨率特征
     return SAM3VLBackbone(visual=vit_neck, text=text_encoder, scalp=1)
 
 
@@ -248,6 +250,8 @@ def _create_geometry_encoder():
         dim_feedforward=2048,
         dropout=0.1,
         pos_enc_at_attn=False,
+        pos_enc_at_cross_attn_keys=True,
+        pos_enc_at_cross_attn_queries=False,
         pre_norm=True,
         self_attention=MultiheadAttention(
             num_heads=8,
@@ -255,8 +259,6 @@ def _create_geometry_encoder():
             embed_dim=256,
             batch_first=False,
         ),
-        pos_enc_at_cross_attn_queries=False,
-        pos_enc_at_cross_attn_keys=True,
         cross_attention=MultiheadAttention(
             num_heads=8,
             dropout=0.1,
@@ -616,13 +618,14 @@ def build_sam3_image_model(
     else:
         inst_predictor = None
     # Create the SAM3 model
+    
     model = _create_sam3_model(
         backbone,
         transformer,
         input_geometry_encoder,
         segmentation_head,
         dot_prod_scoring,
-        inst_predictor,
+        inst_predictor, # ?
         eval_mode,
     )
     if load_from_HF and checkpoint_path is None:

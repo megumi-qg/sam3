@@ -6,14 +6,17 @@ defaults:
 # Paths Configuration (Chage this to your own paths)
 # ============================================================================
 paths:
-  roboflow_vl_100_root: <YOUR_DATASET_DIR>
-  experiment_log_dir: <YOUR EXPERIMENET LOG_DIR>
-  bpe_path: <BPE_PATH> # This should be under assets/bpe_simple_vocab_16e6.txt.gz
+  roboflow_vl_100_root: /home/gaoqi/sam3/rf100-vl
+  experiment_log_dir: /home/gaoqi/sam3/experiment/roboflow_v100
+  bpe_path: /home/gaoqi/sam3/assets/bpe_simple_vocab_16e6.txt.gz # This should be under assets/bpe_simple_vocab_16e6.txt.gz
+  pretrained_checkpoint: /home/gaoqi/official_ckpt/sam3_hf/sam3.pt
 
 # Roboflow dataset configuration
 roboflow_train:
   num_images: 100 # Note: This is the number of images used for training. If null, all images are used.
-  supercategory: ${all_roboflow_supercategories.${string:${submitit.job_array.task_index}}}
+  # if use slurm, each job in the job array will finetune on a different supercategory
+  # supercategory: ${all_roboflow_supercategories.${string:${submitit.job_array.task_index}}}
+  supercategory: actions
 
   # Training transforms pipeline
   train_transforms:
@@ -243,7 +246,9 @@ scratch:
 trainer:
 
   _target_: sam3.train.trainer.Trainer
-  skip_saving_ckpts: true
+  # skip_saving_ckpts: true
+  # gaoqi
+  skip_saving_ckpts: False
   empty_gpu_mem_cache_after_eval: True
   skip_first_val: True
   max_epochs: 20
@@ -318,6 +323,9 @@ trainer:
     device: cpus
     eval_mode: false
     enable_segmentation: ${scratch.enable_segmentation} # Warning: Enable this if using segmentation.
+    # gao qi
+    checkpoint_path: ${paths.pretrained_checkpoint}
+    load_from_HF: false
 
   meters:
     val:

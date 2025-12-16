@@ -151,3 +151,19 @@ Thumbs.db
 # BPE vocabulary files
 *.bpe
 *.vocab
+
+# Gao Qi
+rf100-vl/
+dataset/
+
+# Experiment directories - ignore everything except config.yaml and logs/
+# Ignore specific directories and files in experiment subdirectories
+experiment/*/checkpoints/
+experiment/*/dumps/
+experiment/*/tensorboard/
+experiment/*/config_resolved.yaml
+# Ignore all other files in experiment subdirectories (but allow config.yaml and logs)
+experiment/*/*
+!experiment/*/config.yaml
+!experiment/*/logs/
+!experiment/*/logs/**

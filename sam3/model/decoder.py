@@ -37,7 +37,7 @@ class TransformerDecoderLayer(nn.Module):
         dropout: float,
         cross_attention: nn.Module,
         n_heads: int,
-        use_text_cross_attention: bool = False,
+        use_text_cross_attention: bool = False, # gaoqi: True for sam3
     ):
         super().__init__()
 
@@ -98,7 +98,7 @@ class TransformerDecoderLayer(nn.Module):
         cross_attn_mask: Optional[Tensor] = None,  # mask used for cross-attention
         # dac
         dac=False,
-        dac_use_selfatt_ln=True,
+        dac_use_selfatt_ln=True, # gaoqi: 它决定了那些没有参与自注意力计算的 Queries（即 tgt_o2m 部分），是否要经过自注意力层后的 Layer Norm。
         presence_token=None,
         # skip inside deformable attn
         identity=0.0,
@@ -107,7 +107,6 @@ class TransformerDecoderLayer(nn.Module):
         """
         Input:
             - tgt/tgt_query_pos: nq, bs, d_model
-            -
         """
         # self attention
         if self.self_attn is not None:
@@ -115,14 +114,16 @@ class TransformerDecoderLayer(nn.Module):
                 # we only apply self attention to the first half of the queries
                 assert tgt.shape[0] % 2 == 0
                 num_o2o_queries = tgt.shape[0] // 2
+                # gaoqi: 只有o2o参与self-attention
                 tgt_o2o = tgt[:num_o2o_queries]
                 tgt_query_pos_o2o = tgt_query_pos[:num_o2o_queries]
                 tgt_o2m = tgt[num_o2o_queries:]
             else:
                 tgt_o2o = tgt
                 tgt_query_pos_o2o = tgt_query_pos
-
+            # gaoqi: 存在presence token
             if presence_token is not None:
+                # gaoqi: 拼接到target_o2o的最前面
                 tgt_o2o = torch.cat([presence_token, tgt_o2o], dim=0)
                 tgt_query_pos_o2o = torch.cat(
                     [torch.zeros_like(presence_token), tgt_query_pos_o2o], dim=0
@@ -130,7 +131,7 @@ class TransformerDecoderLayer(nn.Module):
                 tgt_query_pos = torch.cat(
                     [torch.zeros_like(presence_token), tgt_query_pos], dim=0
                 )
-
+            # gaoqi: Q, K 加上 position embedding
             q = k = self.with_pos_embed(tgt_o2o, tgt_query_pos_o2o)
             tgt2 = self.self_attn(q, k, tgt_o2o, attn_mask=self_attn_mask)[0]
             tgt_o2o = tgt_o2o + self.dropout2(tgt2)
@@ -143,7 +144,8 @@ class TransformerDecoderLayer(nn.Module):
             else:
                 tgt = tgt_o2o
                 tgt = self.norm2(tgt)
-
+        
+        # gaoqi: text cross attention
         if self.use_text_cross_attention:
             tgt2 = self.ca_text(
                 self.with_pos_embed(tgt, tgt_query_pos),
@@ -153,7 +155,7 @@ class TransformerDecoderLayer(nn.Module):
             )[0]
             tgt = tgt + self.catext_dropout(tgt2)
             tgt = self.catext_norm(tgt)
-
+ 
         if presence_token is not None:
             presence_token_mask = torch.zeros_like(cross_attn_mask[:, :1, :])
             cross_attn_mask = torch.cat(
@@ -192,31 +194,31 @@ class TransformerDecoder(nn.Module):
         self,
         d_model: int,
         frozen: bool,
-        interaction_layer,
+        interaction_layer, # gaoqi: None
         layer,
-        num_layers: int,
-        num_queries: int,
-        return_intermediate: bool,
-        box_refine: bool = False,
+        num_layers: int, # gaoqi: 6
+        num_queries: int, # gaoqi: 200
+        return_intermediate: bool, # gaoqi: True
+        box_refine: bool = False, # gaoqi: True
         num_o2m_queries: int = 0,
-        dac: bool = False,
-        boxRPB: str = "none",
+        dac: bool = False, # gaoqi: True, 则self.num_o2m_queries = num_queries, 但是self.num_o2m_queries都没调用过
+        boxRPB: str = "none", # gaoqi: log
         # Experimental: An object query for SAM 2 tasks
         instance_query: bool = False,
         # Defines the number of additional instance queries,
         # 1 or 4 are the most likely for single vs multi mask support
         num_instances: int = 1,  # Irrelevant if instance_query is False
         dac_use_selfatt_ln: bool = True,
-        use_act_checkpoint: bool = False,
+        use_act_checkpoint: bool = False, # gaoqi: True
         compile_mode=None,
-        presence_token: bool = False,
+        presence_token: bool = False, # gaoqi: True
         clamp_presence_logits: bool = True,
         clamp_presence_logit_max_val: float = 10.0,
         use_normed_output_consistently: bool = True,
         separate_box_head_instance: bool = False,
         separate_norm_instance: bool = False,
         resolution: Optional[int] = None,
-        stride: Optional[int] = None,
+        stride: Optional[int] = None, # gaoqi: 14
     ):
         super().__init__()
         self.d_model = d_model
@@ -229,16 +231,22 @@ class TransformerDecoder(nn.Module):
         self.num_layers = num_layers
         self.num_queries = num_queries
         self.dac = dac
+        # gaoqi: 
         if dac:
             self.num_o2m_queries = num_queries
             tot_num_queries = num_queries
         else:
             self.num_o2m_queries = num_o2m_queries
             tot_num_queries = num_queries + num_o2m_queries
+        
         self.norm = nn.LayerNorm(d_model)
         self.return_intermediate = return_intermediate
+        # gaoqi: 一个 MLP，用于将 Transformer 的输出映射为边界框坐标 (cx, cy, w, h)。
+        # 4: out_dim, 3: num_layers
         self.bbox_embed = MLP(d_model, d_model, 4, 3)
+        # gaoqi: Object Queries 的 Content Query
         self.query_embed = nn.Embedding(tot_num_queries, d_model)
+
         self.instance_query_embed = None
         self.instance_query_reference_points = None
         self.use_instance_query = instance_query
@@ -253,14 +261,16 @@ class TransformerDecoder(nn.Module):
             self.instance_query_embed = nn.Embedding(num_instances, d_model)
         self.box_refine = box_refine
         if box_refine:
+            # 
             nn.init.constant_(self.bbox_embed.layers[-1].weight.data, 0)
             nn.init.constant_(self.bbox_embed.layers[-1].bias.data, 0)
-
+            # gaoqi: Object Queries 的 Positional Query, 框的初始位置
             self.reference_points = nn.Embedding(num_queries, 4)
             if instance_query:
                 self.instance_reference_points = nn.Embedding(num_instances, 4)
-
-        assert boxRPB in ["none", "log", "linear", "both"]
+        
+        # gaoqi: box relative position bias
+        assert boxRPB in ["none", "log", "linear", "both"] # gaoqi: 决定距离的编码方式
         self.boxRPB = boxRPB
         if boxRPB != "none":
             try:
@@ -295,6 +305,7 @@ class TransformerDecoder(nn.Module):
         self.presence_token = None
         self.clamp_presence_logits = clamp_presence_logits
         self.clamp_presence_logit_max_val = clamp_presence_logit_max_val
+        # gaoqi: presence token
         if presence_token:
             self.presence_token = nn.Embedding(1, d_model)
             self.presence_token_head = MLP(d_model, d_model, 1, 3)
@@ -452,7 +463,7 @@ class TransformerDecoder(nn.Module):
                 self.use_instance_query
                 and (tgt.shape[0] == self.instance_query_embed.num_embeddings)
             )
-
+            # gaoqi: query 扩展一倍
             tgt = tgt.repeat(2, 1, 1)
             # note that we don't tile tgt_mask, since DAC doesn't
             # use self-attention in o2m queries
@@ -472,8 +483,10 @@ class TransformerDecoder(nn.Module):
         presence_feats = None
 
         if self.box_refine:
+
             if reference_boxes is None:
                 # In this case, we're in a one-stage model, so we generate the reference boxes
+                # gaoqi: 如果没有外部传入参考框，则使用 learnable reference points
                 reference_boxes = self.reference_points.weight.unsqueeze(1)
                 reference_boxes = (
                     reference_boxes.repeat(2, bs, 1)
@@ -499,8 +512,10 @@ class TransformerDecoder(nn.Module):
         out_norm = self.norm
         if is_instance_prompt and self.instance_norm is not None:
             out_norm = self.instance_norm
-
+        
+        # gaoqi: 层级循环
         for layer_idx, layer in enumerate(self.layers):
+            # gaoqi: 生成动态位置编码
             reference_points_input = (
                 reference_boxes[:, :, None]
                 * torch.cat([valid_ratios, valid_ratios], -1)[None, :]
@@ -512,7 +527,8 @@ class TransformerDecoder(nn.Module):
 
             # conditional query
             query_pos = self.ref_point_head(query_sine_embed)  # nq, bs, d_model
-
+            
+            # gaoqi: 计算 box relative position bias掩码
             if self.boxRPB != "none" and reference_boxes is not None:
                 assert (
                     spatial_shapes.shape[0] == 1
@@ -526,6 +542,7 @@ class TransformerDecoder(nn.Module):
                 assert (
                     self.use_act_checkpoint
                 ), "Activation checkpointing not enabled in the decoder"
+            # gaoqi: 执行 Transformer Decoder Layer
             output, presence_out = activation_ckpt_wrapper(layer)(
                 tgt=output,
                 tgt_query_pos=query_pos,
@@ -550,7 +567,7 @@ class TransformerDecoder(nn.Module):
                 obj_roi_memory_feat=obj_roi_memory_feat,
                 obj_roi_memory_mask=obj_roi_memory_mask,
             )
-
+            # gaoqi: 迭代式边界框更新，预测相对于当前框的修正量
             # iter update
             if self.box_refine:
                 reference_before_sigmoid = inverse_sigmoid(reference_boxes)
@@ -598,16 +615,16 @@ class TransformerDecoder(nn.Module):
                 self.forward, mode=self.compile_mode, fullgraph=True
             )
             self.compiled = True
-
+        # gaoqi: 返回堆叠后的中间结果
         return (
-            torch.stack(intermediate),
-            torch.stack(intermediate_ref_boxes),
+            torch.stack(intermediate),# gaoqi: 所有层的特征
+            torch.stack(intermediate_ref_boxes), # gaoqi: 所有层的框坐标
             (
                 torch.stack(intermediate_presence_logits)
                 if self.presence_token is not None and is_instance_prompt is False
                 else None
             ),
-            presence_feats,
+            presence_feats, 
         )
 
 

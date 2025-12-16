@@ -164,7 +164,8 @@ class SegmentationHead(nn.Module):
         elif self.aux_masks:
             mask_pred = self.mask_predictor(obj_queries, pixel_embed)
         else:
-            mask_pred = self.mask_predictor(obj_queries[-1], pixel_embed)
+            # obj_queries[-1]: num_queries, batch_size, d_model
+            mask_pred = self.mask_predictor(obj_queries[-1], pixel_embed) 
 
         return {"pred_masks": mask_pred}
 
@@ -259,8 +260,10 @@ class UniversalSegmentationHead(SegmentationHead):
         self.cross_attend_prompt = cross_attend_prompt
         if self.cross_attend_prompt is not None:
             self.cross_attn_norm = nn.LayerNorm(self.d_model)
-
-        self.semantic_seg_head = nn.Conv2d(self.pixel_decoder.out_dim, 1, kernel_size=1)
+        # gaoqi: !!!因为没有启用语义分割损失，这里却包含语义分割头
+        # semantic_seg_head 的参数在前向传播中被计算了，但在反向传播中没有产生梯度（因为没有 Loss 用到它）
+        # 因此会报错 parameters that were not used in producing loss
+        # self.semantic_seg_head = nn.Conv2d(self.pixel_decoder.out_dim, 1, kernel_size=1)
         self.instance_seg_head = nn.Conv2d(
             self.pixel_decoder.out_dim, self.d_model, kernel_size=1
         )
@@ -318,6 +321,6 @@ class UniversalSegmentationHead(SegmentationHead):
 
         return {
             "pred_masks": mask_pred,
-            "semantic_seg": self.semantic_seg_head(pixel_embed),
+            # "semantic_seg": self.semantic_seg_head(pixel_embed),
             "presence_logit": presence_logit,
         }

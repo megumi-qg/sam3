@@ -855,7 +855,22 @@ def visualize_prompt_overlay(
 
 def plot_results(img, results):
     plt.figure(figsize=(12, 8))
-    plt.imshow(img)
+
+    # gaoqi:Check if image is grayscale and use appropriate colormap
+    if isinstance(img, Image.Image):
+        if img.mode == 'L' or img.mode == 'LA':
+            # Grayscale image - use gray colormap
+            plt.imshow(img, cmap='gray')
+        else:
+            plt.imshow(img)
+    else:
+        # If it's already a numpy array, check dimensions
+        img_array = np.asarray(img)
+        if len(img_array.shape) == 2 or (len(img_array.shape) == 3 and img_array.shape[2] == 1):
+            plt.imshow(img_array, cmap='gray')
+        else:
+            plt.imshow(img)
+            
     nb_objects = len(results["scores"])
     print(f"found {nb_objects} object(s)")
     for i in range(nb_objects):

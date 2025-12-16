@@ -73,7 +73,8 @@ class PositionEmbeddingSine(nn.Module):
         pos_x, pos_y = self._encode_xy(x, y)
         pos = torch.cat((pos_y, pos_x, h[:, None], w[:, None]), dim=1)
         return pos
-
+    
+    # gaoqi: 起别名，意味着encode和encode_boxes指向的是同一个函数逻辑。
     encode = encode_boxes  # Backwards compatibility
 
     @torch.no_grad()

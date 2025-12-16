@@ -20,6 +20,32 @@ from omegaconf import OmegaConf
 from sam3.train.utils.train_utils import makedir, register_omegaconf_resolvers
 from tqdm import tqdm
 
+"""
+gaoqi:
+The main training script.
+It uses Hydra configuration management to handle complex training setups.
+The training script supports several command line arguments:
+CUDA_VISIBLE_DEVICES=2,3 nohup python sam3/train/train.py \
+    -c configs/acdc/acdc_train.yaml \
+    --use-cluster 0 \
+    --num-gpus 2 \
+    > train.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=0 python sam3/train/train.py \
+    -c configs/acdc/acdc_eval.yaml \
+    --use-cluster 0 \
+    --num-gpus 1
+
+    -c configs/roboflow_v100/roboflow_v100_full_ft_100_images.yaml
+    -c configsCUDA_VISIBLE_DEVICES=2 python sam3/train/train.py/acdc/acdc_train.yaml
+    CUDA_VISIBLE_DEVICES=2,3 nohup python sam3/train/train.py
+    [--use-cluster 0|1] \
+    [--partition PARTITION_NAME] \
+    [--account ACCOUNT_NAME] \
+    [--qos QOS_NAME] \
+    [--num-gpus NUM_GPUS] \
+    [--num-nodes NUM_NODES]
+"""
 
 os.environ["HYDRA_FULL_ERROR"] = "1"
 
@@ -46,6 +72,7 @@ def single_proc_run(local_rank, main_port, cfg, world_size):
     """Single GPU process"""
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = str(main_port)
+    # [RANK] serves as the Global Unique Identifier for each process (which typically corresponds to one GPU).
     os.environ["RANK"] = str(local_rank)
     os.environ["LOCAL_RANK"] = str(local_rank)
     os.environ["WORLD_SIZE"] = str(world_size)
@@ -55,6 +82,7 @@ def single_proc_run(local_rank, main_port, cfg, world_size):
         logging.info(e)
 
     trainer = instantiate(cfg.trainer, _recursive_=False)
+    # gaoqi: start training
     trainer.run()
 
 

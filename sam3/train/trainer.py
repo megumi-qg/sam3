@@ -220,10 +220,12 @@ class Trainer:
         self._setup_components()  # Except Optimizer everything is setup here.
         self._move_to_device()
         self._construct_optimizers()
+        # gaoqi: setup dataloaders
         self._setup_dataloaders()
 
         self.time_elapsed_meter = DurationMeter("Time Elapsed", self.device, ":.2f")
-
+        
+        # gaoqi: resume from checkpoint if specified
         if self.checkpoint_conf.resume_from is not None:
             assert os.path.exists(
                 self.checkpoint_conf.resume_from
@@ -488,7 +490,8 @@ class Trainer:
             if fnmatch.fnmatch(key, cand_key):
                 return meter
         return None
-
+    
+    # gaoqi: 模型的核心调用点
     def _step(
         self,
         batch: BatchedDatapoint,
@@ -497,7 +500,7 @@ class Trainer:
     ):
         key, batch = batch.popitem()
         batch = copy_data_to_device(batch, self.device, non_blocking=True)
-
+        # gaoqi: model forward
         find_stages = model(batch)
         find_targets = [
             unwrap_ddp_if_wrapped(model).back_convert(x) for x in batch.find_targets
@@ -805,6 +808,9 @@ class Trainer:
             #     self.device, non_blocking=True
             # )  # move tensors in a tensorclass
 
+            import pdb
+            pdb.set_trace()
+
             try:
                 self._run_step(batch, phase, loss_mts, extra_loss_mts)
 
@@ -1071,10 +1077,11 @@ class Trainer:
         self.steps = {Phase.TRAIN: 0, Phase.VAL: 0}
 
         self.logger = Logger(self.logging_conf)
-
+        # gaoqi: setup model
         self.model = instantiate(self.model_conf, _convert_="all")
         print_model_summary(self.model)
-
+        
+        # gaoqi: setup loss
         self.loss = None
         if self.loss_conf:
             self.loss = {
@@ -1082,7 +1089,8 @@ class Trainer:
                 for (key, el) in instantiate(self.loss_conf, _convert_="all").items()
             }
             self.loss = nn.ModuleDict(self.loss)
-
+        
+        # gaoqi: setup meters
         self.meters = {}
         self.best_meter_values = {}
         if self.meters_conf:

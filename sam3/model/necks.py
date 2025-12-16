@@ -70,7 +70,7 @@ class Sam3DualViTDetNeck(nn.Module):
                 out_dim = dim
             else:
                 raise NotImplementedError(f"scale_factor={scale} is not supported yet.")
-
+            # gaoqi:对齐通道数，统一映射到 256 维。
             current.add_module(
                 "conv_1x1",
                 nn.Conv2d(
@@ -80,6 +80,7 @@ class Sam3DualViTDetNeck(nn.Module):
                     bias=use_bias,
                 ),
             )
+            # gaoqi: 平滑层，消除混叠效应。之前的上采样（反卷积）或下采样可能会引入棋盘格效应或信息丢失。
             current.add_module(
                 "conv_3x3",
                 nn.Conv2d(

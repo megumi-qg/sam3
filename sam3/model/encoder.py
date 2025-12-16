@@ -176,16 +176,22 @@ class TransformerEncoderLayer(nn.Module):
             assert tgt.shape[0] % 2 == 0
             other_tgt = tgt[tgt.shape[0] // 2 :]
             tgt = tgt[: tgt.shape[0] // 2]
+        # gaoqi: pre-norm
         tgt2 = self.norm1(tgt)
         q = k = tgt2 + query_pos if self.pos_enc_at_attn else tgt2
+        # gaoqi: self attention
         tgt2 = self.self_attn(
             q, k, value=tgt2, attn_mask=tgt_mask, key_padding_mask=tgt_key_padding_mask
         )[0]
+        # gaoqi: residual connection
         tgt = tgt + self.dropout1(tgt2)
         if dac:
             # Recombine
             tgt = torch.cat((tgt, other_tgt), dim=0)
+        
+        # gaoqi: pre-norm
         tgt2 = self.norm2(tgt)
+        # gaoqi: cross attention to image
         tgt2 = self.cross_attn_image(
             query=tgt2 + query_pos if self.pos_enc_at_cross_attn_queries else tgt2,
             key=memory + pos if self.pos_enc_at_cross_attn_keys else memory,
@@ -194,8 +200,12 @@ class TransformerEncoderLayer(nn.Module):
             key_padding_mask=memory_key_padding_mask,
             # attn_bias=attn_bias,
         )[0]
+        # gaoqi: residual connection
         tgt = tgt + self.dropout2(tgt2)
+
+        # gaoqi: pre-norm
         tgt2 = self.norm3(tgt)
+        # gaoqi: feedforward network
         tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt2))))
         tgt = tgt + self.dropout3(tgt2)
         return tgt
@@ -274,7 +284,7 @@ class TransformerEncoder(nn.Module):
         d_model: int,
         num_feature_levels: int,
         frozen: bool = False,
-        use_act_checkpoint: bool = False,
+        use_act_checkpoint: bool = False, # ?
     ):
         super().__init__()
         self.layers = get_clones(layer, num_layers)
@@ -377,7 +387,7 @@ class TransformerEncoder(nn.Module):
 
     def forward(
         self,
-        src: List[Tensor],
+        src: List[Tensor],# img
         src_key_padding_masks: Optional[List[Tensor]] = None,
         pos: Optional[List[Tensor]] = None,
         prompt: Optional[Tensor] = None,
@@ -440,7 +450,7 @@ class TransformerEncoder(nn.Module):
                 assert self.use_act_checkpoint, "activation ckpt not enabled in encoder"
             if encoder_extra_kwargs is not None:
                 layer_kwargs.update(encoder_extra_kwargs)
-            output = activation_ckpt_wrapper(layer)(
+            output = activation_ckpt_wrapper(layer)( # 更新图像特征
                 **layer_kwargs,
                 act_ckpt_enable=self.training and self.use_act_checkpoint,
             )

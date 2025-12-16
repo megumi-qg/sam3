@@ -44,14 +44,14 @@ class Sam3Image(torch.nn.Module):
         transformer,
         input_geometry_encoder,
         segmentation_head=None,
-        num_feature_levels=1,
+        num_feature_levels=1, #?
         o2m_mask_predict=True,
         dot_prod_scoring=None,
-        use_instance_query: bool = True,
+        use_instance_query: bool = True, #? False
         multimask_output: bool = True,
-        use_act_checkpoint_seg_head: bool = True,
-        interactivity_in_encoder: bool = True,
-        matcher=None,
+        use_act_checkpoint_seg_head: bool = True, #?
+        interactivity_in_encoder: bool = True, 
+        matcher=None,# train mode BinaryHungarianMatcherV2
         use_dot_prod_scoring=True,
         supervise_joint_box_scores: bool = False,  # only relevant if using presence token/score
         detach_presence_in_joint_score: bool = False,  # only relevant if using presence token/score
@@ -65,7 +65,7 @@ class Sam3Image(torch.nn.Module):
         self.geometry_encoder = input_geometry_encoder
         self.transformer = transformer
         self.hidden_dim = transformer.d_model
-        self.num_feature_levels = num_feature_levels
+        self.num_feature_levels = num_feature_levels #?
         self.segmentation_head = segmentation_head
 
         self.o2m_mask_predict = o2m_mask_predict
@@ -80,8 +80,8 @@ class Sam3Image(torch.nn.Module):
 
         if self.use_dot_prod_scoring:
             assert dot_prod_scoring is not None
-            self.dot_prod_scoring = dot_prod_scoring
-            self.instance_dot_prod_scoring = None
+            self.dot_prod_scoring = dot_prod_scoring # gaoqi: 有
+            self.instance_dot_prod_scoring = None # gaoqi: 无
             if separate_scorer_for_instance:
                 self.instance_dot_prod_scoring = deepcopy(dot_prod_scoring)
         else:
@@ -90,7 +90,7 @@ class Sam3Image(torch.nn.Module):
             if separate_scorer_for_instance:
                 self.instance_class_embed = deepcopy(self.class_embed)
 
-        self.supervise_joint_box_scores = supervise_joint_box_scores
+        self.supervise_joint_box_scores = supervise_joint_box_scores # false
         self.detach_presence_in_joint_score = detach_presence_in_joint_score
 
         # verify the number of queries for O2O and O2M
