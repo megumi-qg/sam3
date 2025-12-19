@@ -285,8 +285,9 @@ def collate_fn_api(
                         current_seg_mask.append(seg_mask)
                         current_is_valid_segment.append(1)
                     else:
+                        # gaoqi: 改为 torch.long 以支持弱监督的三值 mask (0=负, 1=正, 255=忽略)
                         dummy_mask = torch.zeros(
-                            data.images[q.image_id].data.shape[-2:], dtype=torch.bool
+                            data.images[q.image_id].data.shape[-2:], dtype=torch.long
                         )
                         current_seg_mask.append(dummy_mask)
                         current_is_valid_segment.append(0)

@@ -162,6 +162,14 @@ def get_size_with_aspect_ratio(image_size, size, max_size=None):
 
     return (oh, ow)
 
+# 需要确保引入 InterpolationMode
+try:
+    from torchvision.transforms import InterpolationMode
+    NEAREST = InterpolationMode.NEAREST
+except ImportError:
+    # 兼容旧版本 Torchvision
+    from PIL import Image
+    NEAREST = Image.NEAREST
 
 def resize(datapoint, index, size, max_size=None, square=False, v2=False):
     # size can be min_size (scalar) or (w, h) tuple
@@ -210,12 +218,18 @@ def resize(datapoint, index, size, max_size=None, square=False, v2=False):
         obj.bbox = scaled_boxes
         obj.area *= ratio_width * ratio_height
         if obj.segment is not None:
-            obj.segment = F.resize(obj.segment[None, None], size).squeeze()
+            obj.segment = F.resize(
+                obj.segment[None, None], 
+                size,
+                interpolation=NEAREST, # <---gaoqi:关键修改
+            ).squeeze()
 
     for query in datapoint.find_queries:
         if query.semantic_target is not None:
             query.semantic_target = F.resize(
-                query.semantic_target[None, None], size
+                query.semantic_target[None, None], 
+                size,
+                interpolation=NEAREST, # <---gaoqi:关键修改
             ).squeeze()
         if query.image_id == index and query.input_bbox is not None:
             boxes = query.input_bbox

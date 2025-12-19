@@ -1,5 +1,5 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
-
+# 针对弱监督任务进行修改
 """Dataset class for modulated detection"""
 
 import json
@@ -25,6 +25,10 @@ from sam3.model.box_ops import box_xywh_to_xyxy
 from torchvision.datasets.vision import VisionDataset
 
 from .coco_json_loaders import COCO_FROM_JSON
+
+# 在 import 部分添加
+from pycocotools import mask as maskUtils
+import numpy as np
 
 
 @dataclass
@@ -283,16 +287,87 @@ class CustomCocoDetectionAPI(VisionDataset):
             id2index_img[pil_images[i][0]] = i
             id2imsize[pil_images[i][0]] = (h, w)
 
+        # === gaoqi:优化重点：Annotations 循环 ===
         for annotation in annotations:
             image_id = id2index_img[annotation["image_id"]]
-            bbox = box_xywh_to_xyxy(torch.as_tensor(annotation["bbox"])).view(1, 4)
             h, w = id2imsize[annotation["image_id"]]
+
+            # -----------------------------------------------------------
+            # 步骤 1: 预先解码当前对象的 Mask (只解码一次！)
+            # -----------------------------------------------------------
+            current_binary_mask = None
+            if isinstance(annotation["segmentation"], list):
+                # Polygon 格式
+                rle = maskUtils.frPyObjects(annotation["segmentation"], h, w)
+                m = maskUtils.decode(rle)
+                if len(m.shape) == 3:
+                    m = m.sum(axis=2) > 0
+                current_binary_mask = m.astype(bool)
+            elif isinstance(annotation["segmentation"], dict):
+                # RLE 格式
+                m = maskUtils.decode(annotation["segmentation"])
+                current_binary_mask = m.astype(bool)
+            else:
+                # 异常处理
+                current_binary_mask = np.zeros((h, w), dtype=bool)
+
+            # -----------------------------------------------------------
+            # 步骤 2: 获取 BBox (直接使用 JSON 中的强监督 Box)
+            # -----------------------------------------------------------
+            # COCO Loader 已经读取了 "bbox" 并进行了归一化 (0-1)
+            # 现在的逻辑非常简单：直接拿来反归一化即可，不需要再从 Mask 计算
+            
+            if "bbox" in annotation:
+                bbox_xywh = torch.as_tensor(annotation["bbox"])
+            else:
+                # 理论上 coco_json_loaders 会保证 bbox 存在 (即使是 0,0,0,0)
+                # 这里留一个 fallback 防止 crash
+                bbox_xywh = torch.tensor([0.0, 0.0, 0.0, 0.0], dtype=torch.float32)
+            
+            # 简单的完备性检查 (可选)
+            if bbox_xywh.sum() == 0:
+                print(f"[WARNING] Zero BBox found! Image ID: {annotation.get('image_id')}, Ann ID: {annotation.get('id')}")
+
+            # 反归一化: (normalized 0~1) -> (pixel coords 0~W/H)
+            bbox = box_xywh_to_xyxy(bbox_xywh).view(1, 4)
             bbox[:, 0::2].mul_(w).clamp_(min=0, max=w)
             bbox[:, 1::2].mul_(h).clamp_(min=0, max=h)
+
+            # -----------------------------------------------------------
+            # 步骤 3: 生成 Tri-state Mask (0=负, 1=正, 255=忽略)
+            # -----------------------------------------------------------
             segment = None
-            if self.load_segmentation and "segmentation" in annotation:
-                # We're not decoding the RLE here, a transform will do it lazily later
-                segment = annotation["segmentation"]
+            if self.load_segmentation: # 只要开启分割就生成
+                # 方案：利用 valid_mask 直接构建
+                
+                # 1. 初始化 Ignore (255)
+                tri_state_mask = np.full((h, w), 255, dtype=np.uint8)
+
+                # 2. 如果有 valid_mask，先设定背景 (0)
+                # valid_mask=1 的区域是所有已知 scribble 的并集
+                if "valid_mask" in annotation and annotation["valid_mask"] is not None:
+                    # 解码 valid_mask
+                    rle_valid = annotation["valid_mask"]
+                    if isinstance(rle_valid, list): # 兼容 polygon
+                        rle_valid = maskUtils.frPyObjects(rle_valid, h, w)
+                    m_valid = maskUtils.decode(rle_valid)
+                    if len(m_valid.shape) == 3: m_valid = m_valid.sum(axis=2) > 0
+                    
+                    # 将所有有效区域设为 0 (背景)
+                    # 稍后会将正样本覆盖为 1
+                    tri_state_mask[m_valid.astype(bool)] = 0
+                else:
+                    # 如果没有 valid_mask，回退策略：假设除了正样本外全是背景(0)或者全是忽略(255)
+                    # 对于弱监督，建议如果没有 valid_mask，则保持 255，只保留正样本
+                    pass
+
+                # 3. 设定正样本 (1) - 使用 Step 1 中已经解码好的 current_binary_mask
+                if current_binary_mask is not None:
+                    tri_state_mask[current_binary_mask] = 1
+
+                # 4. 转 Tensor (LongTensor 用于 CrossEntropy/Focal)
+                segment = torch.from_numpy(tri_state_mask).long()
+
             images[image_id].objects.append(
                 Object(
                     bbox=bbox[0],
@@ -303,7 +378,7 @@ class CustomCocoDetectionAPI(VisionDataset):
                     frame_index=(
                         annotation["frame_index"] if "frame_index" in annotation else -1
                     ),
-                    segment=segment,
+                    segment=segment, # 这里现在是 [H, W] 的 0/1/255 Tensor
                     is_crowd=(
                         annotation["is_crowd"] if "is_crowd" in annotation else None
                     ),

@@ -6,9 +6,8 @@ defaults:
 # Paths Configuration
 # ============================================================================
 paths:
-  # 修改为你的实际绝对路径，确保不写错
-  acdc_data_root: /home/gaoqi/weaksam3/dataset/sam3/ACDC_new
-  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_finetune_test
+  acdc_data_root: /home/gaoqi/sam3/dataset/ACDC_new
+  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_weak_finetune_3
   # BPE 路径
   bpe_path: /home/gaoqi/sam3/assets/bpe_simple_vocab_16e6.txt.gz
   # 预训练模型路径
@@ -29,8 +28,9 @@ acdc_train:
         - _target_: sam3.train.transforms.point_sampling.RandomizeInputBbox
           box_noise_std: 0.1
           box_noise_max: 20
-        # 必须解码 RLE 格式的 mask，因为你的 json 里是 RLE 编码
-        - _target_: sam3.train.transforms.segmentation.DecodeRle
+
+        # gaoqi: 不进行解码,已经在Dataset中手动解码了
+        # - _target_: sam3.train.transforms.segmentation.DecodeRle
         - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
           sizes:
             _target_: sam3.train.transforms.basic.get_random_resize_scales
@@ -65,7 +65,7 @@ acdc_train:
     - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
       transforms:
         # 验证集也需要解码 RLE
-        - _target_: sam3.train.transforms.segmentation.DecodeRle
+        # - _target_: sam3.train.transforms.segmentation.DecodeRle
         - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
           sizes: ${scratch.resolution}
           max_size:
@@ -94,6 +94,7 @@ acdc_train:
         weight_dict:
           loss_bbox: 5.0
           loss_giou: 2.0
+      # 2. IABCEMdetr (分类 Loss)
       - _target_: sam3.train.loss.loss_fns.IABCEMdetr
         weak_loss: False
         weight_dict:
@@ -106,14 +107,24 @@ acdc_train:
         pos_focal: false
         pad_n_queries: 200
         pad_scale_pos: 1.0
+
       # 这里的 Masks loss 是必须的
-      - _target_: sam3.train.loss.loss_fns.Masks
+      # 3. 替换为 PartialMasks
+      - _target_: sam3.train.loss.loss_fns.PartialMasks
         focal_alpha: 0.25
         focal_gamma: 2.0
+        ignore_index: 255 # <--- 你的数据加载器中忽略区域的值
         weight_dict:
           loss_mask: 200.0
           loss_dice: 10.0
-        compute_aux: false # 可以开启？
+        compute_aux: false
+      # - _target_: sam3.train.loss.loss_fns.Masks
+      #   focal_alpha: 0.25
+      #   focal_gamma: 2.0
+      #   weight_dict:
+      #     loss_mask: 200.0
+      #     loss_dice: 10.0
+      #   compute_aux: false # 可以开启？
 
     scale_by_find_batch_size: ${scratch.scale_by_find_batch_size}
 
@@ -154,7 +165,7 @@ scratch:
     use_original_sizes_mask: true
     use_presence: ${scratch.use_presence_eval}
 
-  # Matcher configuration
+  # Matcher Configuration (匹配器配置)
   matcher:
     _target_: sam3.train.matcher.BinaryHungarianMatcherV2
     focal: true 
@@ -257,7 +268,7 @@ trainer:
         use_caching: False
         # 关键路径设置：指向 train 目录，因为 json 中的 filename 包含 images/ 前缀
         img_folder: ${paths.acdc_data_root}/train/
-        ann_file: ${paths.acdc_data_root}/train/image_annotations.coco.json
+        ann_file: ${paths.acdc_data_root}/train/image_scribble_annotations.coco.json
         # 移除了 limit_ids，使用全量数据
 
       shuffle: True
@@ -276,7 +287,7 @@ trainer:
         coco_json_loader:
           _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
           include_negatives: true
-          category_chunk_size: 2
+          category_chunk_size: 10
           _partial_: true
         # 关键路径设置：指向 test 目录
         img_folder: ${paths.acdc_data_root}/test/
@@ -395,9 +406,7 @@ trainer:
 
   checkpoint:
     save_dir: ${launcher.experiment_log_dir}/checkpoints
-    save_freq: 5 # ?
-    # 在验证时，当指定的 meter 组下某个子指标变好时，会额外保存 best checkpoint
-    # 格式为：保存的 key 与 trainer 中生成的 key 一致，例如 "val_acdc/detection"
+    save_freq: 0 # ?
     save_best_meters:
       - "val_acdc/detection"
       - "val_acdc/segmentation"

@@ -100,8 +100,9 @@ class BatchedFindTarget:
     repeated_boxes__type = torch.float
 
     # Target Segmentation masks
+    # gaoqi: 改为 torch.long 以支持弱监督的三值 mask (0=负, 1=正, 255=忽略)
     segments: Optional[MyTensor]
-    segments__type = torch.bool
+    segments__type = torch.long
 
     # Target Semantic Segmentation masks
     semantic_segments: Optional[MyTensor]

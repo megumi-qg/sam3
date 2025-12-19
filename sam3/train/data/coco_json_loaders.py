@@ -186,6 +186,7 @@ class COCO_FROM_JSON:
             "bbox": None,  # Normalized bbox in xywh
             "area": None,  # Unnormalized area
             "segmentation": None,  # RLE encoded
+            "valid_mask": None,    # <--- gaoqi:【新增】添加 valid_mask 字段占位符
             "object_id": None,
             "is_crowd": None,
             "id": None,
@@ -217,13 +218,25 @@ class COCO_FROM_JSON:
                 annotation["object_id"] = annotation["id"]
                 annotation["is_crowd"] = ann["iscrowd"]
 
-                normalized_boxes = convert_boxlist_to_normalized_tensor(
-                    [ann["bbox"]], width, height
-                )
-                bbox = normalized_boxes[0]
-
-                annotation["area"] = (bbox[2] * bbox[3]).item()
-                annotation["bbox"] = bbox
+                # === 修改开始：处理 bbox 缺失的情况 ===
+                # gaoqi: 如果 bbox 不存在，给予一个默认值，避免 Key Error
+                # 后续 sam3_image_dataset.py 会检测并从 segmentation 重新计算
+                if "bbox" in ann:
+                    normalized_boxes = convert_boxlist_to_normalized_tensor(
+                        [ann["bbox"]], width, height
+                    )
+                    bbox = normalized_boxes[0]
+                    annotation["area"] = (bbox[2] * bbox[3]).item()
+                    annotation["bbox"] = bbox
+                else:
+                    # 使用 0 填充，保持 tensor 格式
+                    annotation["bbox"] = torch.tensor([0.0, 0.0, 0.0, 0.0])
+                    # 尝试用 mask 计算 area，如果没有 mask 则为 0
+                    if "area" in ann:
+                        annotation["area"] = float(ann["area"])
+                    else:
+                        annotation["area"] = 0.0
+                # === 修改结束 ===
 
                 if (
                     "segmentation" in ann
@@ -233,6 +246,16 @@ class COCO_FROM_JSON:
                     annotation["segmentation"] = ann_to_rle(
                         ann["segmentation"], im_info=image_info
                     )
+                # === gaoqi:【新增】处理 valid_mask (有效区域约束) ===
+                if (
+                    "valid_mask" in ann
+                    and ann["valid_mask"] is not None
+                    and ann["valid_mask"] != []
+                ):
+                    annotation["valid_mask"] = ann_to_rle(
+                        ann["valid_mask"], im_info=image_info
+                    )
+                # ==========================================
 
                 annotations.append(annotation)
                 cur_ann_ids.append(annotation["id"])

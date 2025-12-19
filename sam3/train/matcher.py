@@ -13,9 +13,29 @@ from torch import nn
 
 
 def _do_matching(cost, repeats=1, return_tgt_indices=False, do_filtering=False):
+    # gaoqi: === 关键修改开始：数据清洗与防崩溃处理 ===
+    # 1. 确保输入转为 NumPy 数组 (如果是 Tensor)
+    if isinstance(cost, torch.Tensor):
+        cost = cost.detach().cpu().numpy()
+    
+    # 2. 检查并清洗无效数值 (NaN 和 Inf)
+    # NaN 通常由 0/0 的 IoU 计算产生，Inf 可能由溢出产生
+    # 使用 0.0 替换 NaN，使用大有限值替换 Inf，确保 scipy 不会崩溃
+    if not np.isfinite(cost).all():
+        cost = np.nan_to_num(cost, nan=0.0, posinf=1e8, neginf=-1e8)
+
+    # 3. 处理空矩阵边界情况
+    # 如果任一维度为 0，直接返回空索引，跳过匹配
+    if cost.shape[0] == 0 or cost.shape[1] == 0:
+        empty_arr = np.array([], dtype=np.int64)
+        if return_tgt_indices:
+            return empty_arr, empty_arr
+        return empty_arr
+
+    # === 关键修改结束 ===
     if repeats > 1:
         cost = np.tile(cost, (1, repeats))
-
+    # # 现在传入的 cost 保证是干净的 NumPy 数组
     i, j = linear_sum_assignment(cost)
     if do_filtering:
         # filter out invalid entries (i.e. those with cost > 1e8)
@@ -25,6 +45,10 @@ def _do_matching(cost, repeats=1, return_tgt_indices=False, do_filtering=False):
         i, j = np.array(i, dtype=np.int64), np.array(j, dtype=np.int64)
     if return_tgt_indices:
         return i, j
+    
+    # gaoqi: 安全检查：如果过滤后为空，直接返回
+    if len(i) == 0:
+        return np.array([], dtype=np.int64)
     order = np.argsort(j)
     return i[order]
 

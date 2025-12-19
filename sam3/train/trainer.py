@@ -808,8 +808,6 @@ class Trainer:
             #     self.device, non_blocking=True
             # )  # move tensors in a tensorclass
 
-            import pdb
-            pdb.set_trace()
 
             try:
                 self._run_step(batch, phase, loss_mts, extra_loss_mts)
@@ -981,7 +979,17 @@ class Trainer:
         checkpoint_save_keys = []
         for key, meter in self._get_meters(phases).items():
             meter_output = meter.compute_synced()
+
+            # gaoqi: --- 修改开始：手动处理 is_better 缺失的情况 ---
             is_better_check = getattr(meter, "is_better", None)
+            # 如果 meter 没有定义 is_better，且我们需要保存这个 key
+            # 我们强制定义一个“越大越好”的规则 (适用于 AP, Dice, Accuracy)
+            if is_better_check is None:
+                if self.checkpoint_conf.save_best_meters is not None and key in self.checkpoint_conf.save_best_meters:
+                    def default_is_better(new_val, old_val):
+                        return new_val > old_val
+                    is_better_check = default_is_better
+            # --- 修改结束 ---
 
             for meter_subkey, meter_value in meter_output.items():
                 out_dict[os.path.join("Meters_train", key, meter_subkey)] = meter_value
@@ -990,19 +998,31 @@ class Trainer:
                     continue
 
                 tracked_meter_key = os.path.join(key, meter_subkey)
+
                 if tracked_meter_key not in self.best_meter_values or is_better_check(
                     meter_value,
                     self.best_meter_values[tracked_meter_key],
                 ):
                     self.best_meter_values[tracked_meter_key] = meter_value
 
+                    logging.info(f"New best found for {tracked_meter_key}: {meter_value}") # 建议加上这句日志
+
                     if (
                         self.checkpoint_conf.save_best_meters is not None
                         and key in self.checkpoint_conf.save_best_meters
-                    ):
-                        checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                    ):  
+                        # checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                        # gaoqi
+                        # 1. 匹配分割的 AP (你的日志里显示它是 coco_eval_segm_AP)
+                        if meter_subkey == "coco_eval_segm_AP":
+                             checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                        
+                        # 2. 如果你也想保存检测(Box)的 AP (日志里是 coco_eval_bbox_AP)
+                        elif meter_subkey == "coco_eval_bbox_AP":
+                             checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
 
         if len(checkpoint_save_keys) > 0:
+            logging.info(f"Saving best checkpoints for: {checkpoint_save_keys}")
             self.save_checkpoint(self.epoch + 1, checkpoint_save_keys)
 
         return out_dict

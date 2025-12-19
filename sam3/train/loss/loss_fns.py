@@ -1,5 +1,4 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
-
 import logging
 import warnings
 
@@ -258,8 +257,15 @@ class LossWithWeights(nn.Module):
         for loss_key, weight in self.weight_dict.items():
             if loss_key not in losses:
                 raise ValueError(f"{type(self)} doesn't compute {loss_key}")
+            
+            # === 修改开始 ===
             if weight != 0:
                 reduced_loss += losses[loss_key] * weight
+            else:
+                # 即使权重为 0，也要乘以 0.0 并相加
+                # 这样可以保持 PyTorch 计算图的连接，防止 DDP 报错 "parameter not used"
+                reduced_loss += losses[loss_key] * 0.0
+            # === 修改结束 ===  
 
         return reduced_loss
 
@@ -364,8 +370,11 @@ class IABCEMdetr(LossWithWeights):
             )
 
             iou = box_ops.fast_diag_box_iou(src_boxes_xyxy, target_boxes_giou)
-            t = prob[(indices[0], indices[1])] ** self.alpha * iou ** (1 - self.alpha)
-            t = torch.clamp(t, 0.01).detach()
+            if self.alpha == -1:
+                t = torch.ones_like(iou)
+            else:
+                t = prob[(indices[0], indices[1])] ** self.alpha * iou ** (1 - self.alpha)
+                t = torch.clamp(t, 0.01).detach()
             positive_target_classes = target_classes.clone()
             positive_target_classes[(indices[0], indices[1])] = t
 
@@ -424,7 +433,10 @@ class IABCEMdetr(LossWithWeights):
                 # no loss here, has it's own separate loss computation
                 assert "presence_logit_dec" not in outputs
             elif "presence_logit_dec" in outputs:
+                # === gaoqi:【修改】给 presence logits 也加锁 ===
                 presence_logits = outputs["presence_logit_dec"].view_as(keep_loss)
+                presence_logits = torch.clamp(presence_logits, min=-100.0, max=100.0)
+                # ===============================================
                 bs = presence_logits.shape[0]
                 presence_loss = sigmoid_focal_loss(
                     presence_logits,
@@ -533,6 +545,16 @@ class Boxes(LossWithWeights):
         targets dicts must contain the key "boxes" containing a tensor of dim [nb_target_boxes, 4]
         The target boxes are expected in format (center_x, center_y, h, w), normalized by the image size.
         """
+        # gaoqi:Optimization: skip if weights are zero
+        if (
+            self.weight_dict.get("loss_bbox", 0) == 0
+            and self.weight_dict.get("loss_giou", 0) == 0
+        ):
+            return {
+                "loss_bbox": outputs["pred_boxes"].sum() * 0.0,
+                "loss_giou": outputs["pred_boxes"].sum() * 0.0,
+            }
+
         # Optionally, not applying Boxes loss to detection queries in video.
         is_video_grounding = outputs.get("is_video_grounding_batch", False)
         if is_video_grounding and not self.apply_loss_to_det_queries_in_video_grounding:
@@ -708,7 +730,123 @@ class Masks(LossWithWeights):
 
         return losses
 
+# gaoqi: 新增 PartialMasks 类，用于处理弱监督的 Mask 损失
+class PartialMasks(LossWithWeights):
+    def __init__(
+        self,
+        weight_dict=None,
+        compute_aux=False,
+        focal_alpha=0.25,
+        focal_gamma=2,
+        ignore_index=255, 
+        apply_loss_to_det_queries_in_video_grounding=True,
+    ):
+        super().__init__(weight_dict, compute_aux)
+        if compute_aux:
+            warnings.warn("Masks loss usually shouldn't be applied to aux outputs")
+        self.focal_alpha = focal_alpha
+        self.focal_gamma = focal_gamma
+        self.ignore_index = ignore_index
+        self.apply_loss_to_det_queries_in_video_grounding = (
+            apply_loss_to_det_queries_in_video_grounding
+        )
+        self.num_sample_points = None 
+        # 不需要 "masks" 和 "is_valid_mask" 以外的 keys 了
+        self.target_keys.extend(["masks", "is_valid_mask"])
 
+    def get_loss(self, outputs, targets, indices, num_boxes):
+        assert "pred_masks" in outputs
+        assert "is_valid_mask" in targets
+        
+        # 1. 获取预测 Mask
+        src_masks = outputs["pred_masks"]
+        src_masks = src_masks[(indices[0], indices[1])]
+
+        # 增加 Channel 维度，变成 [N, 1, H, W]
+        if src_masks.dim() == 3:
+            src_masks = src_masks.unsqueeze(1)
+
+        # 2. 获取 Target Mask
+        # 包含 0, 1, 255
+        target_masks = targets["masks"][indices[2]]
+        if target_masks.dim() == 4:
+            # 假设 dim 0 是 batch，dim 1 是 objects，混合在一起
+            target_masks = target_masks.view(-1, target_masks.shape[-2], target_masks.shape[-1])
+        
+        # 确保 target_masks 也是 [N, 1, H, W]
+        if target_masks.dim() == 3:
+            target_masks = target_masks.unsqueeze(1)
+
+        target_masks = target_masks.to(src_masks.device) 
+
+        # 3. 上采样预测 Mask 到 Target 分辨率
+        # 注意：只对 src 插值，不对 target 插值 (避免破坏整数标签)
+        src_masks = interpolate(
+            src_masks,
+            size=target_masks.shape[-2:],
+            mode="bilinear",
+            align_corners=False,
+        )
+
+        # 5. 生成 Valid Region Mask
+        # 只要不等于 255 (ignore_index)，就是有效区域 (包括 1 和 0)
+        valid_region = (target_masks != self.ignore_index).float()
+
+        if valid_region.sum() == 0:
+             return {
+                "loss_mask": src_masks.sum() * 0.0,
+                "loss_dice": src_masks.sum() * 0.0,
+            }
+
+        # --- A. Focal Loss ---
+        p = src_masks.sigmoid()
+        
+        # 技巧：为了防止 BCE 报错/产生 NaN，先创建一个临时的二值 Target
+        # 把 255 的位置填成 0 (或 1 均可，反正会被 valid_region 乘为 0)
+        target_binary = target_masks.clone()
+        target_binary[target_binary == self.ignore_index] = 0 
+        target_binary = target_binary.float()
+
+        # 计算 Element-wise BCE
+        # gaoqi: Clamp logits to avoid Inf in BCE loss, which can cause NaN when multiplied by 0 valid_region
+        src_masks = torch.clamp(src_masks, min=-50.0, max=50.0)
+        p = src_masks.sigmoid() # recompute sigmoid after clamping
+
+        ce_loss = F.binary_cross_entropy_with_logits(src_masks, target_binary, reduction="none")
+        
+        # Focal Weights: (1 - p_t)^gamma
+        p_t = p * target_binary + (1 - p) * (1 - target_binary)
+        loss_focal_map = ce_loss * ((1 - p_t) ** self.focal_gamma)
+
+        # Alpha Balancing
+        if self.focal_alpha >= 0:
+            alpha_t = self.focal_alpha * target_binary + (1 - self.focal_alpha) * (1 - target_binary)
+            loss_focal_map = alpha_t * loss_focal_map
+
+        # 【核心步骤】Masking: 只保留 Valid 区域的 Loss
+        loss_focal_map = loss_focal_map * valid_region
+        
+        # 归一化: 除以有效像素数 (Per Object Average)
+        valid_pixel_count = valid_region.sum(dim=(2, 3)) + 1e-6 
+        loss_focal_per_object = loss_focal_map.sum(dim=(2, 3)) / valid_pixel_count # [N, 1]
+
+        # --- B. Dice Loss ---
+        # 仅在 Valid 区域计算 Dice
+        inputs_p = p * valid_region
+        targets_t = target_binary * valid_region
+        
+        numerator = 2 * (inputs_p * targets_t).sum(dim=(2, 3))
+        denominator = inputs_p.sum(dim=(2, 3)) + targets_t.sum(dim=(2, 3))
+        loss_dice_per_object = 1 - (numerator + 1) / (denominator + 1) # [N, 1]
+
+        # --- C. Aggregation (Consistent with Masks) ---
+        # Sum over objects and normalize by num_boxes (global number of objects)
+        losses = {
+            "loss_mask": loss_focal_per_object.sum() / num_boxes,
+            "loss_dice": loss_dice_per_object.sum() / num_boxes,
+        }
+
+        return losses
 # class MultiStepIteractiveMasks(LossWithWeights):
 #     def __init__(
 #         self,
