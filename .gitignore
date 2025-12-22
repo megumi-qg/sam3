@@ -167,3 +167,4 @@ experiment/*/*
 !experiment/*/config.yaml
 !experiment/*/logs/
 !experiment/*/logs/**
+!experiment/*/test/**

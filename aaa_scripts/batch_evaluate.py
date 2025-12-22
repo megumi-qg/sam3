@@ -55,7 +55,7 @@ def main():
     
     # 模型配置
     bpe_path = f"{sam3_root}/assets/bpe_simple_vocab_16e6.txt.gz"
-    checkpoint_path = "/home/gaoqi/sam3/experiment/acdc_weak_finetune_3/checkpoints/checkpoint.pt"
+    checkpoint_path = "/home/gaoqi/sam3/experiment/acdc_weak_scribble/checkpoints/val_acdc_segmentation_coco_eval_segm_AP.pt"
     resize_size = 1008
     
     # 预处理检查点：处理 model 键和 detector 前缀

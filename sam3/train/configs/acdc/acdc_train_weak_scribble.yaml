@@ -7,7 +7,7 @@ defaults:
 # ============================================================================
 paths:
   acdc_data_root: /home/gaoqi/sam3/dataset/ACDC_new
-  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_weak_finetune_1
+  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_weak_scribble
   # BPE 路径
   bpe_path: /home/gaoqi/sam3/assets/bpe_simple_vocab_16e6.txt.gz
   # 预训练模型路径
@@ -92,8 +92,8 @@ acdc_train:
     loss_fns_find:
       - _target_: sam3.train.loss.loss_fns.Boxes
         weight_dict:
-          loss_bbox: 5.0
-          loss_giou: 2.0
+          loss_bbox: 0.0
+          loss_giou: 0.0
       # 2. IABCEMdetr (分类 Loss)
       - _target_: sam3.train.loss.loss_fns.IABCEMdetr
         weak_loss: False
@@ -101,7 +101,7 @@ acdc_train:
           loss_ce: 20.0
           presence_loss: 20.0
         pos_weight: 10.0
-        alpha: 0.25
+        alpha: -1  # 原值为 0.25。设为 -1 后，正样本的 Target 将强制设为 1.0，不再乘以 IoU。
         gamma: 2
         use_presence: True
         pos_focal: false
@@ -118,13 +118,6 @@ acdc_train:
           loss_mask: 200.0
           loss_dice: 10.0
         compute_aux: false
-      # - _target_: sam3.train.loss.loss_fns.Masks
-      #   focal_alpha: 0.25
-      #   focal_gamma: 2.0
-      #   weight_dict:
-      #     loss_mask: 200.0
-      #     loss_dice: 10.0
-      #   compute_aux: false # 可以开启？
 
     scale_by_find_batch_size: ${scratch.scale_by_find_batch_size}
 
@@ -157,21 +150,19 @@ scratch:
   segmentation_postprocessor:
     _target_: sam3.eval.postprocessors.PostProcessImage
     max_dets_per_img: -1
-    # 关键修改：这里必须设为 "segm"，源码中靠这个字符串判断是否输出 mask
-    iou_type: "segm"
+    iou_type: "segm" # 关键修改：这里必须设为 "segm"，源码中靠这个字符串判断是否输出 mask
     use_original_ids: true
     use_original_sizes_box: true
-    # 建议加上这个，确保 mask 被还原回原图大小，提高验证准确度
-    use_original_sizes_mask: true
+    use_original_sizes_mask: true # 建议加上这个，确保 mask 被还原回原图大小，提高验证准确度
     use_presence: ${scratch.use_presence_eval}
 
   # Matcher Configuration (匹配器配置)
   matcher:
     _target_: sam3.train.matcher.BinaryHungarianMatcherV2
     focal: true 
-    cost_class: 2.0
-    cost_bbox: 5.0
-    cost_giou: 2.0
+    cost_class: 5.0
+    cost_bbox: 1.0
+    cost_giou: 1.0
     alpha: 0.25
     gamma: 2
     stable: False
@@ -268,7 +259,7 @@ trainer:
         use_caching: False
         # 关键路径设置：指向 train 目录，因为 json 中的 filename 包含 images/ 前缀
         img_folder: ${paths.acdc_data_root}/train/
-        ann_file: ${paths.acdc_data_root}/train/image_scribble_annotations.coco.json
+        ann_file: ${paths.acdc_data_root}/train/image_scribble_annotations_only.coco.json
         # 移除了 limit_ids，使用全量数据
 
       shuffle: True
@@ -406,7 +397,7 @@ trainer:
 
   checkpoint:
     save_dir: ${launcher.experiment_log_dir}/checkpoints
-    save_freq: 0 # ?
+    save_freq: 0
     save_best_meters:
       - "val_acdc/detection"
       - "val_acdc/segmentation"

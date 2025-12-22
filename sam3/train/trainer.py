@@ -443,7 +443,7 @@ class Trainer:
         logging.info(f"Resuming training from {ckpt_path}")
 
         with g_pathmgr.open(ckpt_path, "rb") as f:
-            checkpoint = torch.load(f, map_location="cpu")
+            checkpoint = torch.load(f, map_location="cpu", weights_only=False)
         load_state_dict_into_model(
             model=self.model,
             state_dict=checkpoint["model"],
@@ -980,17 +980,14 @@ class Trainer:
         for key, meter in self._get_meters(phases).items():
             meter_output = meter.compute_synced()
 
-            # gaoqi: --- 修改开始：手动处理 is_better 缺失的情况 ---
+            # gaoqi: --- 手动处理 is_better 缺失的情况 (保持你原有的逻辑) ---
             is_better_check = getattr(meter, "is_better", None)
-            # 如果 meter 没有定义 is_better，且我们需要保存这个 key
-            # 我们强制定义一个“越大越好”的规则 (适用于 AP, Dice, Accuracy)
             if is_better_check is None:
                 if self.checkpoint_conf.save_best_meters is not None and key in self.checkpoint_conf.save_best_meters:
                     def default_is_better(new_val, old_val):
                         return new_val > old_val
                     is_better_check = default_is_better
-            # --- 修改结束 ---
-
+            # -----------------------------------------------------------
             for meter_subkey, meter_value in meter_output.items():
                 out_dict[os.path.join("Meters_train", key, meter_subkey)] = meter_value
 
@@ -999,28 +996,34 @@ class Trainer:
 
                 tracked_meter_key = os.path.join(key, meter_subkey)
 
+                # 检查是否打破纪录
                 if tracked_meter_key not in self.best_meter_values or is_better_check(
                     meter_value,
                     self.best_meter_values[tracked_meter_key],
                 ):
+                    # 1. 首先更新内部的最佳值记录 (对所有指标都执行，确保记录是最新的)
                     self.best_meter_values[tracked_meter_key] = meter_value
 
-                    logging.info(f"New best found for {tracked_meter_key}: {meter_value}") # 建议加上这句日志
-
+                    # 2. 检查是否在配置的保存列表中
                     if (
                         self.checkpoint_conf.save_best_meters is not None
                         and key in self.checkpoint_conf.save_best_meters
-                    ):  
-                        # checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
-                        # gaoqi
-                        # 1. 匹配分割的 AP (你的日志里显示它是 coco_eval_segm_AP)
-                        if meter_subkey == "coco_eval_segm_AP":
-                             checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                    ):
+                        # gaoqi: --- 修改开始：仅针对特定核心指标打印日志并保存 ---
                         
-                        # 2. 如果你也想保存检测(Box)的 AP (日志里是 coco_eval_bbox_AP)
-                        elif meter_subkey == "coco_eval_bbox_AP":
-                             checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                        # 定义你关心的核心指标列表
+                        target_subkeys = ["coco_eval_segm_AP", "coco_eval_bbox_AP"]
 
+                        if meter_subkey in target_subkeys:
+                            # 只有这两个指标变好时，才打印日志
+                            logging.info(f"New best found for {tracked_meter_key}: {meter_value}")
+                            
+                            # 添加到保存列表
+                            checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                        
+                        # --- 修改结束 ---
+
+        # 执行保存
         if len(checkpoint_save_keys) > 0:
             logging.info(f"Saving best checkpoints for: {checkpoint_save_keys}")
             self.save_checkpoint(self.epoch + 1, checkpoint_save_keys)

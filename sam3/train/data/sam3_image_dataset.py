@@ -312,26 +312,35 @@ class CustomCocoDetectionAPI(VisionDataset):
                 current_binary_mask = np.zeros((h, w), dtype=bool)
 
             # -----------------------------------------------------------
-            # 步骤 2: 获取 BBox (直接使用 JSON 中的强监督 Box)
+            # 步骤 2: 获取 BBox ((如果 JSON 中没有，则从 Mask 生成伪 Box))
             # -----------------------------------------------------------
             # COCO Loader 已经读取了 "bbox" 并进行了归一化 (0-1)
-            # 现在的逻辑非常简单：直接拿来反归一化即可，不需要再从 Mask 计算
-            
+            # 检查 JSON 里的 bbox 是否有效 (宽和高 > 0)
+            has_valid_json_bbox = False
             if "bbox" in annotation:
-                bbox_xywh = torch.as_tensor(annotation["bbox"])
-            else:
-                # 理论上 coco_json_loaders 会保证 bbox 存在 (即使是 0,0,0,0)
-                # 这里留一个 fallback 防止 crash
-                bbox_xywh = torch.tensor([0.0, 0.0, 0.0, 0.0], dtype=torch.float32)
+                temp_bbox = torch.as_tensor(annotation["bbox"])
+                # 注意：coco_json_loaders 可能会填充 [0,0,0,0]，需要过滤掉
+                if temp_bbox[2] > 0 and temp_bbox[3] > 0:
+                    has_valid_json_bbox = True
             
-            # 简单的完备性检查 (可选)
-            if bbox_xywh.sum() == 0:
-                print(f"[WARNING] Zero BBox found! Image ID: {annotation.get('image_id')}, Ann ID: {annotation.get('id')}")
-
-            # 反归一化: (normalized 0~1) -> (pixel coords 0~W/H)
-            bbox = box_xywh_to_xyxy(bbox_xywh).view(1, 4)
-            bbox[:, 0::2].mul_(w).clamp_(min=0, max=w)
-            bbox[:, 1::2].mul_(h).clamp_(min=0, max=h)
+            if has_valid_json_bbox:
+                # 原始逻辑：从 JSON 加载并反归一化
+                bbox_xywh = torch.as_tensor(annotation["bbox"])
+                bbox = box_xywh_to_xyxy(bbox_xywh).view(1, 4)
+                bbox[:, 0::2].mul_(w).clamp_(min=0, max=w)
+                bbox[:, 1::2].mul_(h).clamp_(min=0, max=h)
+            else:
+                # === 新增逻辑：从 Scribble Mask 计算 Pseudo BBox ===
+                if current_binary_mask.any():
+                    y_indices, x_indices = np.where(current_binary_mask)
+                    x_min, x_max = x_indices.min(), x_indices.max()
+                    y_min, y_max = y_indices.min(), y_indices.max()
+                    # 构造绝对坐标 XYXY
+                    # 稍微给一点 buffer (可选)，或者直接紧贴 scribble
+                    bbox = torch.tensor([[x_min, y_min, x_max, y_max]], dtype=torch.float32)
+                else:
+                    # 空 Mask 的情况 (防御性代码)
+                    bbox = torch.tensor([[0.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
 
             # -----------------------------------------------------------
             # 步骤 3: 生成 Tri-state Mask (0=负, 1=正, 255=忽略)
