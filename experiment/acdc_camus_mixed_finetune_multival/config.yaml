@@ -1,9 +1,10 @@
 paths:
-  acdc_data_root: /home/gaoqi/weaksam3/dataset/sam3/ACDC_new
-  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_finetune
+  acdc_data_root: /home/gaoqi/sam3/dataset/ACDC
+  camus_data_root: /home/gaoqi/sam3/dataset/CAMUS
+  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_camus_mixed_finetune_multival
   bpe_path: /home/gaoqi/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
   pretrained_checkpoint: /home/gaoqi/official_ckpt/sam3_hf/sam3.pt
-acdc_train:
+mixed_train:
   train_transforms:
   - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
     transforms:
@@ -147,7 +148,7 @@ scratch:
   - 0.5
   num_train_workers: 10
   num_val_workers: 0
-  max_data_epochs: 20
+  max_data_epochs: 50
   target_epoch_size: 1500
   hybrid_repeats: 1
   context_length: 2
@@ -161,7 +162,7 @@ scratch:
   scheduler_timescale: 20
   scheduler_warmup: 20
   scheduler_cooldown: 20
-  val_batch_size: 4
+  val_batch_size: 8
   collate_fn_val:
     _target_: sam3.train.data.collator.collate_fn_api
     _partial_: true
@@ -169,7 +170,7 @@ scratch:
     dict_key: acdc
     with_seg_masks: ${scratch.enable_segmentation}
   gradient_accumulation_steps: 1
-  train_batch_size: 4
+  train_batch_size: 8
   collate_fn:
     _target_: sam3.train.data.collator.collate_fn_api
     _partial_: true
@@ -181,7 +182,7 @@ trainer:
   skip_saving_ckpts: false
   empty_gpu_mem_cache_after_eval: true
   skip_first_val: false
-  max_epochs: 20
+  max_epochs: ${scratch.max_data_epochs}
   accelerator: cuda
   seed_value: 123
   val_epoch_freq: 1
@@ -192,24 +193,48 @@ trainer:
     find_unused_parameters: true
     gradient_as_bucket_view: true
   loss:
-    all: ${acdc_train.loss}
+    all: ${mixed_train.loss}
     default:
       _target_: sam3.train.loss.sam3_loss.DummyLoss
   data:
     train:
       _target_: sam3.train.data.torch_dataset.TorchDataset
       dataset:
-        _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
-        transforms: ${acdc_train.train_transforms}
-        load_segmentation: ${scratch.enable_segmentation}
-        max_ann_per_img: 500000
-        multiplier: 1
-        max_train_queries: 50000
-        max_val_queries: 50000
-        training: true
-        use_caching: false
-        img_folder: ${paths.acdc_data_root}/train/
-        ann_file: ${paths.acdc_data_root}/train/image_annotations.coco.json
+        _target_: torch.utils.data.ConcatDataset
+        datasets:
+        - _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+          transforms: ${mixed_train.train_transforms}
+          load_segmentation: ${scratch.enable_segmentation}
+          max_ann_per_img: 500000
+          multiplier: 1
+          max_train_queries: 50000
+          max_val_queries: 50000
+          training: true
+          use_caching: false
+          img_folder: ${paths.acdc_data_root}/train/
+          ann_file: ${paths.acdc_data_root}/train/image_annotations.coco.json
+        - _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+          transforms: ${mixed_train.train_transforms}
+          load_segmentation: ${scratch.enable_segmentation}
+          max_ann_per_img: 500000
+          multiplier: 1
+          max_train_queries: 50000
+          max_val_queries: 50000
+          training: true
+          use_caching: false
+          img_folder: ${paths.camus_data_root}/train/
+          ann_file: ${paths.camus_data_root}/train/image_annotations.coco.json
+        - _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+          transforms: ${mixed_train.train_transforms}
+          load_segmentation: ${scratch.enable_segmentation}
+          max_ann_per_img: 500000
+          multiplier: 1
+          max_train_queries: 50000
+          max_val_queries: 50000
+          training: true
+          use_caching: false
+          img_folder: ${paths.camus_data_root}/val/
+          ann_file: ${paths.camus_data_root}/val/image_annotations.coco.json
       shuffle: true
       batch_size: ${scratch.train_batch_size}
       num_workers: ${scratch.num_train_workers}
@@ -217,27 +242,62 @@ trainer:
       drop_last: true
       collate_fn: ${scratch.collate_fn}
     val:
-      _target_: sam3.train.data.torch_dataset.TorchDataset
-      dataset:
-        _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
-        load_segmentation: ${scratch.enable_segmentation}
-        coco_json_loader:
-          _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
-          include_negatives: true
-          category_chunk_size: 2
-          _partial_: true
-        img_folder: ${paths.acdc_data_root}/test/
-        ann_file: ${paths.acdc_data_root}/test/image_annotations.coco.json
-        transforms: ${acdc_train.val_transforms}
-        max_ann_per_img: 100000
-        multiplier: 1
-        training: false
-      shuffle: false
-      batch_size: ${scratch.val_batch_size}
-      num_workers: ${scratch.num_val_workers}
-      pin_memory: true
-      drop_last: false
-      collate_fn: ${scratch.collate_fn_val}
+      _target_: sam3.train.data.multi_val_dataset.MultiValDataset
+      val_datasets:
+        acdc:
+          _target_: sam3.train.data.torch_dataset.TorchDataset
+          dataset:
+            _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+            load_segmentation: ${scratch.enable_segmentation}
+            coco_json_loader:
+              _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
+              include_negatives: true
+              category_chunk_size: 10
+              _partial_: true
+            img_folder: ${paths.acdc_data_root}/test/
+            ann_file: ${paths.acdc_data_root}/test/image_annotations.coco.json
+            transforms: ${mixed_train.val_transforms}
+            max_ann_per_img: 100000
+            multiplier: 1
+            training: false
+          shuffle: false
+          batch_size: ${scratch.val_batch_size}
+          num_workers: ${scratch.num_val_workers}
+          pin_memory: true
+          drop_last: false
+          collate_fn:
+            _target_: sam3.train.data.collator.collate_fn_api
+            _partial_: true
+            repeats: ${scratch.hybrid_repeats}
+            dict_key: acdc
+            with_seg_masks: ${scratch.enable_segmentation}
+        camus:
+          _target_: sam3.train.data.torch_dataset.TorchDataset
+          dataset:
+            _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+            load_segmentation: ${scratch.enable_segmentation}
+            coco_json_loader:
+              _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
+              include_negatives: true
+              category_chunk_size: 10
+              _partial_: true
+            img_folder: ${paths.camus_data_root}/test/
+            ann_file: ${paths.camus_data_root}/test/image_annotations.coco.json
+            transforms: ${mixed_train.val_transforms}
+            max_ann_per_img: 100000
+            multiplier: 1
+            training: false
+          shuffle: false
+          batch_size: ${scratch.val_batch_size}
+          num_workers: ${scratch.num_val_workers}
+          pin_memory: true
+          drop_last: false
+          collate_fn:
+            _target_: sam3.train.data.collator.collate_fn_api
+            _partial_: true
+            repeats: ${scratch.hybrid_repeats}
+            dict_key: camus
+            with_seg_masks: ${scratch.enable_segmentation}
   model:
     _target_: sam3.model_builder.build_sam3_image_model
     bpe_path: ${paths.bpe_path}
@@ -273,6 +333,33 @@ trainer:
           pred_file_evaluators:
           - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
             gt_path: ${paths.acdc_data_root}/test/image_annotations.coco.json
+            tide: false
+            iou_type: segm
+      camus:
+        detection:
+          _target_: sam3.eval.coco_writer.PredictionDumper
+          iou_type: bbox
+          dump_dir: ${launcher.experiment_log_dir}/dumps/camus
+          merge_predictions: true
+          postprocessor: ${scratch.original_box_postprocessor}
+          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
+          maxdets: 100
+          pred_file_evaluators:
+          - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+            gt_path: ${paths.camus_data_root}/test/image_annotations.coco.json
+            tide: false
+            iou_type: bbox
+        segmentation:
+          _target_: sam3.eval.coco_writer.PredictionDumper
+          iou_type: segm
+          dump_dir: ${launcher.experiment_log_dir}/dumps/camus
+          merge_predictions: true
+          postprocessor: ${scratch.segmentation_postprocessor}
+          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
+          maxdets: 100
+          pred_file_evaluators:
+          - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+            gt_path: ${paths.camus_data_root}/test/image_annotations.coco.json
             tide: false
             iou_type: segm
   optim:
@@ -330,10 +417,12 @@ trainer:
         - torch.nn.LayerNorm
   checkpoint:
     save_dir: ${launcher.experiment_log_dir}/checkpoints
-    save_freq: 0
+    save_freq: 5
     save_best_meters:
     - val_acdc/detection
     - val_acdc/segmentation
+    - val_camus/detection
+    - val_camus/segmentation
   logging:
     tensorboard_writer:
       _target_: sam3.train.utils.logger.make_tensorboard_logger
@@ -341,7 +430,7 @@ trainer:
       flush_secs: 120
       should_log: true
     wandb_writer: null
-    log_dir: ${launcher.experiment_log_dir}/logs/acdc
+    log_dir: ${launcher.experiment_log_dir}/logs/mixed
     log_freq: 10
 launcher:
   num_nodes: 1

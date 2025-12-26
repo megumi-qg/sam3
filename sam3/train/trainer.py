@@ -808,8 +808,6 @@ class Trainer:
             #     self.device, non_blocking=True
             # )  # move tensors in a tensorclass
 
-            import pdb
-            pdb.set_trace()
 
             try:
                 self._run_step(batch, phase, loss_mts, extra_loss_mts)
@@ -981,7 +979,15 @@ class Trainer:
         checkpoint_save_keys = []
         for key, meter in self._get_meters(phases).items():
             meter_output = meter.compute_synced()
+
+            # gaoqi: --- 手动处理 is_better 缺失的情况 (保持你原有的逻辑) ---
             is_better_check = getattr(meter, "is_better", None)
+            if is_better_check is None:
+                if self.checkpoint_conf.save_best_meters is not None and key in self.checkpoint_conf.save_best_meters:
+                    def default_is_better(new_val, old_val):
+                        return new_val > old_val
+                    is_better_check = default_is_better
+            # -----------------------------------------------------------
 
             for meter_subkey, meter_value in meter_output.items():
                 out_dict[os.path.join("Meters_train", key, meter_subkey)] = meter_value
@@ -1000,8 +1006,16 @@ class Trainer:
                         self.checkpoint_conf.save_best_meters is not None
                         and key in self.checkpoint_conf.save_best_meters
                     ):
-                        checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                        # gaoqi: --- 修改开始：仅针对特定核心指标打印日志并保存 ---
+                        # 定义你关心的核心指标列表
+                        target_subkeys = ["coco_eval_segm_AP", "coco_eval_bbox_AP"]
 
+                        if meter_subkey in target_subkeys:
+                            # 只有这两个指标变好时，才打印日志
+                            logging.info(f"New best found for {tracked_meter_key}: {meter_value}")
+                            # 添加到保存列表
+                            checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                        # --- 修改结束 ---
         if len(checkpoint_save_keys) > 0:
             self.save_checkpoint(self.epoch + 1, checkpoint_save_keys)
 

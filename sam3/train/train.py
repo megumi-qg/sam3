@@ -31,10 +31,11 @@ CUDA_VISIBLE_DEVICES=2,3 nohup python sam3/train/train.py \
     --num-gpus 2 \
     > train.log 2>&1 &
 
-CUDA_VISIBLE_DEVICES=0 python sam3/train/train.py \
-    -c configs/acdc/acdc_eval.yaml \
+CUDA_VISIBLE_DEVICES=1,2 nohup python sam3/train/train.py \
+    -c configs/acdc/acdc_camus_mixed_train_multival.yaml \
     --use-cluster 0 \
-    --num-gpus 1
+    --num-gpus 2 \
+    > acdc_camus_mixed_train_multival.log 2>&1 &
 
     -c configs/roboflow_v100/roboflow_v100_full_ft_100_images.yaml
     -c configsCUDA_VISIBLE_DEVICES=2 python sam3/train/train.py/acdc/acdc_train.yaml

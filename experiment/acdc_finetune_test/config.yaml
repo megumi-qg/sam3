@@ -1,6 +1,6 @@
 paths:
   acdc_data_root: /home/gaoqi/weaksam3/dataset/sam3/ACDC_new
-  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_finetune
+  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_finetune_test
   bpe_path: /home/gaoqi/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
   pretrained_checkpoint: /home/gaoqi/official_ckpt/sam3_hf/sam3.pt
 acdc_train:
