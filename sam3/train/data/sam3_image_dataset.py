@@ -343,19 +343,20 @@ class CustomCocoDetectionAPI(VisionDataset):
                     bbox = torch.tensor([[0.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
 
             # -----------------------------------------------------------
-            # 步骤 3: 生成 Tri-state Mask (0=负, 1=正, 255=忽略)
+            # 步骤 3: 生成 Mask (全监督: 0/1, 弱监督: 0/1/255)
             # -----------------------------------------------------------
             segment = None
             if self.load_segmentation: # 只要开启分割就生成
-                # 方案：利用 valid_mask 直接构建
+                # 检测是否为弱监督任务（通过 valid_mask 判断）
+                has_valid_mask = "valid_mask" in annotation and annotation["valid_mask"] is not None
                 
-                # 1. 初始化 Ignore (255)
-                tri_state_mask = np.full((h, w), 255, dtype=np.uint8)
-
-                # 2. 如果有 valid_mask，先设定背景 (0)
-                # valid_mask=1 的区域是所有已知 scribble 的并集
-                if "valid_mask" in annotation and annotation["valid_mask"] is not None:
-                    # 解码 valid_mask
+                if has_valid_mask:
+                    # === 弱监督任务：生成 Tri-state Mask (0=负, 1=正, 255=忽略) ===
+                    # 1. 初始化 Ignore (255)
+                    tri_state_mask = np.full((h, w), 255, dtype=np.uint8)
+                    
+                    # 2. 解码 valid_mask 并设定背景 (0)
+                    # valid_mask=1 的区域是所有已知 scribble 的并集
                     rle_valid = annotation["valid_mask"]
                     if isinstance(rle_valid, list): # 兼容 polygon
                         rle_valid = maskUtils.frPyObjects(rle_valid, h, w)
@@ -365,17 +366,24 @@ class CustomCocoDetectionAPI(VisionDataset):
                     # 将所有有效区域设为 0 (背景)
                     # 稍后会将正样本覆盖为 1
                     tri_state_mask[m_valid.astype(bool)] = 0
+                    
+                    # 3. 设定正样本 (1) - 使用 Step 1 中已经解码好的 current_binary_mask
+                    if current_binary_mask is not None:
+                        tri_state_mask[current_binary_mask] = 1
+                    
+                    # 4. 转 Tensor
+                    segment = torch.from_numpy(tri_state_mask).long()
                 else:
-                    # 如果没有 valid_mask，回退策略：假设除了正样本外全是背景(0)或者全是忽略(255)
-                    # 对于弱监督，建议如果没有 valid_mask，则保持 255，只保留正样本
-                    pass
-
-                # 3. 设定正样本 (1) - 使用 Step 1 中已经解码好的 current_binary_mask
-                if current_binary_mask is not None:
-                    tri_state_mask[current_binary_mask] = 1
-
-                # 4. 转 Tensor (LongTensor 用于 CrossEntropy/Focal)
-                segment = torch.from_numpy(tri_state_mask).long()
+                    # === 全监督任务：生成二值 Mask (0=背景, 1=前景) ===
+                    if current_binary_mask is not None:
+                        # 直接使用二值 mask：True -> 1, False -> 0
+                        binary_mask = current_binary_mask.astype(np.uint8)
+                    else:
+                        # 防御性代码：如果没有 mask，创建全零 mask
+                        binary_mask = np.zeros((h, w), dtype=np.uint8)
+                    
+                    # 转 Tensor
+                    segment = torch.from_numpy(binary_mask).long()
 
             images[image_id].objects.append(
                 Object(

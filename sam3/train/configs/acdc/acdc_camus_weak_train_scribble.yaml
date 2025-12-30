@@ -3,20 +3,55 @@ defaults:
   - _self_
 
 # ============================================================================
+# 数据集采样说明（弱监督版本）
+# ============================================================================
+# 本配置使用 PyTorch 的 ConcatDataset 合并 ACDC 和 CAMUS 数据集
+# 进行弱监督微调（只能看到 Scribble 标注，看不到完整的 ground truth）
+#
+# 【训练集组成】
+# - ACDC train 数据集（使用 scribble 标注）
+# - CAMUS train 数据集（使用 scribble 标注）
+# - CAMUS val 数据集（使用 scribble 标注，因为 CAMUS test 已用作验证集）
+#
+# 【训练集采样方式】
+# - ConcatDataset 会按顺序连接三个数据集：ACDC train -> CAMUS train -> CAMUS val
+# - 但由于训练时设置了 shuffle=True 和 DistributedSampler，会随机打乱整个
+#   ConcatDataset 的索引，因此实际训练时是**混合随机采样**的
+# - 每个 epoch 都会重新打乱，确保所有数据集的样本充分混合
+#
+# 【验证集采样方式】
+# - 验证集使用 shuffle=False，因此会**按顺序采样**：
+#   先遍历完 ACDC test 的所有验证样本，再遍历 CAMUS test 的所有验证样本
+# - 这样设计是为了便于分别评估两个数据集的性能
+# - 注意：验证集使用完整的 ground truth 标注（不是 scribble）
+#
+# 【弱监督关键配置】
+# - 使用 PartialMasks loss（支持 ignore_index=255 来忽略未标注区域）
+# - Box loss 权重设为 0.0（因为 scribble 无法提供准确的 bbox）
+# - IABCEMdetr 的 alpha 设为 -1（强制正样本 target 为 1.0，不乘以 IoU）
+# - Matcher 的 cost_class 提高至 5.0，cost_bbox 降低至 1.0
+# ============================================================================
+
+# ============================================================================
 # Paths Configuration
 # ============================================================================
 paths:
+  # ACDC数据集路径
   acdc_data_root: /home/gaoqi/sam3/dataset/ACDC
-  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_finetune_test
+  # CAMUS数据集路径
+  camus_data_root: /home/gaoqi/sam3/dataset/CAMUS
+  # 实验日志目录
+  experiment_log_dir: /home/gaoqi/sam3/experiment/acdc_camus_weak_scribble_1
+  # BPE 路径
   bpe_path: /home/gaoqi/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
+  # 预训练模型路径
   pretrained_checkpoint: /home/gaoqi/official_ckpt/sam3_hf/sam3.pt
 
 # ============================================================================
-# ACDC Dataset Configuration
+# Mixed Dataset Configuration (ACDC + CAMUS, Weak Supervision)
 # ============================================================================
-acdc_train:
-  # Training transforms pipeline
-  # 针对 MRI 图像，通常不需要太强的颜色抖动，但几何变换（Resize/Pad）是必须的
+mixed_train:
+  # Training transforms pipeline (两个数据集共享相同的transforms)
   train_transforms:
     - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
       transforms:
@@ -26,8 +61,8 @@ acdc_train:
         - _target_: sam3.train.transforms.point_sampling.RandomizeInputBbox
           box_noise_std: 0.1
           box_noise_max: 20
-        # 必须解码 RLE 格式的 mask，因为你的 json 里是 RLE 编码
-        - _target_: sam3.train.transforms.segmentation.DecodeRle
+        # gaoqi: 不进行解码,已经在Dataset中手动解码了
+        # - _target_: sam3.train.transforms.segmentation.DecodeRle
         - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
           sizes:
             _target_: sam3.train.transforms.basic.get_random_resize_scales
@@ -61,7 +96,7 @@ acdc_train:
   val_transforms:
     - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
       transforms:
-        # 验证集也需要解码 RLE
+        # 验证集也需要解码 RLE（验证集使用完整的 ground truth）
         - _target_: sam3.train.transforms.segmentation.DecodeRle
         - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
           sizes: ${scratch.resolution}
@@ -75,7 +110,7 @@ acdc_train:
           mean: ${scratch.train_norm_mean}
           std: ${scratch.train_norm_std}
 
-  # Loss Config (With Mask Loss ENABLED)
+  # Loss Config (Weak Supervision with PartialMasks)
   loss:
     _target_: sam3.train.loss.sam3_loss.Sam3LossWrapper
     matcher: ${scratch.matcher}
@@ -87,45 +122,33 @@ acdc_train:
       topk: 4
     use_o2m_matcher_on_o2m_aux: false
     loss_fns_find:
+      # 1. Boxes Loss (弱监督中设为 0.0，因为 scribble 无法提供准确的 bbox)
       - _target_: sam3.train.loss.loss_fns.Boxes
         weight_dict:
-          loss_bbox: 5.0
-          loss_giou: 2.0
+          loss_bbox: 0.0
+          loss_giou: 0.0
+      # 2. IABCEMdetr (分类 Loss)
       - _target_: sam3.train.loss.loss_fns.IABCEMdetr
         weak_loss: False
         weight_dict:
           loss_ce: 20.0
           presence_loss: 20.0
         pos_weight: 10.0
-        alpha: 0.25
+        alpha: -1  # 原值为 0.25。设为 -1 后，正样本的 Target 将强制设为 1.0，不再乘以 IoU。
         gamma: 2
         use_presence: True
         pos_focal: false
         pad_n_queries: 200
         pad_scale_pos: 1.0
-      # 这里的 Masks loss 是必须的
-      - _target_: sam3.train.loss.loss_fns.Masks
+      # 3. PartialMasks (弱监督专用，支持 ignore_index=255)
+      - _target_: sam3.train.loss.loss_fns.PartialMasks
         focal_alpha: 0.25
         focal_gamma: 2.0
+        ignore_index: 255 # <--- 数据加载器中忽略区域的值
         weight_dict:
           loss_mask: 200.0
           loss_dice: 10.0
-        compute_aux: false # 可以开启？
-    # 对于 Instance Segmentation，通常只需要 loss_fns_find 里的 Masks 即可
-    # 如果你需要 Semantic Seg (全图语义分割)，可以取消下面的注释，但通常 SAM 微调不需要
-    # 如果设置 enable_segmentation: True, 则必须要语义分割损失
-    # loss_fn_semantic_seg:
-    #   _target_: sam3.train.loss.loss_fns.SemanticSegCriterion
-    #   presence_head: True
-    #   presence_loss: False
-    #   focal: True
-    #   focal_alpha: 0.6
-    #   focal_gamma: 2.0
-    #   downsample: False
-    #   weight_dict:
-    #     loss_semantic_seg: 20.0
-    #     loss_semantic_presence: 1.0
-    #     loss_semantic_dice: 30.0
+        compute_aux: false
 
     scale_by_find_batch_size: ${scratch.scale_by_find_batch_size}
 
@@ -154,25 +177,23 @@ scratch:
     use_original_sizes_box: true
     use_presence: ${scratch.use_presence_eval}
   
-  # 【新增】这里是需要添加的内容！
+  # Segmentation postprocessor
   segmentation_postprocessor:
     _target_: sam3.eval.postprocessors.PostProcessImage
     max_dets_per_img: -1
-    # 关键修改：这里必须设为 "segm"，源码中靠这个字符串判断是否输出 mask
-    iou_type: "segm"
+    iou_type: "segm" # 关键修改：这里必须设为 "segm"，源码中靠这个字符串判断是否输出 mask
     use_original_ids: true
     use_original_sizes_box: true
-    # 建议加上这个，确保 mask 被还原回原图大小，提高验证准确度
-    use_original_sizes_mask: true
+    use_original_sizes_mask: true # 建议加上这个，确保 mask 被还原回原图大小，提高验证准确度
     use_presence: ${scratch.use_presence_eval}
 
-  # Matcher configuration
+  # Matcher Configuration (弱监督版本：提高分类权重，降低 bbox 权重)
   matcher:
     _target_: sam3.train.matcher.BinaryHungarianMatcherV2
     focal: true 
-    cost_class: 2.0
-    cost_bbox: 5.0
-    cost_giou: 2.0
+    cost_class: 5.0  # 弱监督中提高分类权重
+    cost_bbox: 1.0   # 弱监督中降低 bbox 权重（因为 scribble 无法提供准确的 bbox）
+    cost_giou: 1.0
     alpha: 0.25
     gamma: 2
     stable: False
@@ -193,7 +214,7 @@ scratch:
   num_train_workers: 10
   num_val_workers: 0
   max_data_epochs: 50
-  target_epoch_size: 1500 # 它强制定义了一个 Epoch 包含多少次迭代（iterations）或多少个样本。
+  target_epoch_size: 1500
   hybrid_repeats: 1
   context_length: 2
   gather_pred_via_filesys: false
@@ -209,18 +230,15 @@ scratch:
   scheduler_warmup: 20
   scheduler_cooldown: 20
 
-  # Batch Sizes
-  val_batch_size: 4
-  collate_fn_val:
-    _target_: sam3.train.data.collator.collate_fn_api
-    _partial_: true
-    repeats: ${scratch.hybrid_repeats}
-    dict_key: acdc # 对应 meters 中的 key
-    with_seg_masks: ${scratch.enable_segmentation}
+  # Batch Sizes，指分配到每张卡的batch_size
+  val_batch_size: 8
+  # dict_key 的作用：用于匹配 loss 和 meter 配置。
+  # 在 _step 中会从 batch 中提取 dict_key，并用它查找对应的 loss 和 meter。
+  # 注意：collate_fn_val 在这里不需要配置，因为 MultiValDataset 中每个验证数据集
+  # 都有自己的 collate_fn 配置（见 trainer.data.val.val_datasets 部分）
 
   gradient_accumulation_steps: 1
-  # 如果显存不够（如 < 24GB），保持为 1，如果够大可以设为 2 或 4
-  train_batch_size: 4
+  train_batch_size: 8
   collate_fn:
     _target_: sam3.train.data.collator.collate_fn_api
     _partial_: true
@@ -236,11 +254,11 @@ trainer:
   _target_: sam3.train.trainer.Trainer
   skip_saving_ckpts: false
   empty_gpu_mem_cache_after_eval: True
-  skip_first_val: False # 不要跳过【第 0 个 Epoch 结束时的】验证
-  max_epochs:  ${scratch.max_data_epochs}
+  skip_first_val: True  # 弱监督训练时跳过第一个验证
+  max_epochs: ${scratch.max_data_epochs}
   accelerator: cuda
   seed_value: 123
-  val_epoch_freq: 1 # 每1个epoch验证一次
+  val_epoch_freq: 2  # 每2个epoch验证一次
   mode: train
   gradient_accumulation_steps: ${scratch.gradient_accumulation_steps}
 
@@ -250,7 +268,7 @@ trainer:
     gradient_as_bucket_view: True
 
   loss:
-    all: ${acdc_train.loss}
+    all: ${mixed_train.loss}
     default:
       _target_: sam3.train.loss.sam3_loss.DummyLoss
 
@@ -258,19 +276,45 @@ trainer:
     train:
       _target_: sam3.train.data.torch_dataset.TorchDataset
       dataset:
-        _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
-        transforms: ${acdc_train.train_transforms}
-        load_segmentation: ${scratch.enable_segmentation}
-        max_ann_per_img: 500000
-        multiplier: 1
-        max_train_queries: 50000
-        max_val_queries: 50000
-        training: true
-        use_caching: False
-        # 关键路径设置：指向 train 目录，因为 json 中的 filename 包含 images/ 前缀
-        img_folder: ${paths.acdc_data_root}/train/
-        ann_file: ${paths.acdc_data_root}/train/image_annotations.coco.json
-        # 移除了 limit_ids，使用全量数据
+        # 使用 ConcatDataset 合并 ACDC 和 CAMUS 数据集
+        _target_: torch.utils.data.ConcatDataset
+        datasets:
+          # ACDC 数据集（使用 scribble 标注）
+          - _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+            transforms: ${mixed_train.train_transforms}
+            load_segmentation: ${scratch.enable_segmentation}
+            max_ann_per_img: 500000
+            multiplier: 1
+            max_train_queries: 50000
+            max_val_queries: 50000
+            training: true
+            use_caching: False
+            img_folder: ${paths.acdc_data_root}/train/
+            ann_file: ${paths.acdc_data_root}/train/image_scribble_annotations_only.coco.json
+          # CAMUS 训练集（使用 scribble 标注）
+          - _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+            transforms: ${mixed_train.train_transforms}
+            load_segmentation: ${scratch.enable_segmentation}
+            max_ann_per_img: 500000
+            multiplier: 1
+            max_train_queries: 50000
+            max_val_queries: 50000
+            training: true
+            use_caching: False
+            img_folder: ${paths.camus_data_root}/train/
+            ann_file: ${paths.camus_data_root}/train/image_scribble_annotations.coco.json
+          # CAMUS 验证集（加入训练集，使用 scribble 标注）
+          - _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+            transforms: ${mixed_train.train_transforms}
+            load_segmentation: ${scratch.enable_segmentation}
+            max_ann_per_img: 500000
+            multiplier: 1
+            max_train_queries: 50000
+            max_val_queries: 50000
+            training: true
+            use_caching: False
+            img_folder: ${paths.camus_data_root}/val/
+            ann_file: ${paths.camus_data_root}/val/image_scribble_annotations.coco.json
 
       shuffle: True
       batch_size: ${scratch.train_batch_size}
@@ -280,39 +324,70 @@ trainer:
       collate_fn: ${scratch.collate_fn}
 
     val:
-      _target_: sam3.train.data.torch_dataset.TorchDataset
-      dataset:
-        _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
-        load_segmentation: ${scratch.enable_segmentation}
-        # 使用 COCO Json Loader 进行验证
-        coco_json_loader:
-          _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
-          include_negatives: true
-          category_chunk_size: 2
-          _partial_: true
-        # 关键路径设置：指向 test 目录
-        img_folder: ${paths.acdc_data_root}/test/
-        ann_file: ${paths.acdc_data_root}/test/image_annotations.coco.json
-        transforms: ${acdc_train.val_transforms}
-        max_ann_per_img: 100000
-        multiplier: 1
-        training: false
-
-      shuffle: False
-      batch_size: ${scratch.val_batch_size}
-      num_workers: ${scratch.num_val_workers}
-      pin_memory: True
-      drop_last: False
-      collate_fn: ${scratch.collate_fn_val}
+      # 使用 MultiValDataset 包装多个验证数据集
+      _target_: sam3.train.data.multi_val_dataset.MultiValDataset
+      val_datasets:
+        acdc:
+          _target_: sam3.train.data.torch_dataset.TorchDataset
+          dataset:
+            _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+            load_segmentation: ${scratch.enable_segmentation}
+            coco_json_loader:
+              _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
+              include_negatives: true
+              category_chunk_size: 10
+              _partial_: true
+            img_folder: ${paths.acdc_data_root}/test/
+            ann_file: ${paths.acdc_data_root}/test/image_annotations.coco.json  # 验证集使用完整标注
+            transforms: ${mixed_train.val_transforms}
+            max_ann_per_img: 100000
+            multiplier: 1
+            training: false
+          shuffle: False
+          batch_size: ${scratch.val_batch_size}
+          num_workers: ${scratch.num_val_workers}
+          pin_memory: True
+          drop_last: False
+          collate_fn:
+            _target_: sam3.train.data.collator.collate_fn_api
+            _partial_: true
+            repeats: ${scratch.hybrid_repeats}
+            dict_key: acdc
+            with_seg_masks: ${scratch.enable_segmentation}
+        camus:
+          _target_: sam3.train.data.torch_dataset.TorchDataset
+          dataset:
+            _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+            load_segmentation: ${scratch.enable_segmentation}
+            coco_json_loader:
+              _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
+              include_negatives: true
+              category_chunk_size: 10
+              _partial_: true
+            img_folder: ${paths.camus_data_root}/test/
+            ann_file: ${paths.camus_data_root}/test/image_annotations.coco.json  # 验证集使用完整标注
+            transforms: ${mixed_train.val_transforms}
+            max_ann_per_img: 100000
+            multiplier: 1
+            training: false
+          shuffle: False
+          batch_size: ${scratch.val_batch_size}
+          num_workers: ${scratch.num_val_workers}
+          pin_memory: True
+          drop_last: False
+          collate_fn:
+            _target_: sam3.train.data.collator.collate_fn_api
+            _partial_: true
+            repeats: ${scratch.hybrid_repeats}
+            dict_key: camus
+            with_seg_masks: ${scratch.enable_segmentation}
 
   model:
     _target_: sam3.model_builder.build_sam3_image_model
     bpe_path: ${paths.bpe_path}
     device: cpus
     eval_mode: false
-    
     enable_segmentation: ${scratch.enable_segmentation}
-    # 使用本地路径
     checkpoint_path: ${paths.pretrained_checkpoint}
     load_from_HF: false
 
@@ -337,14 +412,39 @@ trainer:
           iou_type: "segm"
           dump_dir: ${launcher.experiment_log_dir}/dumps/acdc
           merge_predictions: True
-          # postprocessor: ${scratch.original_box_postprocessor}
-          # 【修改这里】将 original_box_postprocessor 改为 segmentation_postprocessor
           postprocessor: ${scratch.segmentation_postprocessor}
           gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
               gt_path: ${paths.acdc_data_root}/test/image_annotations.coco.json
+              tide: False
+              iou_type: "segm"
+      camus:
+        detection:
+          _target_: sam3.eval.coco_writer.PredictionDumper
+          iou_type: "bbox"
+          dump_dir: ${launcher.experiment_log_dir}/dumps/camus
+          merge_predictions: True
+          postprocessor: ${scratch.original_box_postprocessor}
+          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
+          maxdets: 100
+          pred_file_evaluators:
+            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+              gt_path: ${paths.camus_data_root}/test/image_annotations.coco.json
+              tide: False
+              iou_type: "bbox"
+        segmentation:
+          _target_: sam3.eval.coco_writer.PredictionDumper
+          iou_type: "segm"
+          dump_dir: ${launcher.experiment_log_dir}/dumps/camus
+          merge_predictions: True
+          postprocessor: ${scratch.segmentation_postprocessor}
+          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
+          maxdets: 100
+          pred_file_evaluators:
+            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+              gt_path: ${paths.camus_data_root}/test/image_annotations.coco.json
               tide: False
               iou_type: "segm"
 
@@ -408,12 +508,12 @@ trainer:
 
   checkpoint:
     save_dir: ${launcher.experiment_log_dir}/checkpoints
-    save_freq: 5
-    # 在验证时，当指定的 meter 组下某个子指标变好时，会额外保存 best checkpoint
-    # 格式为：保存的 key 与 trainer 中生成的 key 一致，例如 "val_acdc/detection"
+    save_freq: 0  # 弱监督训练时只保存 best checkpoint
     save_best_meters:
       - "val_acdc/detection"
       - "val_acdc/segmentation"
+      - "val_camus/detection"
+      - "val_camus/segmentation"
 
   logging:
     tensorboard_writer:
@@ -422,7 +522,7 @@ trainer:
       flush_secs: 120
       should_log: True
     wandb_writer: null
-    log_dir: ${launcher.experiment_log_dir}/logs/acdc
+    log_dir: ${launcher.experiment_log_dir}/logs/mixed
     log_freq: 10
 
 # ============================================================================
@@ -444,3 +544,4 @@ submitit:
   cpus_per_task: 10
   port_range: [10000, 65000]
   constraint: null
+
