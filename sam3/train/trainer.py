@@ -172,6 +172,20 @@ class Trainer:
         skip_saving_ckpts: bool = False,
         empty_gpu_mem_cache_after_eval: bool = True,
         gradient_accumulation_steps: int = 1,
+        # 渐进式训练参数
+        enable_progressive_training: bool = False,
+        bbox_update_epoch_interval: int = 5,
+        initial_weak_supervision_epochs: int = 5,
+        # 强监督权重配置
+        strong_loss_bbox_weight: float = 5.0,
+        strong_loss_giou_weight: float = 2.0,
+        strong_matcher_cost_class: float = 2.0,
+        strong_matcher_cost_bbox: float = 5.0,
+        strong_matcher_cost_giou: float = 2.0,
+        # 弱监督权重配置
+        weak_matcher_cost_class: float = 5.0,
+        weak_matcher_cost_bbox: float = 1.0,
+        weak_matcher_cost_giou: float = 1.0,
     ):
         self._setup_env_variables(env_variables)
         self._setup_timers()
@@ -194,6 +208,22 @@ class Trainer:
         self.skip_first_val = skip_first_val
         self.skip_saving_ckpts = skip_saving_ckpts
         self.empty_gpu_mem_cache_after_eval = empty_gpu_mem_cache_after_eval
+        
+        # 渐进式训练参数
+        self.enable_progressive_training = enable_progressive_training
+        self.bbox_update_epoch_interval = bbox_update_epoch_interval
+        self.initial_weak_supervision_epochs = initial_weak_supervision_epochs
+        self._use_strong_supervision = False
+        
+        # 强监督和弱监督的权重配置
+        self.strong_loss_bbox_weight = strong_loss_bbox_weight
+        self.strong_loss_giou_weight = strong_loss_giou_weight
+        self.strong_matcher_cost_class = strong_matcher_cost_class
+        self.strong_matcher_cost_bbox = strong_matcher_cost_bbox
+        self.strong_matcher_cost_giou = strong_matcher_cost_giou
+        self.weak_matcher_cost_class = weak_matcher_cost_class
+        self.weak_matcher_cost_bbox = weak_matcher_cost_bbox
+        self.weak_matcher_cost_giou = weak_matcher_cost_giou
 
         self._infer_distributed_backend_if_none(distributed, accelerator)
 
@@ -585,9 +615,40 @@ class Trainer:
             self.train_dataset = instantiate(self.data_conf.train)
 
     def run_train(self):
+        # 检查是否需要启用渐进式训练（推理更新bbox）
+        enable_progressive_training = getattr(self, 'enable_progressive_training', False)
+        bbox_update_epoch_interval = getattr(self, 'bbox_update_epoch_interval', 5)
+        initial_weak_supervision_epochs = getattr(self, 'initial_weak_supervision_epochs', 10)
+        
         while self.epoch < self.max_epochs:
+            # 检查是否需要更新bbox和调整权重
+            if enable_progressive_training:
+                # 新的bbox更新策略：
+                # - 阶段1结束后（initial_weak_supervision_epochs训练完成后）做一次
+                # - 之后每bbox_update_epoch_interval个epoch更新一次
+                should_update_bbox = False
+                if self.epoch == initial_weak_supervision_epochs:
+                    # 阶段1结束后更新（在开始阶段2之前）
+                    should_update_bbox = True
+                elif self.epoch > initial_weak_supervision_epochs:
+                    # 之后每bbox_update_epoch_interval个epoch更新一次
+                    should_update_bbox = (self.epoch - initial_weak_supervision_epochs) % bbox_update_epoch_interval == 0
+                
+                if should_update_bbox:
+                    # 所有rank都参与推理，每个rank处理一部分数据
+                    logging.info(f"Epoch {self.epoch}: Rank {self.distributed_rank} 开始推理并更新bbox...")
+                    self._run_inference_and_update_bbox()
+                    # 同步到所有进程
+                    barrier()
+                else:
+                    barrier()
+                
+                # 每个epoch都检查并更新权重（因为阶段2中权重是渐进式增加的）
+                self._update_loss_and_matcher_weights()
+            else:
+                barrier()
+            
             dataloader = self.train_dataset.get_loader(epoch=int(self.epoch))
-            barrier()
             outs = self.train_epoch(dataloader)
             self.logger.log_dict(outs, self.epoch)  # Logged only on rank 0
 
@@ -626,6 +687,222 @@ class Trainer:
         # epoch was incremented in the loop but the val step runs out of the loop
         self.epoch -= 1
 
+    def _run_inference_and_update_bbox(self):
+        """
+        在训练集上运行推理, 获取分割结果并更新bbox缓存
+        使用分布式推理, 每个rank处理一部分数据
+        """
+        from sam3.train.utils.inference_for_bbox_update import run_inference_on_training_dataset_v2_distributed
+        
+        # 获取模型（去掉DDP包装）
+        model = unwrap_ddp_if_wrapped(self.model)
+        model.eval()
+        
+        # 获取训练数据集
+        train_dataset_wrapper = self.train_dataset # <sam3.train.data.torch_dataset.TorchDataset object at 0x7f810c667260>
+        if hasattr(train_dataset_wrapper, 'dataset'):
+            if isinstance(train_dataset_wrapper.dataset, torch.utils.data.ConcatDataset): # √
+                datasets = train_dataset_wrapper.dataset.datasets
+            else:
+                datasets = [train_dataset_wrapper.dataset]
+        else:
+            datasets = [train_dataset_wrapper]
+        
+        # 对每个数据集运行分布式推理
+        for dataset in datasets:
+            if not isinstance(dataset, torch.utils.data.Dataset):
+                continue
+            
+            # 检查是否是Sam3ImageDataset
+            if not hasattr(dataset, 'update_inferred_bbox_cache'):
+                continue
+            
+            # 为每个数据集单独获取类别信息
+            categories = []
+            if hasattr(dataset, 'coco') and dataset.coco is not None:
+                coco_obj = dataset.coco
+                # COCO_FROM_JSON 对象使用 _cat_idx_to_text 存储类别信息
+                if hasattr(coco_obj, '_cat_idx_to_text'):
+                    # 将 _cat_idx_to_text 转换为 categories 格式
+                    # _cat_idx_to_text 的值可能是字符串（单个名称）或列表（多个名称）
+                    for cat_id, cat_name in coco_obj._cat_idx_to_text.items():
+                        # 如果是列表，取第一个名称；如果是字符串，直接使用
+                        if isinstance(cat_name, list):
+                            name = cat_name[0] if len(cat_name) > 0 else f"category_{cat_id}"
+                        else:
+                            name = cat_name
+                        categories.append({"id": cat_id, "name": name})
+                # 如果是标准的 pycocotools.coco.COCO 对象，使用原有方法
+                elif hasattr(coco_obj, 'loadCats') and hasattr(coco_obj, 'getCatIds'):
+                    categories = coco_obj.loadCats(coco_obj.getCatIds())
+            
+            if not categories:
+                logging.warning(f"Rank {self.distributed_rank}: 数据集 {dataset.annFile} 无法获取类别信息，跳过推理")
+                continue
+            
+            logging.info(f"Rank {self.distributed_rank}: 对数据集 {dataset.annFile} 进行推理... (类别数: {len(categories)})")
+            
+            # 运行分布式推理
+            bbox_cache_dict = run_inference_on_training_dataset_v2_distributed(
+                model=model,
+                train_dataset=dataset,
+                categories=categories,
+                device=str(self.device),
+                confidence_threshold=0.5,
+                rank=self.distributed_rank,
+                world_size=dist.get_world_size() if dist.is_initialized() else 1,
+            )
+            
+            # 更新bbox缓存（每个rank更新自己处理的部分）
+            if dataset.annFile in bbox_cache_dict:
+                bbox_cache = bbox_cache_dict[dataset.annFile]
+                # 转换annotation_id从字符串到整数
+                bbox_cache_int = {int(k): v for k, v in bbox_cache.items()}
+                dataset.update_inferred_bbox_cache(bbox_cache_int)
+        
+        # 同步所有rank的bbox缓存更新
+        if dist.is_initialized():
+            barrier()
+            # Rank 0收集所有rank的结果并广播（如果需要的话）
+            # 由于每个rank已经更新了自己处理的部分，这里只需要同步即可
+        
+        model.train()  # 恢复训练模式
+    
+    # def _update_loss_and_matcher_weights(self, use_strong_supervision: bool):
+    #     """
+    #     动态调整loss权重和matcher权重
+        
+    #     Args:
+    #         use_strong_supervision: 是否使用强监督（True=使用推理得到的bbox，False=使用scribble的bbox）
+    #     """
+    #     # 获取loss配置
+    #     loss_key = "all"  # 根据配置调整
+    #     if loss_key not in self.loss:
+    #         logging.warning(f"Loss key '{loss_key}' not found, skipping weight update")
+    #         return
+        
+    #     loss_wrapper = self.loss[loss_key]
+    #     if not hasattr(loss_wrapper, 'loss_fns_find'):
+    #         logging.warning("Loss wrapper doesn't have loss_fns_find attribute")
+    #         return
+        
+    #     # 更新Boxes loss的权重（只有Boxes loss_fn应该有loss_bbox和loss_giou）
+    #     from sam3.train.loss.loss_fns import Boxes
+    #     for loss_fn in loss_wrapper.loss_fns_find:
+    #         # 只更新Boxes类型的loss_fn
+    #         if isinstance(loss_fn, Boxes) and hasattr(loss_fn, 'weight_dict') and isinstance(loss_fn.weight_dict, dict):
+    #             if use_strong_supervision:
+    #                 # 强监督：使用正常权重
+    #                 loss_fn.weight_dict['loss_bbox'] = getattr(self, 'strong_loss_bbox_weight', 5.0)
+    #                 loss_fn.weight_dict['loss_giou'] = getattr(self, 'strong_loss_giou_weight', 2.0)
+    #             else:
+    #                 # 弱监督：bbox loss权重为0
+    #                 loss_fn.weight_dict['loss_bbox'] = 0.0
+    #                 loss_fn.weight_dict['loss_giou'] = 0.0
+    #             logging.info(f"Updated Boxes loss weights: {loss_fn.weight_dict}")
+        
+    #     # 更新Matcher的权重
+    #     if hasattr(loss_wrapper, 'matcher') and loss_wrapper.matcher is not None:
+    #         if use_strong_supervision:
+    #             # 强监督：使用正常权重
+    #             loss_wrapper.matcher.cost_class = getattr(self, 'strong_matcher_cost_class', 2.0)
+    #             loss_wrapper.matcher.cost_bbox = getattr(self, 'strong_matcher_cost_bbox', 5.0)
+    #             loss_wrapper.matcher.cost_giou = getattr(self, 'strong_matcher_cost_giou', 2.0)
+    #         else:
+    #             # 弱监督：降低bbox权重，提高分类权重
+    #             loss_wrapper.matcher.cost_class = getattr(self, 'weak_matcher_cost_class', 5.0)
+    #             loss_wrapper.matcher.cost_bbox = getattr(self, 'weak_matcher_cost_bbox', 1.0)
+    #             loss_wrapper.matcher.cost_giou = getattr(self, 'weak_matcher_cost_giou', 1.0)
+    #         logging.info(f"Updated Matcher weights: cost_class={loss_wrapper.matcher.cost_class}, "
+    #                     f"cost_bbox={loss_wrapper.matcher.cost_bbox}, cost_giou={loss_wrapper.matcher.cost_giou}")
+    def _update_loss_and_matcher_weights(self):
+        """
+        动态调整loss权重和matcher权重 (新的渐进式策略)
+        
+        阶段1：纯弱监督预热（epoch 0 到 initial_weak_supervision_epochs-1）
+            - loss_bbox: 0.0, loss_giou: 0.0
+            - matcher权重：cost_class: 5.0, cost_bbox: 0.0, cost_giou: 0.0
+        
+        阶段2：渐进式爬坡（从 initial_weak_supervision_epochs 开始）
+            - matcher权重恢复为：cost_class: 5.0, cost_bbox: 1.0, cost_giou: 1.0
+            - 从阶段2开始，loss_bbox=0.2, loss_giou=0.1
+            - 每bbox_update_epoch_interval个epoch提升一次：loss_bbox += 0.3, loss_giou += 0.2
+            - 最终loss_bbox=2.0, loss_giou=1.0
+        """
+        current_epoch = self.epoch
+        initial_weak_supervision_epochs = getattr(self, 'initial_weak_supervision_epochs', 10)
+        bbox_update_epoch_interval = getattr(self, 'bbox_update_epoch_interval', 5)
+        
+        # === 阶段1：纯弱监督预热 ===
+        if current_epoch < initial_weak_supervision_epochs:
+            target_w = {
+                'loss_bbox': 0.0,
+                'loss_giou': 0.0,
+                'cost_class': 5.0,
+                'cost_bbox': 0.0,
+                'cost_giou': 0.0
+            }
+            phase_name = f"阶段1：纯弱监督预热 (epoch 0-{initial_weak_supervision_epochs-1})"
+        
+        # === 阶段2：渐进式爬坡 ===
+        else:
+            # matcher权重恢复为正常值
+            cost_class = 5.0
+            cost_bbox = 1.0
+            cost_giou = 1.0
+            
+            # 计算loss权重：从阶段2开始，每bbox_update_epoch_interval个epoch增加一次
+            # 例如：initial_weak_supervision_epochs=10, bbox_update_epoch_interval=5
+            # epoch 10: loss_bbox=0.2, loss_giou=0.1
+            # epoch 15: loss_bbox=0.5, loss_giou=0.3
+            # epoch 20: loss_bbox=0.8, loss_giou=0.5
+            # ...
+            # epoch 40: loss_bbox=2.0, loss_giou=1.0 (达到最终值)
+            
+            epochs_since_stage2 = current_epoch - initial_weak_supervision_epochs
+            num_increments = epochs_since_stage2 // bbox_update_epoch_interval  # 每bbox_update_epoch_interval个epoch增加一次
+            
+            # 初始值
+            loss_bbox = 0.2
+            loss_giou = 0.1
+            
+            # 每次增加
+            loss_bbox += num_increments * 0.3
+            loss_giou += num_increments * 0.2
+            
+            # 限制最大值
+            loss_bbox = min(loss_bbox, 2.0)
+            loss_giou = min(loss_giou, 1.0)
+            
+            target_w = {
+                'loss_bbox': loss_bbox,
+                'loss_giou': loss_giou,
+                'cost_class': cost_class,
+                'cost_bbox': cost_bbox,
+                'cost_giou': cost_giou
+            }
+            phase_name = f"阶段2：渐进式爬坡 (增量次数: {num_increments})"
+
+        # === 应用权重到 Loss ===
+        loss_key = "all"
+        if loss_key in self.loss:
+            loss_wrapper = self.loss[loss_key]
+            
+            # 1. 更新 Boxes Loss 权重
+            if hasattr(loss_wrapper, 'loss_fns_find'):
+                from sam3.train.loss.loss_fns import Boxes
+                for loss_fn in loss_wrapper.loss_fns_find:
+                    if isinstance(loss_fn, Boxes):
+                        loss_fn.weight_dict['loss_bbox'] = target_w['loss_bbox']
+                        loss_fn.weight_dict['loss_giou'] = target_w['loss_giou']
+                        logging.info(f"Epoch {current_epoch}: [{phase_name}] 更新Loss权重: bbox={target_w['loss_bbox']:.3f}, giou={target_w['loss_giou']:.3f}")
+
+            # 2. 更新 Matcher 权重
+            if hasattr(loss_wrapper, 'matcher') and loss_wrapper.matcher is not None:
+                loss_wrapper.matcher.cost_class = target_w['cost_class']
+                loss_wrapper.matcher.cost_bbox = target_w['cost_bbox']
+                loss_wrapper.matcher.cost_giou = target_w['cost_giou']
+                logging.info(f"Epoch {current_epoch}: [{phase_name}] 更新Matcher权重: class={target_w['cost_class']}, bbox={target_w['cost_bbox']}, giou={target_w['cost_giou']}")
     def run_val(self):
         if not self.val_dataset:
             return

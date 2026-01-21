@@ -31,11 +31,11 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python sam3/train/train.py \
     --num-gpus 2 \
     > train.log 2>&1 &
 
-CUDA_VISIBLE_DEVICES=2,5 nohup python sam3/train/train.py \
-    -c configs/acdc/acdc_camus_weak_train_scribble.yaml \
+CUDA_VISIBLE_DEVICES=0,4 nohup python sam3/train/train.py \
+    -c configs/acdc/acdc_camus_weak_train_scribble_progress.yaml \
     --use-cluster 0 \
     --num-gpus 2 \
-    > acdc_camus_weak_train_scribble.log 2>&1 &
+    > acdc_camus_weak_train_scribble_progress.log 2>&1 &
 
 CUDA_VISIBLE_DEVICES=1 python sam3/train/train.py \
     -c configs/acdc/acdc_train_weak.yaml \

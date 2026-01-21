@@ -847,6 +847,151 @@ class PartialMasks(LossWithWeights):
         }
 
         return losses
+
+
+# gaoqi: 新增 GatedCRFLoss 类，用于弱监督分割的边界增强
+class GatedCRFLoss(LossWithWeights):
+    """
+    Gated CRF Loss for weakly supervised segmentation.
+    在未标注区域（ignore_index=255）应用CRF损失，通过空间邻域关系增强边界感知。
+    
+    参考: "Gated CRF Loss for Weakly Supervised Semantic Image Segmentation"
+    """
+    def __init__(
+        self,
+        weight_dict=None,
+        compute_aux=False,
+        ignore_index=255,
+        crf_alpha=1.0,  # CRF pairwise项的权重
+        crf_beta=1.0,   # 空间距离的权重
+        crf_gamma=0.5,  # 颜色相似度的权重（如果使用图像特征）
+        spatial_sigma=5.0,  # 空间高斯核的标准差
+        bilateral_sigma=5.0,  # 双边滤波的标准差（如果使用图像特征）
+        kernel_size=5,  # CRF核的大小
+        apply_loss_to_det_queries_in_video_grounding=True,
+    ):
+        super().__init__(weight_dict, compute_aux)
+        if compute_aux:
+            warnings.warn("GatedCRFLoss usually shouldn't be applied to aux outputs")
+        self.ignore_index = ignore_index
+        self.crf_alpha = crf_alpha
+        self.crf_beta = crf_beta
+        self.crf_gamma = crf_gamma
+        self.spatial_sigma = spatial_sigma
+        self.bilateral_sigma = bilateral_sigma
+        self.kernel_size = kernel_size
+        self.apply_loss_to_det_queries_in_video_grounding = (
+            apply_loss_to_det_queries_in_video_grounding
+        )
+        self.target_keys.extend(["masks", "is_valid_mask"])
+
+    def _compute_spatial_kernel(self, H, W, device):
+        """计算空间高斯核"""
+        half_k = self.kernel_size // 2
+        y_coords, x_coords = torch.meshgrid(
+            torch.arange(-half_k, half_k + 1, device=device, dtype=torch.float32),
+            torch.arange(-half_k, half_k + 1, device=device, dtype=torch.float32),
+            indexing='ij'
+        )
+        spatial_dist = (x_coords ** 2 + y_coords ** 2) / (2 * self.spatial_sigma ** 2)
+        spatial_kernel = torch.exp(-spatial_dist)
+        return spatial_kernel.unsqueeze(0).unsqueeze(0)  # [1, 1, K, K]
+
+    def _apply_crf_smoothing(self, mask_logits, spatial_kernel):
+        """
+        应用CRF平滑：通过空间邻域关系平滑预测
+        Args:
+            mask_logits: [N, 1, H, W] 预测的mask logits
+            spatial_kernel: [1, 1, K, K] 空间高斯核
+        Returns:
+            smoothed_logits: [N, 1, H, W] 平滑后的logits
+        """
+        # 使用卷积进行空间平滑
+        # padding保持尺寸不变
+        padding = self.kernel_size // 2
+        smoothed = F.conv2d(
+            mask_logits,
+            spatial_kernel,
+            padding=padding
+        )
+        # 归一化（确保核权重和为1）
+        kernel_sum = spatial_kernel.sum()
+        smoothed = smoothed / kernel_sum
+        return smoothed
+
+    def get_loss(self, outputs, targets, indices, num_boxes):
+        assert "pred_masks" in outputs
+        assert "is_valid_mask" in targets
+        
+        # 1. 获取预测 Mask
+        src_masks = outputs["pred_masks"]
+        src_masks = src_masks[(indices[0], indices[1])]
+
+        # 增加 Channel 维度，变成 [N, 1, H, W]
+        if src_masks.dim() == 3:
+            src_masks = src_masks.unsqueeze(1)
+
+        # 2. 获取 Target Mask
+        # 包含 0, 1, 255
+        target_masks = targets["masks"][indices[2]]
+        if target_masks.dim() == 4:
+            target_masks = target_masks.view(-1, target_masks.shape[-2], target_masks.shape[-1])
+        
+        # 确保 target_masks 也是 [N, 1, H, W]
+        if target_masks.dim() == 3:
+            target_masks = target_masks.unsqueeze(1)
+
+        target_masks = target_masks.to(src_masks.device)
+
+        # 3. 上采样预测 Mask 到 Target 分辨率
+        src_masks = interpolate(
+            src_masks,
+            size=target_masks.shape[-2:],
+            mode="bilinear",
+            align_corners=False,
+        )
+
+        # 4. 生成未标注区域mask（ignore_index=255的区域）
+        ignore_region = (target_masks == self.ignore_index).float()
+        
+        if ignore_region.sum() == 0:
+            # 如果没有未标注区域，返回0损失
+            return {
+                "loss_crf": src_masks.sum() * 0.0,
+            }
+
+        # 5. 计算空间高斯核
+        H, W = src_masks.shape[-2:]
+        spatial_kernel = self._compute_spatial_kernel(H, W, src_masks.device)
+
+        # 6. 应用CRF平滑
+        # Clamp logits避免数值不稳定
+        src_masks_clamped = torch.clamp(src_masks, min=-50.0, max=50.0)
+        smoothed_logits = self._apply_crf_smoothing(src_masks_clamped, spatial_kernel)
+
+        # 7. 计算CRF损失：在未标注区域，鼓励预测与平滑后的预测一致
+        # 使用MSE损失：鼓励原始预测与平滑预测一致，增强空间一致性
+        p_original = src_masks_clamped.sigmoid()
+        p_smoothed = smoothed_logits.sigmoid()
+        
+        # 计算MSE损失（更稳定，计算更快）
+        mse_loss = (p_original - p_smoothed) ** 2
+        
+        # 只在未标注区域计算损失
+        crf_loss_map = mse_loss * ignore_region
+        
+        # 归一化：除以未标注像素数
+        ignore_pixel_count = ignore_region.sum(dim=(2, 3)) + 1e-6
+        crf_loss_per_object = crf_loss_map.sum(dim=(2, 3)) / ignore_pixel_count  # [N, 1]
+
+        # 8. 聚合损失
+        losses = {
+            "loss_crf": crf_loss_per_object.sum() / num_boxes,
+        }
+
+        return losses
+
+
 # class MultiStepIteractiveMasks(LossWithWeights):
 #     def __init__(
 #         self,

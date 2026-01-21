@@ -112,7 +112,7 @@ def box_iou(boxes1, boxes2):
 
     union = area1[..., None] + area2[..., None, :] - inter
 
-    iou = inter / (union + 1e-6)
+    iou = inter / union
     return iou, union
 
 
@@ -139,7 +139,7 @@ def generalized_box_iou(boxes1, boxes2):
     wh = (rb - lt).clamp(min=0)  # (..., N, M, 2)
     area = wh[..., 0] * wh[..., 1]  # (..., N, M)
 
-    return iou - (area - union) / (area + 1e-6)
+    return iou - (area - union) / area
 
 
 @torch.jit.script
@@ -164,9 +164,9 @@ def fast_diag_generalized_box_iou(boxes1, boxes2):
 
     union = area1 + area2 - inter
 
-    iou = inter / (union + 1e-6)
+    iou = inter / union
 
-    return iou - (tot_area - union) / (tot_area + 1e-6)
+    return iou - (tot_area - union) / tot_area
 
 
 @torch.jit.script
@@ -188,7 +188,7 @@ def fast_diag_box_iou(boxes1, boxes2):
 
     union = area1 + area2 - inter
 
-    iou = inter / (union + 1e-6)
+    iou = inter / union
 
     return iou
 

@@ -1,8 +1,9 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 import json
+import random  # gaoqi: 添加 random 模块，用于从多个 prompt 中随机选择
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union  # gaoqi: 添加 Union 类型，支持 category 名称可以是字符串或字符串列表
 
 import torch
 from pycocotools import mask as mask_util
@@ -32,7 +33,7 @@ def convert_boxlist_to_normalized_tensor(box_list, image_width, image_height):
     return boxes
 
 
-def load_coco_and_group_by_image(json_path: str) -> Tuple[List[Dict], Dict[int, str]]:
+def load_coco_and_group_by_image(json_path: str) -> Tuple[List[Dict], Dict[int, Union[str, List[str]]]]:
     """
     Load COCO JSON file and group annotations by image.
 
@@ -42,8 +43,10 @@ def load_coco_and_group_by_image(json_path: str) -> Tuple[List[Dict], Dict[int, 
     Returns:
         Tuple containing:
             - List of dicts with 'image' and 'annotations' keys
-            - Dict mapping category IDs to category names
+            - Dict mapping category IDs to category names (str) or list of names (List[str])
+              If a category has "names" field (list), it will be used; otherwise "name" field (str) will be used.
     """
+    # gaoqi: 修改返回类型，支持 category 名称可以是字符串（单个 prompt）或字符串列表（多个 prompt）
     with open(json_path, "r") as f:
         coco = json.load(f)
 
@@ -62,7 +65,18 @@ def load_coco_and_group_by_image(json_path: str) -> Tuple[List[Dict], Dict[int, 
             {"image": image_info, "annotations": anns_by_image.get(image_id, [])}
         )
 
-    cat_id_to_name = {cat["id"]: cat["name"] for cat in coco["categories"]}
+    # gaoqi: 支持读取单个 prompt（"name" 字段）或多个 prompt（"names" 字段），保持向后兼容
+    cat_id_to_name = {}
+    for cat in coco["categories"]:
+        cat_id = cat["id"]
+        if "names" in cat and isinstance(cat["names"], list):
+            # gaoqi: 如果存在 "names" 列表，存储为列表（多个 prompt）
+            cat_id_to_name[cat_id] = cat["names"]
+        elif "name" in cat:
+            # gaoqi: 如果只有 "name" 字符串，存储为字符串（单个 prompt，向后兼容）
+            cat_id_to_name[cat_id] = cat["name"]
+        else:
+            raise ValueError(f"Category {cat_id} must have either 'name' or 'names' field")
 
     return grouped, cat_id_to_name
 
@@ -110,7 +124,7 @@ class COCO_FROM_JSON:
         self,
         annotation_file,
         prompts=None,
-        include_negatives=True,
+        include_negatives=True, # 空数据非常重要，构成了负样本
         category_chunk_size=None,
     ):
         """
@@ -121,9 +135,8 @@ class COCO_FROM_JSON:
             prompts: Optional custom prompts for categories
             include_negatives (bool): Whether to include negative examples (categories with no instances)
         """
-        self._raw_data, self._cat_idx_to_text = load_coco_and_group_by_image(
-            annotation_file
-        )
+        # self._raw_data按照图像对annotation分组
+        self._raw_data, self._cat_idx_to_text = load_coco_and_group_by_image(annotation_file)
         self._sorted_cat_ids = sorted(list(self._cat_idx_to_text.keys()))
         self.prompts = None
         self.include_negatives = include_negatives
@@ -132,6 +145,8 @@ class COCO_FROM_JSON:
             if category_chunk_size is not None
             else len(self._sorted_cat_ids)
         )
+        # 举例，假如有9个类别，category_chunk_size=3，则self.category_chunks为：
+        # [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
         self.category_chunks = [
             self._sorted_cat_ids[i : i + self.category_chunk_size]
             for i in range(0, len(self._sorted_cat_ids), self.category_chunk_size)
@@ -140,7 +155,14 @@ class COCO_FROM_JSON:
             prompts = eval(prompts)
             self.prompts = {}
             for loc_dict in prompts:
-                self.prompts[int(loc_dict["id"])] = loc_dict["name"]
+                cat_id = int(loc_dict["id"])
+                # gaoqi: 支持 prompts 参数中同时包含单个 prompt（"name"）或多个 prompt（"names"）
+                if "names" in loc_dict and isinstance(loc_dict["names"], list):
+                    self.prompts[cat_id] = loc_dict["names"]
+                elif "name" in loc_dict:
+                    self.prompts[cat_id] = loc_dict["name"]
+                else:
+                    raise ValueError(f"Prompt for category {cat_id} must have either 'name' or 'names' field")
             assert len(self.prompts) == len(
                 self._sorted_cat_ids
             ), "Number of prompts must match number of categories"
@@ -184,7 +206,7 @@ class COCO_FROM_JSON:
         annot_template = {
             "image_id": 0,
             "bbox": None,  # Normalized bbox in xywh
-            "area": None,  # Unnormalized area
+            "area": None,  # json文件中，指像素点的个数；如果提供bbox, 会计算为归一化的bbox的面积
             "segmentation": None,  # RLE encoded
             "valid_mask": None,    # <--- gaoqi:【新增】添加 valid_mask 字段占位符
             "object_id": None,
@@ -195,7 +217,6 @@ class COCO_FROM_JSON:
         raw_annotations = self._raw_data[img_idx]["annotations"]
         image_info = self._raw_data[img_idx]["image"]
         width, height = image_info["width"], image_info["height"]
-
         # Group annotations by category
         cat_id_to_anns = defaultdict(list)
         for ann in raw_annotations:
@@ -210,7 +231,7 @@ class COCO_FROM_JSON:
                 continue
 
             cur_ann_ids = []
-
+            
             # Create annotations for this category
             for ann in anns:
                 annotation = annot_template.copy()
@@ -264,11 +285,31 @@ class COCO_FROM_JSON:
             query = query_template.copy()
             query["id"] = len(queries)
             query["original_cat_id"] = cat_id
-            query["query_text"] = (
-                self._cat_idx_to_text[cat_id]
-                if self.prompts is None
-                else self.prompts[cat_id]
-            )
+            
+            # gaoqi: 获取当前 category 的 text prompt（可能是单个字符串或字符串列表）
+            if self.prompts is not None:
+                # gaoqi: 如果提供了自定义 prompts，使用自定义 prompts
+                prompt_value = self.prompts[cat_id]
+            else:
+                # gaoqi: 否则使用 annotation 文件中的 prompts
+                prompt_value = self._cat_idx_to_text[cat_id]
+            
+            # gaoqi: 如果 prompt_value 是列表（多个 prompt），随机选择一个；否则直接使用（单个 prompt）
+            if isinstance(prompt_value, list):
+                query["query_text"] = random.choice(prompt_value)
+            else:
+                query["query_text"] = prompt_value
+            
+            # === gaoqi:【新增】处理 is_exhaustive 字段 ===
+            # 优先从 JSON 文件的 image 信息中读取 is_instance_exhaustive
+            # 如果没有，则默认设置为 False（弱监督 scribble 场景）
+            if "is_instance_exhaustive" in image_info:
+                query["is_exhaustive"] = bool(image_info["is_instance_exhaustive"])
+            else:
+                # 对于弱监督 scribble 标注，默认设置为 False
+                query["is_exhaustive"] = False
+            # ==========================================
+            
             query["object_ids_output"] = cur_ann_ids
             queries.append(query)
 
@@ -355,6 +396,15 @@ class SAM3_EVAL_API_FROM_JSON_NP:
         query["id"] = len(queries)
         query["original_cat_id"] = int(cur_img_data["queried_category"])
         query["query_text"] = cur_img_data["text_input"]
+        # === gaoqi:【新增】处理 is_exhaustive 字段 ===
+        # 优先从 JSON 文件的 image 信息中读取 is_instance_exhaustive
+        # 如果没有，则默认设置为 False（弱监督 scribble 场景）
+        if "is_instance_exhaustive" in cur_img_data:
+            query["is_exhaustive"] = bool(cur_img_data["is_instance_exhaustive"])
+        else:
+            # 对于弱监督 scribble 标注，默认设置为 False
+            query["is_exhaustive"] = False
+        # ==========================================
         query["object_ids_output"] = []
         queries.append(query)
 

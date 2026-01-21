@@ -1,0 +1,3434 @@
+{
+  "per_class": {
+    "Left ventricle cavity in cardiac MRI": {
+      "dice_mean": 0.9396319618916916,
+      "iou_mean": 0.8882914256263803,
+      "hd95_mean": 4.240162275090059,
+      "nsd_mean": 0.9548079917376399,
+      "count": 100
+    },
+    "Left ventricular myocardium in cardiac MRI": {
+      "dice_mean": 0.896101749305438,
+      "iou_mean": 0.8130050889734234,
+      "hd95_mean": 3.266208097181496,
+      "nsd_mean": 0.9625013982767247,
+      "count": 100
+    },
+    "Right ventricle cavity in cardiac MRI": {
+      "dice_mean": 0.8560067568674222,
+      "iou_mean": 0.7704095956994719,
+      "hd95_mean": 19.927210008052995,
+      "nsd_mean": 0.8333463068524231,
+      "count": 100
+    }
+  },
+  "overall": {
+    "dice_mean": 0.8972468226881839,
+    "iou_mean": 0.823902036766425,
+    "hd95_mean": 9.144526793441516,
+    "nsd_mean": 0.916885232288929
+  },
+  "per_patient": {
+    "patient101_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9487259490379615,
+          "iou": 0.9024535021764939,
+          "hd95": 1.6406199932098389,
+          "nsd": 0.9740372402636176,
+          "pred_sum": 4793,
+          "gt_sum": 4822
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8892726095402547,
+          "iou": 0.8006218422075398,
+          "hd95": 1.6406199932098389,
+          "nsd": 0.9872386593093275,
+          "pred_sum": 4526,
+          "gt_sum": 4740
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.973353941267388,
+          "iou": 0.948091051427195,
+          "hd95": 1.6406199932098389,
+          "nsd": 0.9915254926079855,
+          "pred_sum": 7905,
+          "gt_sum": 8270
+        }
+      },
+      "overall": {
+        "dice": 0.9371174999485348,
+        "iou": 0.8837221319370764,
+        "hd95": 1.6406199932098389,
+        "nsd": 0.9842671307269768
+      }
+    },
+    "patient101_frame14": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7699316628701595,
+          "iou": 0.6259259259259259,
+          "hd95": 39.17449300003614,
+          "nsd": 0.7187773843113539,
+          "pred_sum": 3543,
+          "gt_sum": 2603
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.896551724137931,
+          "iou": 0.8125,
+          "hd95": 1.6406199932098389,
+          "nsd": 0.9761279909187537,
+          "pred_sum": 4698,
+          "gt_sum": 4785
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.96611071682044,
+          "iou": 0.9344431096619187,
+          "hd95": 1.6406199932098389,
+          "nsd": 0.9868762380928344,
+          "pred_sum": 5476,
+          "gt_sum": 5796
+        }
+      },
+      "overall": {
+        "dice": 0.8775313679428435,
+        "iou": 0.7909563451959482,
+        "hd95": 14.151910995485274,
+        "nsd": 0.8939272044409806
+      }
+    },
+    "patient102_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9558171920496266,
+          "iou": 0.9153734238603298,
+          "hd95": 1.5625,
+          "nsd": 0.9932626313645283,
+          "pred_sum": 3799,
+          "gt_sum": 4100
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9146558704453441,
+          "iou": 0.8427335123843629,
+          "hd95": 1.5625,
+          "nsd": 0.9937644878593823,
+          "pred_sum": 3180,
+          "gt_sum": 2995
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9486931268151017,
+          "iou": 0.9023941068139963,
+          "hd95": 1.5625,
+          "nsd": 0.9865902334021892,
+          "pred_sum": 2944,
+          "gt_sum": 3254
+        }
+      },
+      "overall": {
+        "dice": 0.9397220631033574,
+        "iou": 0.8868336810195631,
+        "hd95": 1.5625,
+        "nsd": 0.9912057842087
+      }
+    },
+    "patient102_frame13": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8930980799169694,
+          "iou": 0.8068448195030473,
+          "hd95": 2.209708691207961,
+          "nsd": 0.9501167805566155,
+          "pred_sum": 1814,
+          "gt_sum": 2040
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9375830013280213,
+          "iou": 0.8825,
+          "hd95": 1.5625,
+          "nsd": 0.988356761763839,
+          "pred_sum": 3319,
+          "gt_sum": 3458
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9117481731309725,
+          "iou": 0.8378099173553719,
+          "hd95": 1.5625,
+          "nsd": 0.9639099257905159,
+          "pred_sum": 831,
+          "gt_sum": 948
+        }
+      },
+      "overall": {
+        "dice": 0.9141430847919878,
+        "iou": 0.8423849122861397,
+        "hd95": 1.7782362304026538,
+        "nsd": 0.9674611560369901
+      }
+    },
+    "patient103_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.894011590470058,
+          "iou": 0.8083372147182114,
+          "hd95": 10.0,
+          "nsd": 0.90812068458364,
+          "pred_sum": 4124,
+          "gt_sum": 3641
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9008853379399697,
+          "iou": 0.8196463654223969,
+          "hd95": 1.5625,
+          "nsd": 0.9625367760455501,
+          "pred_sum": 6776,
+          "gt_sum": 7117
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9545616663100078,
+          "iou": 0.9130731441048034,
+          "hd95": 1.5625,
+          "nsd": 0.9680681831876553,
+          "pred_sum": 6721,
+          "gt_sum": 7298
+        }
+      },
+      "overall": {
+        "dice": 0.9164861982400119,
+        "iou": 0.8470189080818039,
+        "hd95": 4.375,
+        "nsd": 0.9462418812722818
+      }
+    },
+    "patient103_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6375681995323461,
+          "iou": 0.4679633867276888,
+          "hd95": 16.753031442100262,
+          "nsd": 0.6539159526642122,
+          "pred_sum": 2451,
+          "gt_sum": 1398
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9064836210411853,
+          "iou": 0.8289620882535736,
+          "hd95": 2.209708691207961,
+          "nsd": 0.9471218056040238,
+          "pred_sum": 7572,
+          "gt_sum": 7142
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9270957489074295,
+          "iou": 0.8640992408813183,
+          "hd95": 3.125,
+          "nsd": 0.9226254457133998,
+          "pred_sum": 4671,
+          "gt_sum": 5397
+        }
+      },
+      "overall": {
+        "dice": 0.8237158564936536,
+        "iou": 0.7203415719541936,
+        "hd95": 7.362580044436075,
+        "nsd": 0.8412210679938786
+      }
+    },
+    "patient104_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9171903365451752,
+          "iou": 0.8470466855816353,
+          "hd95": 10.0,
+          "nsd": 0.9347853415961125,
+          "pred_sum": 7081,
+          "gt_sum": 7241
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8999125619352958,
+          "iou": 0.8180373039423484,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9719366556303756,
+          "pred_sum": 8589,
+          "gt_sum": 8566
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9542697471546377,
+          "iou": 0.9125391032325338,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9780137177028988,
+          "pred_sum": 7094,
+          "gt_sum": 7579
+        }
+      },
+      "overall": {
+        "dice": 0.9237908818783697,
+        "iou": 0.8592076975855059,
+        "hd95": 4.244793335596721,
+        "nsd": 0.961578571643129
+      }
+    },
+    "patient104_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7164127423822715,
+          "iou": 0.5581332613973563,
+          "hd95": 14.10914776963238,
+          "nsd": 0.6584054778385937,
+          "pred_sum": 3283,
+          "gt_sum": 2493
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9424385993574035,
+          "iou": 0.8911431513903193,
+          "hd95": 1.933498645142241,
+          "nsd": 0.969562692237933,
+          "pred_sum": 9237,
+          "gt_sum": 9126
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.8315972222222222,
+          "iou": 0.711738484398217,
+          "hd95": 55.59436669855593,
+          "nsd": 0.8808241705967897,
+          "pred_sum": 1125,
+          "gt_sum": 1179
+        }
+      },
+      "overall": {
+        "dice": 0.8301495213206325,
+        "iou": 0.7203382990619641,
+        "hd95": 23.879004371110184,
+        "nsd": 0.8362641135577721
+      }
+    },
+    "patient105_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9570938215102975,
+          "iou": 0.9177180471749863,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.97153852049098,
+          "pred_sum": 5248,
+          "gt_sum": 5240
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9200538784565407,
+          "iou": 0.8519442406456347,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9778157999643552,
+          "pred_sum": 6457,
+          "gt_sum": 6164
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9587472035794183,
+          "iou": 0.9207631488484015,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.971092167371018,
+          "pred_sum": 5453,
+          "gt_sum": 5722
+        }
+      },
+      "overall": {
+        "dice": 0.9452983011820856,
+        "iou": 0.8968084788896742,
+        "hd95": 1.4843800067901611,
+        "nsd": 0.9734821626087844
+      }
+    },
+    "patient105_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9082847141190198,
+          "iou": 0.8319794784095768,
+          "hd95": 2.099230337318113,
+          "nsd": 0.9519139762330424,
+          "pred_sum": 2199,
+          "gt_sum": 2086
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9431810080558922,
+          "iou": 0.892471667566109,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9522232724378195,
+          "pred_sum": 6798,
+          "gt_sum": 7229
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9157540016849199,
+          "iou": 0.8445998445998446,
+          "hd95": 2.099230337318113,
+          "nsd": 0.9653286658887592,
+          "pred_sum": 1199,
+          "gt_sum": 1175
+        }
+      },
+      "overall": {
+        "dice": 0.922406574619944,
+        "iou": 0.8563503301918435,
+        "hd95": 1.894280227142129,
+        "nsd": 0.9564886381865403
+      }
+    },
+    "patient106_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9702227243382827,
+          "iou": 0.9421675417287046,
+          "hd95": 1.5625,
+          "nsd": 0.9877988314190904,
+          "pred_sum": 12195,
+          "gt_sum": 12589
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8652199880549473,
+          "iou": 0.7624561403508772,
+          "hd95": 1.5625,
+          "nsd": 0.973788473734224,
+          "pred_sum": 4938,
+          "gt_sum": 5108
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9735454347352365,
+          "iou": 0.9484544836956522,
+          "hd95": 1.5625,
+          "nsd": 0.9857148472216835,
+          "pred_sum": 11301,
+          "gt_sum": 11644
+        }
+      },
+      "overall": {
+        "dice": 0.9363293823761555,
+        "iou": 0.8843593885917448,
+        "hd95": 1.5625,
+        "nsd": 0.9824340507916659
+      }
+    },
+    "patient106_frame13": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9325784383109224,
+          "iou": 0.8736739745403111,
+          "hd95": 8.838834764831844,
+          "nsd": 0.8785715778782337,
+          "pred_sum": 10069,
+          "gt_sum": 11126
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8466100019766752,
+          "iou": 0.7340188517566409,
+          "hd95": 1.5625,
+          "nsd": 0.9675041874004712,
+          "pred_sum": 4996,
+          "gt_sum": 5122
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9658777682729779,
+          "iou": 0.9340073529411764,
+          "hd95": 1.5625,
+          "nsd": 0.9741142143269255,
+          "pred_sum": 10279,
+          "gt_sum": 10763
+        }
+      },
+      "overall": {
+        "dice": 0.9150220695201918,
+        "iou": 0.8472333930793762,
+        "hd95": 3.9879449216106146,
+        "nsd": 0.9400633265352102
+      }
+    },
+    "patient107_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9399760748715783,
+          "iou": 0.8867498672331386,
+          "hd95": 1.933498645142241,
+          "nsd": 0.9606892671040375,
+          "pred_sum": 7006,
+          "gt_sum": 7205
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8640878201777313,
+          "iou": 0.7606994937873907,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9944749769547613,
+          "pred_sum": 3973,
+          "gt_sum": 3679
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9600476155047988,
+          "iou": 0.9231649735298326,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9910390538197399,
+          "pred_sum": 6490,
+          "gt_sum": 6951
+        }
+      },
+      "overall": {
+        "dice": 0.9213705035180361,
+        "iou": 0.8568714448501207,
+        "hd95": 1.5559595506441342,
+        "nsd": 0.982067765959513
+      }
+    },
+    "patient107_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8814297170351701,
+          "iou": 0.7879967226546497,
+          "hd95": 10.0,
+          "nsd": 0.8878272521129664,
+          "pred_sum": 4413,
+          "gt_sum": 4316
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9223158176226768,
+          "iou": 0.8558312655086848,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9918532489068147,
+          "pred_sum": 3718,
+          "gt_sum": 3761
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9534393561985055,
+          "iou": 0.9110216038081289,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.997864768683274,
+          "pred_sum": 2518,
+          "gt_sum": 2701
+        }
+      },
+      "overall": {
+        "dice": 0.919061630285451,
+        "iou": 0.8516165306571546,
+        "hd95": 4.244793335596721,
+        "nsd": 0.959181756567685
+      }
+    },
+    "patient108_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9413522114697669,
+          "iou": 0.88920245398773,
+          "hd95": 2.209708691207961,
+          "nsd": 0.9478661134398464,
+          "pred_sum": 7574,
+          "gt_sum": 7823
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8880757640981489,
+          "iou": 0.7986837011227255,
+          "hd95": 2.209708691207961,
+          "nsd": 0.9440196598542692,
+          "pred_sum": 6796,
+          "gt_sum": 7142
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9604663328600254,
+          "iou": 0.9239396117900791,
+          "hd95": 1.5625,
+          "nsd": 0.974282562121902,
+          "pred_sum": 6487,
+          "gt_sum": 6894
+        }
+      },
+      "overall": {
+        "dice": 0.9299647694759804,
+        "iou": 0.8706085889668449,
+        "hd95": 1.9939724608053073,
+        "nsd": 0.9553894451386725
+      }
+    },
+    "patient108_frame09": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8904289192732722,
+          "iou": 0.8024983119513842,
+          "hd95": 12.201314123852319,
+          "nsd": 0.9090610909897258,
+          "pred_sum": 2656,
+          "gt_sum": 2683
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9110621993967555,
+          "iou": 0.836652193442132,
+          "hd95": 3.125,
+          "nsd": 0.9106528768314703,
+          "pred_sum": 5887,
+          "gt_sum": 6380
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.8824895494658616,
+          "iou": 0.7896924355777224,
+          "hd95": 10.0,
+          "nsd": 0.9082213824047861,
+          "pred_sum": 1045,
+          "gt_sum": 1108
+        }
+      },
+      "overall": {
+        "dice": 0.894660222711963,
+        "iou": 0.8096143136570796,
+        "hd95": 8.442104707950774,
+        "nsd": 0.9093117834086608
+      }
+    },
+    "patient109_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9662646584782971,
+          "iou": 0.9347311827956989,
+          "hd95": 1.5625,
+          "nsd": 0.978231410257061,
+          "pred_sum": 8999,
+          "gt_sum": 8994
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.894927536231884,
+          "iou": 0.8098360655737705,
+          "hd95": 1.5625,
+          "nsd": 0.9843332524769859,
+          "pred_sum": 3768,
+          "gt_sum": 3960
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9757704069630675,
+          "iou": 0.9526871841984382,
+          "hd95": 1.5625,
+          "nsd": 0.995957894591184,
+          "pred_sum": 6248,
+          "gt_sum": 6505
+        }
+      },
+      "overall": {
+        "dice": 0.9456542005577496,
+        "iou": 0.8990848108559693,
+        "hd95": 1.5625,
+        "nsd": 0.9861741857750769
+      }
+    },
+    "patient109_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9658823529411765,
+          "iou": 0.9340159271899886,
+          "hd95": 1.5625,
+          "nsd": 0.9873821030213138,
+          "pred_sum": 5941,
+          "gt_sum": 5959
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9141641641641641,
+          "iou": 0.8418990550818161,
+          "hd95": 1.5625,
+          "nsd": 0.9843633356957241,
+          "pred_sum": 3968,
+          "gt_sum": 4024
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9496208930075821,
+          "iou": 0.9040744305421881,
+          "hd95": 1.5625,
+          "nsd": 0.9902667951515839,
+          "pred_sum": 2837,
+          "gt_sum": 3098
+        }
+      },
+      "overall": {
+        "dice": 0.9432224700376409,
+        "iou": 0.8933298042713309,
+        "hd95": 1.5625,
+        "nsd": 0.9873374112895407
+      }
+    },
+    "patient110_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9382258639116494,
+          "iou": 0.8836397798953161,
+          "hd95": 10.0,
+          "nsd": 0.941761999352782,
+          "pred_sum": 6973,
+          "gt_sum": 7062
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8606530876172002,
+          "iou": 0.7553916004540295,
+          "hd95": 2.209708691207961,
+          "nsd": 0.9434407655153971,
+          "pred_sum": 4615,
+          "gt_sum": 4664
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9491726939462994,
+          "iou": 0.9032623043560248,
+          "hd95": 1.5625,
+          "nsd": 0.9705157249466951,
+          "pred_sum": 4952,
+          "gt_sum": 5141
+        }
+      },
+      "overall": {
+        "dice": 0.9160172151583831,
+        "iou": 0.8474312282351235,
+        "hd95": 4.590736230402654,
+        "nsd": 0.9519061632716248
+      }
+    },
+    "patient110_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9304756926293779,
+          "iou": 0.8699902248289345,
+          "hd95": 1.5625,
+          "nsd": 0.9559031430281019,
+          "pred_sum": 3783,
+          "gt_sum": 3869
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9237062404870624,
+          "iou": 0.8582287431500796,
+          "hd95": 2.209708691207961,
+          "nsd": 0.9436336303876669,
+          "pred_sum": 5265,
+          "gt_sum": 5247
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.8878533706119913,
+          "iou": 0.7983240223463687,
+          "hd95": 10.0,
+          "nsd": 0.8787835993033,
+          "pred_sum": 1509,
+          "gt_sum": 1710
+        }
+      },
+      "overall": {
+        "dice": 0.9140117679094771,
+        "iou": 0.8421809967751276,
+        "hd95": 4.590736230402654,
+        "nsd": 0.9261067909063563
+      }
+    },
+    "patient111_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8192986374804556,
+          "iou": 0.6939084373817631,
+          "hd95": 10.0,
+          "nsd": 0.6556088834391757,
+          "pred_sum": 4961,
+          "gt_sum": 3993
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8921127230281808,
+          "iou": 0.8052378085490668,
+          "hd95": 1.988737822087165,
+          "nsd": 0.9590045216899816,
+          "pred_sum": 5995,
+          "gt_sum": 5999
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9235742322789194,
+          "iou": 0.858000858000858,
+          "hd95": 2.8125,
+          "nsd": 0.9471048862139995,
+          "pred_sum": 4006,
+          "gt_sum": 4656
+        }
+      },
+      "overall": {
+        "dice": 0.8783285309291853,
+        "iou": 0.7857157013105627,
+        "hd95": 4.933745940695721,
+        "nsd": 0.8539060971143856
+      }
+    },
+    "patient111_frame07": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7600525624178712,
+          "iou": 0.6129715981348028,
+          "hd95": 14.652551505625224,
+          "nsd": 0.7889178961659842,
+          "pred_sum": 2238,
+          "gt_sum": 1567
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9393357123250069,
+          "iou": 0.8856107660455487,
+          "hd95": 1.988737822087165,
+          "nsd": 0.9675980585071494,
+          "pred_sum": 7211,
+          "gt_sum": 7361
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9221511846558856,
+          "iou": 0.8555478018143754,
+          "hd95": 1.40625,
+          "nsd": 0.9800232298517776,
+          "pred_sum": 1271,
+          "gt_sum": 1388
+        }
+      },
+      "overall": {
+        "dice": 0.8738464864662546,
+        "iou": 0.7847100553315757,
+        "hd95": 6.015846442570797,
+        "nsd": 0.9121797281749705
+      }
+    },
+    "patient112_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9386745796241345,
+          "iou": 0.8844361602982292,
+          "hd95": 24.236172154235994,
+          "nsd": 0.9461234393288733,
+          "pred_sum": 10151,
+          "gt_sum": 10069
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8573282294167262,
+          "iou": 0.7502838973427208,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9550307903587214,
+          "pred_sum": 7513,
+          "gt_sum": 7900
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9653556057442366,
+          "iou": 0.9330313014827019,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9837383618554354,
+          "pred_sum": 11571,
+          "gt_sum": 11896
+        }
+      },
+      "overall": {
+        "dice": 0.9204528049283658,
+        "iou": 0.855917119707884,
+        "hd95": 9.445914054807078,
+        "nsd": 0.9616308638476768
+      }
+    },
+    "patient112_frame12": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6851001669449082,
+          "iou": 0.5210284081891763,
+          "hd95": 29.427088552592373,
+          "nsd": 0.5506694118363303,
+          "pred_sum": 6064,
+          "gt_sum": 3520
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8788422131147541,
+          "iou": 0.7838702307516564,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9529054244654861,
+          "pred_sum": 7693,
+          "gt_sum": 7923
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.947193675889328,
+          "iou": 0.8996846373329329,
+          "hd95": 1.933498645142241,
+          "nsd": 0.9640708522592641,
+          "pred_sum": 6130,
+          "gt_sum": 6520
+        }
+      },
+      "overall": {
+        "dice": 0.8370453519829968,
+        "iou": 0.7348610920912552,
+        "hd95": 11.364989068174927,
+        "nsd": 0.8225485628536936
+      }
+    },
+    "patient113_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9520797089988929,
+          "iou": 0.9085421068517959,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.967174129653803,
+          "pred_sum": 6342,
+          "gt_sum": 6304
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8956574710643112,
+          "iou": 0.8110323089046493,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9791247771575169,
+          "pred_sum": 5792,
+          "gt_sum": 5699
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9737521716673709,
+          "iou": 0.9488469985358712,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9894148564858538,
+          "pred_sum": 10391,
+          "gt_sum": 10906
+        }
+      },
+      "overall": {
+        "dice": 0.9404964505768584,
+        "iou": 0.8894738047641054,
+        "hd95": 1.6826900243759155,
+        "nsd": 0.9785712544323912
+      }
+    },
+    "patient113_frame08": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8252770572978071,
+          "iou": 0.7025291047771979,
+          "hd95": 10.551103395974133,
+          "nsd": 0.6846117690227009,
+          "pred_sum": 4755,
+          "gt_sum": 3727
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8907991085641516,
+          "iou": 0.8030998851894374,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9641160498303043,
+          "pred_sum": 6371,
+          "gt_sum": 6193
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9617852478564534,
+          "iou": 0.9263837234740757,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9647032713442538,
+          "pred_sum": 8496,
+          "gt_sum": 9115
+        }
+      },
+      "overall": {
+        "dice": 0.8926204712394706,
+        "iou": 0.810670904480237,
+        "hd95": 4.638827814908654,
+        "nsd": 0.8711436967324196
+      }
+    },
+    "patient114_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8059074784623181,
+          "iou": 0.6749120892445738,
+          "hd95": 10.0,
+          "nsd": 0.6916107995624208,
+          "pred_sum": 7272,
+          "gt_sum": 6541
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9178211237947468,
+          "iou": 0.8481233038045983,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9423585860534237,
+          "pred_sum": 17713,
+          "gt_sum": 18379
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9395094854775691,
+          "iou": 0.8859197443181818,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9467557245386193,
+          "pred_sum": 10129,
+          "gt_sum": 11114
+        }
+      },
+      "overall": {
+        "dice": 0.887746029244878,
+        "iou": 0.8029850457891179,
+        "hd95": 5.156253337860107,
+        "nsd": 0.8602417033848213
+      }
+    },
+    "patient114_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6137744767049291,
+          "iou": 0.4427666829030687,
+          "hd95": 12.113224700078257,
+          "nsd": 0.5855762339638703,
+          "pred_sum": 5261,
+          "gt_sum": 3625
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.935972301173066,
+          "iou": 0.8796503156872268,
+          "hd95": 3.0571297857495683,
+          "nsd": 0.9251924519796574,
+          "pred_sum": 19039,
+          "gt_sum": 19663
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.8687971735988438,
+          "iou": 0.7680295286768881,
+          "hd95": 3.866997290284482,
+          "nsd": 0.8807572030460837,
+          "pred_sum": 2858,
+          "gt_sum": 3369
+        }
+      },
+      "overall": {
+        "dice": 0.8061813171589464,
+        "iou": 0.6968155090890612,
+        "hd95": 6.345783925370768,
+        "nsd": 0.7971752963298705
+      }
+    },
+    "patient115_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9582920792079208,
+          "iou": 0.9199239634073898,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9823913218807968,
+          "pred_sum": 8079,
+          "gt_sum": 8081
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8966921119592876,
+          "iou": 0.8127306273062731,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9922976723802104,
+          "pred_sum": 6848,
+          "gt_sum": 6907
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9664179104477612,
+          "iou": 0.9350180505415162,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9878843059378599,
+          "pred_sum": 9377,
+          "gt_sum": 9919
+        }
+      },
+      "overall": {
+        "dice": 0.9404673672049898,
+        "iou": 0.8892242137517264,
+        "hd95": 1.3671900033950806,
+        "nsd": 0.9875244333996225
+      }
+    },
+    "patient115_frame13": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8903865213082259,
+          "iou": 0.8024294390853877,
+          "hd95": 98.46129197724905,
+          "nsd": 0.9050677742361313,
+          "pred_sum": 5271,
+          "gt_sum": 4819
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9122603137710633,
+          "iou": 0.8386752136752137,
+          "hd95": 1.933498645142241,
+          "nsd": 0.97146690007688,
+          "pred_sum": 7772,
+          "gt_sum": 7717
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9509925047360185,
+          "iou": 0.9065640703517588,
+          "hd95": 1.933498645142241,
+          "nsd": 0.9643060460703179,
+          "pred_sum": 5846,
+          "gt_sum": 6295
+        }
+      },
+      "overall": {
+        "dice": 0.9178797799384358,
+        "iou": 0.84922290770412,
+        "hd95": 34.10942975584451,
+        "nsd": 0.946946906794443
+      }
+    },
+    "patient116_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9391569711996949,
+          "iou": 0.8852930600503416,
+          "hd95": 1.5625,
+          "nsd": 0.958995454660283,
+          "pred_sum": 5131,
+          "gt_sum": 5355
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9096505522361036,
+          "iou": 0.8342743274659582,
+          "hd95": 1.5625,
+          "nsd": 0.9745094445202251,
+          "pred_sum": 5527,
+          "gt_sum": 5519
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9593481841033198,
+          "iou": 0.921872397134766,
+          "hd95": 1.5625,
+          "nsd": 0.9820688758131046,
+          "pred_sum": 5575,
+          "gt_sum": 5962
+        }
+      },
+      "overall": {
+        "dice": 0.9360519025130394,
+        "iou": 0.880479928217022,
+        "hd95": 1.5625,
+        "nsd": 0.9718579249978708
+      }
+    },
+    "patient116_frame09": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6544808326986545,
+          "iou": 0.48641509433962266,
+          "hd95": 10.476909133900131,
+          "nsd": 0.5344556568612918,
+          "pred_sum": 2395,
+          "gt_sum": 1544
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9067817713953682,
+          "iou": 0.8294608959757024,
+          "hd95": 3.125,
+          "nsd": 0.9168243517088438,
+          "pred_sum": 5791,
+          "gt_sum": 6256
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9221613901452035,
+          "iou": 0.855565371024735,
+          "hd95": 1.5625,
+          "nsd": 0.9594475721323013,
+          "pred_sum": 2030,
+          "gt_sum": 2171
+        }
+      },
+      "overall": {
+        "dice": 0.827807998079742,
+        "iou": 0.7238137871133533,
+        "hd95": 5.054803044633377,
+        "nsd": 0.8035758602341456
+      }
+    },
+    "patient117_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9358295066525374,
+          "iou": 0.8793980969240982,
+          "hd95": 10.0,
+          "nsd": 0.8977163779375292,
+          "pred_sum": 13080,
+          "gt_sum": 12399
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8932452810566274,
+          "iou": 0.8070851343732381,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9787915060627961,
+          "pred_sum": 9612,
+          "gt_sum": 9619
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9742970501983784,
+          "iou": 0.9498822737975109,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9876041468798378,
+          "pred_sum": 19835,
+          "gt_sum": 20744
+        }
+      },
+      "overall": {
+        "dice": 0.9344572793025144,
+        "iou": 0.8787885016982825,
+        "hd95": 4.244793335596721,
+        "nsd": 0.9547040102933876
+      }
+    },
+    "patient117_frame13": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6801713497422494,
+          "iou": 0.5153482231268567,
+          "hd95": 45.62808006224762,
+          "nsd": 0.721540584131281,
+          "pred_sum": 8680,
+          "gt_sum": 5093
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9120479738324551,
+          "iou": 0.8383163520962085,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9766612530054857,
+          "pred_sum": 10860,
+          "gt_sum": 11152
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9670172084130019,
+          "iou": 0.9361406756131421,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9739555619551747,
+          "pred_sum": 14273,
+          "gt_sum": 15015
+        }
+      },
+      "overall": {
+        "dice": 0.8530788439959021,
+        "iou": 0.7632684169454024,
+        "hd95": 16.120820023012595,
+        "nsd": 0.8907191330306471
+      }
+    },
+    "patient118_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9382556131260794,
+          "iou": 0.8836925579503864,
+          "hd95": 2.9687600135803223,
+          "nsd": 0.9341634254056385,
+          "pred_sum": 6885,
+          "gt_sum": 7011
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8837641493495523,
+          "iou": 0.7917360375359467,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9537942132442521,
+          "pred_sum": 5793,
+          "gt_sum": 6045
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9590151628884552,
+          "iou": 0.9212575713873666,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9756480206131706,
+          "pred_sum": 6541,
+          "gt_sum": 6781
+        }
+      },
+      "overall": {
+        "dice": 0.9270116417880289,
+        "iou": 0.8655620556245666,
+        "hd95": 1.9791733423868816,
+        "nsd": 0.9545352197543536
+      }
+    },
+    "patient118_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7500632431065014,
+          "iou": 0.6000809552722121,
+          "hd95": 75.21587330903121,
+          "nsd": 0.5986591695501731,
+          "pred_sum": 4510,
+          "gt_sum": 3396
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8877825193614667,
+          "iou": 0.7982094642603382,
+          "hd95": 2.9687600135803223,
+          "nsd": 0.9164209461307768,
+          "pred_sum": 6250,
+          "gt_sum": 6404
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.946881742525429,
+          "iou": 0.8991219512195122,
+          "hd95": 2.099230337318113,
+          "nsd": 0.9562262141271376,
+          "pred_sum": 4726,
+          "gt_sum": 5007
+        }
+      },
+      "overall": {
+        "dice": 0.8615758349977991,
+        "iou": 0.7658041235840208,
+        "hd95": 26.761287886643217,
+        "nsd": 0.8237687766026959
+      }
+    },
+    "patient119_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9673174743382779,
+          "iou": 0.9367036337895234,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.978930598943954,
+          "pred_sum": 16358,
+          "gt_sum": 16473
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8513655462184874,
+          "iou": 0.7411979881115683,
+          "hd95": 2.3796830537423337,
+          "nsd": 0.9605846377561783,
+          "pred_sum": 5666,
+          "gt_sum": 5758
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9642140821281537,
+          "iou": 0.930900937627395,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9780753066089907,
+          "pred_sum": 9245,
+          "gt_sum": 9701
+        }
+      },
+      "overall": {
+        "dice": 0.9276323675616397,
+        "iou": 0.8696008531761623,
+        "hd95": 1.9150210341647214,
+        "nsd": 0.9725301811030409
+      }
+    },
+    "patient119_frame09": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9268931057045982,
+          "iou": 0.8637472283813747,
+          "hd95": 7.861856926690084,
+          "nsd": 0.8822279914557535,
+          "pred_sum": 8479,
+          "gt_sum": 8332
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9266243632138708,
+          "iou": 0.8632805995004164,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9884042421593286,
+          "pred_sum": 5554,
+          "gt_sum": 5635
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9480831800820484,
+          "iou": 0.901291016675632,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9891390142553234,
+          "pred_sum": 3411,
+          "gt_sum": 3658
+        }
+      },
+      "overall": {
+        "dice": 0.9338668830001725,
+        "iou": 0.876106281519141,
+        "hd95": 3.742412325147305,
+        "nsd": 0.9532570826234684
+      }
+    },
+    "patient120_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.5150924119996285,
+          "iou": 0.3468851638729047,
+          "hd95": 109.40298748374771,
+          "nsd": 0.6114901818064113,
+          "pred_sum": 7745,
+          "gt_sum": 3022
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8922931442080378,
+          "iou": 0.8055318422400546,
+          "hd95": 1.40625,
+          "nsd": 0.9850462795673289,
+          "pred_sum": 5370,
+          "gt_sum": 5205
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9587938227329283,
+          "iou": 0.9208491494446788,
+          "hd95": 1.40625,
+          "nsd": 0.9835421135741125,
+          "pred_sum": 6571,
+          "gt_sum": 7092
+        }
+      },
+      "overall": {
+        "dice": 0.7887264596468649,
+        "iou": 0.6910887185192127,
+        "hd95": 37.40516249458257,
+        "nsd": 0.8600261916492843
+      }
+    },
+    "patient120_frame08": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.4225772734060027,
+          "iou": 0.26789095039757665,
+          "hd95": 115.34054960339186,
+          "nsd": 0.53598571187345,
+          "pred_sum": 5081,
+          "gt_sum": 1616
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9134097035040432,
+          "iou": 0.8406201550387596,
+          "hd95": 1.40625,
+          "nsd": 0.981133486846696,
+          "pred_sum": 5940,
+          "gt_sum": 5932
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9475693274952285,
+          "iou": 0.9003627053552379,
+          "hd95": 1.40625,
+          "nsd": 0.9810490313218154,
+          "pred_sum": 4298,
+          "gt_sum": 4609
+        }
+      },
+      "overall": {
+        "dice": 0.761185434801758,
+        "iou": 0.6696246035971914,
+        "hd95": 39.38434986779729,
+        "nsd": 0.8327227433473204
+      }
+    },
+    "patient121_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9638104132617324,
+          "iou": 0.9301487156376747,
+          "hd95": 1.6666699647903442,
+          "nsd": 0.9766553708849299,
+          "pred_sum": 8510,
+          "gt_sum": 8622
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8825200103279112,
+          "iou": 0.7897412199630314,
+          "hd95": 1.6666699647903442,
+          "nsd": 0.9802426165766405,
+          "pred_sum": 3875,
+          "gt_sum": 3871
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9657833804990995,
+          "iou": 0.9338308457711443,
+          "hd95": 1.6666699647903442,
+          "nsd": 0.9909903172272063,
+          "pred_sum": 5644,
+          "gt_sum": 6017
+        }
+      },
+      "overall": {
+        "dice": 0.937371268029581,
+        "iou": 0.8845735937906167,
+        "hd95": 1.6666699647903442,
+        "nsd": 0.9826294348962589
+      }
+    },
+    "patient121_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9421015010721944,
+          "iou": 0.8905405405405405,
+          "hd95": 1.6666699647903442,
+          "nsd": 0.9505249072386347,
+          "pred_sum": 4776,
+          "gt_sum": 5017
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9277628661454078,
+          "iou": 0.8652590335219852,
+          "hd95": 1.6666699647903442,
+          "nsd": 0.9723276538044998,
+          "pred_sum": 4362,
+          "gt_sum": 4207
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9217660728117738,
+          "iou": 0.8548850574712644,
+          "hd95": 2.3570272682063935,
+          "nsd": 0.9512692348841275,
+          "pred_sum": 1809,
+          "gt_sum": 2064
+        }
+      },
+      "overall": {
+        "dice": 0.930543480009792,
+        "iou": 0.8702282105112634,
+        "hd95": 1.8967890659290274,
+        "nsd": 0.9580405986424206
+      }
+    },
+    "patient122_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9281553398058252,
+          "iou": 0.8659420289855072,
+          "hd95": 8.482149839401245,
+          "nsd": 0.9530678809669699,
+          "pred_sum": 4447,
+          "gt_sum": 4308
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8818897637795275,
+          "iou": 0.7887323943661971,
+          "hd95": 2.399114268192402,
+          "nsd": 0.9556579189875491,
+          "pred_sum": 5028,
+          "gt_sum": 5513
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9639508781196355,
+          "iou": 0.9304104002039255,
+          "hd95": 1.696429967880249,
+          "nsd": 0.9638324099989629,
+          "pred_sum": 7387,
+          "gt_sum": 7759
+        }
+      },
+      "overall": {
+        "dice": 0.9246653272349962,
+        "iou": 0.8616949411852101,
+        "hd95": 4.192564691824632,
+        "nsd": 0.9575194033178273
+      }
+    },
+    "patient122_frame06": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7094461373005915,
+          "iou": 0.5497222222222222,
+          "hd95": 101.89127495097568,
+          "nsd": 0.7297402363002763,
+          "pred_sum": 3271,
+          "gt_sum": 2308
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.887536906146551,
+          "iou": 0.7978124497345986,
+          "hd95": 2.399114268192402,
+          "nsd": 0.9406101476562181,
+          "pred_sum": 5458,
+          "gt_sum": 5719
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.951349296845306,
+          "iou": 0.9072127582457412,
+          "hd95": 2.399114268192402,
+          "nsd": 0.9587767626752215,
+          "pred_sum": 5083,
+          "gt_sum": 5441
+        }
+      },
+      "overall": {
+        "dice": 0.8494441134308163,
+        "iou": 0.7515824767341873,
+        "hd95": 35.56316782912017,
+        "nsd": 0.8763757155439054
+      }
+    },
+    "patient123_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9572301425661914,
+          "iou": 0.91796875,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9841239510682305,
+          "pred_sum": 5595,
+          "gt_sum": 5698
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8870834805133639,
+          "iou": 0.7970799830723656,
+          "hd95": 2.099230337318113,
+          "nsd": 0.9621554647421964,
+          "pred_sum": 4038,
+          "gt_sum": 4455
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.960706030678714,
+          "iou": 0.9243833400727861,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9847077847077848,
+          "pred_sum": 4662,
+          "gt_sum": 4856
+        }
+      },
+      "overall": {
+        "dice": 0.9350065512527564,
+        "iou": 0.8798106910483838,
+        "hd95": 1.6893301169661452,
+        "nsd": 0.9769957335060706
+      }
+    },
+    "patient123_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7999385843697221,
+          "iou": 0.6665813715455476,
+          "hd95": 10.0,
+          "nsd": 0.6898895631962998,
+          "pred_sum": 3479,
+          "gt_sum": 3034
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9354634894846106,
+          "iou": 0.8787519077497032,
+          "hd95": 2.099230337318113,
+          "nsd": 0.9459632804280769,
+          "pred_sum": 5333,
+          "gt_sum": 5746
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9013389711064129,
+          "iou": 0.8203976908274535,
+          "hd95": 4.198460674636226,
+          "nsd": 0.9300692305864907,
+          "pred_sum": 1495,
+          "gt_sum": 1343
+        }
+      },
+      "overall": {
+        "dice": 0.8789136816535819,
+        "iou": 0.7885769900409013,
+        "hd95": 5.432563670651446,
+        "nsd": 0.8553073580702891
+      }
+    },
+    "patient124_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9382120801822925,
+          "iou": 0.8836153271958198,
+          "hd95": 3.365380048751831,
+          "nsd": 0.9089290618550654,
+          "pred_sum": 14566,
+          "gt_sum": 15715
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8868090084820123,
+          "iou": 0.7966368891224382,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9821687518283457,
+          "pred_sum": 6901,
+          "gt_sum": 6775
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9442267108833283,
+          "iou": 0.894346087949743,
+          "hd95": 5.2755516979870665,
+          "nsd": 0.9622836046615071,
+          "pred_sum": 7983,
+          "gt_sum": 8602
+        }
+      },
+      "overall": {
+        "dice": 0.923082599849211,
+        "iou": 0.8581994347560004,
+        "hd95": 3.4412072570382706,
+        "nsd": 0.9511271394483062
+      }
+    },
+    "patient124_frame07": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8948846187593227,
+          "iou": 0.8097657800714569,
+          "hd95": 5.0,
+          "nsd": 0.7564986161249099,
+          "pred_sum": 10964,
+          "gt_sum": 11830
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9022966134682756,
+          "iou": 0.8219858156028369,
+          "hd95": 3.365380048751831,
+          "nsd": 0.9149980376586837,
+          "pred_sum": 7783,
+          "gt_sum": 7631
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.77349885989359,
+          "iou": 0.6306548233835985,
+          "hd95": 28.990625498989413,
+          "nsd": 0.6186375471637064,
+          "pred_sum": 4305,
+          "gt_sum": 3589
+        }
+      },
+      "overall": {
+        "dice": 0.8568933640403961,
+        "iou": 0.7541354730192974,
+        "hd95": 12.452001849247083,
+        "nsd": 0.7633780669824333
+      }
+    },
+    "patient125_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9569649580075297,
+          "iou": 0.9174811195024434,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9862131741866349,
+          "pred_sum": 8476,
+          "gt_sum": 8789
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.7981712544051814,
+          "iou": 0.6641306070692661,
+          "hd95": 45.967647965402826,
+          "nsd": 0.8985050713406546,
+          "pred_sum": 5844,
+          "gt_sum": 4655
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9528945487622636,
+          "iou": 0.9100273020600645,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9773335901245437,
+          "pred_sum": 7341,
+          "gt_sum": 8050
+        }
+      },
+      "overall": {
+        "dice": 0.9026769203916584,
+        "iou": 0.830546342877258,
+        "hd95": 16.444342671384884,
+        "nsd": 0.954017278550611
+      }
+    },
+    "patient125_frame07": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8709201937249947,
+          "iou": 0.7713539723983588,
+          "hd95": 22.918387182119684,
+          "nsd": 0.8178468619511577,
+          "pred_sum": 4737,
+          "gt_sum": 4761
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.832994087428516,
+          "iou": 0.7137873754152824,
+          "hd95": 52.73751841858771,
+          "nsd": 0.8541026802256165,
+          "pred_sum": 5533,
+          "gt_sum": 4784
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9040909862502122,
+          "iou": 0.8249690210656754,
+          "hd95": 34.09327795608172,
+          "nsd": 0.8976444444444445,
+          "pred_sum": 2906,
+          "gt_sum": 2985
+        }
+      },
+      "overall": {
+        "dice": 0.8693350891345744,
+        "iou": 0.7700367896264387,
+        "hd95": 36.58306118559637,
+        "nsd": 0.8565313288737396
+      }
+    },
+    "patient126_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9735766361835728,
+          "iou": 0.9485137132534078,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9834508844864003,
+          "pred_sum": 11768,
+          "gt_sum": 11961
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8452663189505295,
+          "iou": 0.7320010949904189,
+          "hd95": 6.451204994884528,
+          "nsd": 0.9671299110119749,
+          "pred_sum": 3328,
+          "gt_sum": 2999
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9392783807568201,
+          "iou": 0.8855088495575221,
+          "hd95": 24.748569150201263,
+          "nsd": 0.9389148756847872,
+          "pred_sum": 5006,
+          "gt_sum": 5221
+        }
+      },
+      "overall": {
+        "dice": 0.9193737786303074,
+        "iou": 0.8553412192671163,
+        "hd95": 10.960821389820568,
+        "nsd": 0.9631652237277208
+      }
+    },
+    "patient126_frame07": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9342737094837935,
+          "iou": 0.8766544635313996,
+          "hd95": 3.365380048751831,
+          "nsd": 0.9193920703155511,
+          "pred_sum": 6356,
+          "gt_sum": 6972
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8876184253511924,
+          "iou": 0.7979441997063142,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9717051603004119,
+          "pred_sum": 3067,
+          "gt_sum": 3055
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9103544127866574,
+          "iou": 0.8354591836734694,
+          "hd95": 5.0,
+          "nsd": 0.9234961608210828,
+          "pred_sum": 1977,
+          "gt_sum": 2340
+        }
+      },
+      "overall": {
+        "dice": 0.9107488492072143,
+        "iou": 0.8366859489703944,
+        "hd95": 3.349356691042582,
+        "nsd": 0.938197797145682
+      }
+    },
+    "patient127_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8668525155980353,
+          "iou": 0.7649953139643861,
+          "hd95": 20.969074558378086,
+          "nsd": 0.6677713077708811,
+          "pred_sum": 16210,
+          "gt_sum": 13922
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8276269185360094,
+          "iou": 0.7059415911379657,
+          "hd95": 5.0,
+          "nsd": 0.9501667049309968,
+          "pred_sum": 5768,
+          "gt_sum": 6090
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9583311925191389,
+          "iou": 0.9199960540593864,
+          "hd95": 2.3796830537423337,
+          "nsd": 0.966750721538993,
+          "pred_sum": 9499,
+          "gt_sum": 9964
+        }
+      },
+      "overall": {
+        "dice": 0.8842702088843946,
+        "iou": 0.7969776530539128,
+        "hd95": 9.449585870706807,
+        "nsd": 0.8615629114136235
+      }
+    },
+    "patient127_frame07": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8925988940876223,
+          "iou": 0.8060303437680046,
+          "hd95": 15.0,
+          "nsd": 0.8181540285492414,
+          "pred_sum": 9580,
+          "gt_sum": 9228
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.882967897122768,
+          "iou": 0.7904588371707801,
+          "hd95": 5.0,
+          "nsd": 0.9409489321177491,
+          "pred_sum": 5531,
+          "gt_sum": 5278
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9118293755496921,
+          "iou": 0.8379470600121237,
+          "hd95": 5.0,
+          "nsd": 0.7977943163324157,
+          "pred_sum": 4534,
+          "gt_sum": 4562
+        }
+      },
+      "overall": {
+        "dice": 0.8957987222533608,
+        "iou": 0.8114787469836363,
+        "hd95": 8.333333333333334,
+        "nsd": 0.8522990923331353
+      }
+    },
+    "patient128_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9599560409368776,
+          "iou": 0.9229956412627129,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9770002825458652,
+          "pred_sum": 7267,
+          "gt_sum": 7292
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8825954861111112,
+          "iou": 0.7898621091474073,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9839369933762031,
+          "pred_sum": 4707,
+          "gt_sum": 4509
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9626335700537598,
+          "iou": 0.9279590531030071,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9783925419240953,
+          "pred_sum": 7270,
+          "gt_sum": 7797
+        }
+      },
+      "overall": {
+        "dice": 0.9350616990339162,
+        "iou": 0.8802722678377091,
+        "hd95": 1.4843800067901611,
+        "nsd": 0.9797766059487212
+      }
+    },
+    "patient128_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9449805740067677,
+          "iou": 0.8956996911380375,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9767011110381467,
+          "pred_sum": 3979,
+          "gt_sum": 4000
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9290540540540541,
+          "iou": 0.8675078864353313,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9827640020155983,
+          "pred_sum": 4982,
+          "gt_sum": 5082
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9364019676739284,
+          "iou": 0.880409646514701,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.97002061389665,
+          "pred_sum": 2681,
+          "gt_sum": 3011
+        }
+      },
+      "overall": {
+        "dice": 0.93681219857825,
+        "iou": 0.8812057413626899,
+        "hd95": 1.4843800067901611,
+        "nsd": 0.9764952423167984
+      }
+    },
+    "patient129_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9224795451393704,
+          "iou": 0.8561132561132561,
+          "hd95": 5.0,
+          "nsd": 0.8069255417478862,
+          "pred_sum": 18162,
+          "gt_sum": 17893
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8779228231243724,
+          "iou": 0.7824085911531578,
+          "hd95": 1.6517900228500366,
+          "nsd": 0.9848337972714758,
+          "pred_sum": 7108,
+          "gt_sum": 6834
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9663585101077908,
+          "iou": 0.9349068507385141,
+          "hd95": 1.6517900228500366,
+          "nsd": 0.9862850618965602,
+          "pred_sum": 12633,
+          "gt_sum": 13436
+        }
+      },
+      "overall": {
+        "dice": 0.9222536261238444,
+        "iou": 0.8578095660016426,
+        "hd95": 2.767860015233358,
+        "nsd": 0.9260148003053074
+      }
+    },
+    "patient129_frame08": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9227004984141368,
+          "iou": 0.8564939434724091,
+          "hd95": 5.0,
+          "nsd": 0.8501250290779606,
+          "pred_sum": 11136,
+          "gt_sum": 10934
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8908666287950514,
+          "iou": 0.8032096517186433,
+          "hd95": 3.3035800457000732,
+          "nsd": 0.9452340222907339,
+          "pred_sum": 8137,
+          "gt_sum": 7706
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9249205628688153,
+          "iou": 0.8603276473568654,
+          "hd95": 2.3359838525070864,
+          "nsd": 0.9376258321204696,
+          "pred_sum": 5166,
+          "gt_sum": 5849
+        }
+      },
+      "overall": {
+        "dice": 0.9128292300260012,
+        "iou": 0.8400104141826392,
+        "hd95": 3.5465212994023863,
+        "nsd": 0.9109949611630547
+      }
+    },
+    "patient130_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9682600382409178,
+          "iou": 0.938472942920682,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9874905873038653,
+          "pred_sum": 11593,
+          "gt_sum": 11942
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9057014559804055,
+          "iou": 0.8276548122357622,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9943982889776378,
+          "pred_sum": 7540,
+          "gt_sum": 7158
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9629373051610669,
+          "iou": 0.9285237140948563,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9921839187491526,
+          "pred_sum": 9762,
+          "gt_sum": 10447
+        }
+      },
+      "overall": {
+        "dice": 0.9456329331274634,
+        "iou": 0.8982171564171001,
+        "hd95": 1.3671900033950806,
+        "nsd": 0.9913575983435519
+      }
+    },
+    "patient130_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8426781002638523,
+          "iou": 0.7281276717013394,
+          "hd95": 10.185205791282122,
+          "nsd": 0.7006142746677267,
+          "pred_sum": 6476,
+          "gt_sum": 5652
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9307340846786476,
+          "iou": 0.8704421148587056,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9838481428501757,
+          "pred_sum": 8470,
+          "gt_sum": 7945
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9237875288683602,
+          "iou": 0.8583690987124464,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9588892005259758,
+          "pred_sum": 3638,
+          "gt_sum": 4156
+        }
+      },
+      "overall": {
+        "dice": 0.8990665712702867,
+        "iou": 0.8189796284241638,
+        "hd95": 4.762258600489122,
+        "nsd": 0.8811172060146261
+      }
+    },
+    "patient131_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9706851691240242,
+          "iou": 0.9430401078530503,
+          "hd95": 1.40625,
+          "nsd": 0.9948955461176956,
+          "pred_sum": 11494,
+          "gt_sum": 11566
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8970928311859927,
+          "iou": 0.8133892466676651,
+          "hd95": 1.40625,
+          "nsd": 0.9950085453212971,
+          "pred_sum": 6149,
+          "gt_sum": 5959
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9723821934507545,
+          "iou": 0.9462488750715864,
+          "hd95": 1.40625,
+          "nsd": 0.9954265143855323,
+          "pred_sum": 11576,
+          "gt_sum": 12213
+        }
+      },
+      "overall": {
+        "dice": 0.9467200645869238,
+        "iou": 0.900892743197434,
+        "hd95": 1.40625,
+        "nsd": 0.9951102019415083
+      }
+    },
+    "patient131_frame09": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8440589957465613,
+          "iou": 0.7301921055146707,
+          "hd95": 14.652551505625224,
+          "nsd": 0.6847838368579398,
+          "pred_sum": 10079,
+          "gt_sum": 8024
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8917332463720854,
+          "iou": 0.8046196851552155,
+          "hd95": 1.40625,
+          "nsd": 0.9916136034803289,
+          "pred_sum": 6179,
+          "gt_sum": 6087
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9660333349531075,
+          "iou": 0.9342983363098035,
+          "hd95": 1.40625,
+          "nsd": 0.9954031380916939,
+          "pred_sum": 9947,
+          "gt_sum": 10632
+        }
+      },
+      "overall": {
+        "dice": 0.9006085256905848,
+        "iou": 0.82303670899323,
+        "hd95": 5.821683835208408,
+        "nsd": 0.8906001928099876
+      }
+    },
+    "patient132_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9624806201550388,
+          "iou": 0.9276748356246264,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9880133427244571,
+          "pred_sum": 9630,
+          "gt_sum": 9720
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.88754368447329,
+          "iou": 0.797823404016605,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9850746444922032,
+          "pred_sum": 8171,
+          "gt_sum": 7853
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.961038961038961,
+          "iou": 0.925,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.978273071893009,
+          "pred_sum": 13566,
+          "gt_sum": 14539
+        }
+      },
+      "overall": {
+        "dice": 0.9370210885557633,
+        "iou": 0.8834994132137437,
+        "hd95": 1.3671900033950806,
+        "nsd": 0.9837870197032231
+      }
+    },
+    "patient132_frame15": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.43490225305280056,
+          "iou": 0.27787545787545787,
+          "hd95": 130.10791159485674,
+          "nsd": 0.5681034178190737,
+          "pred_sum": 26555,
+          "gt_sum": 8331
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9033664325502543,
+          "iou": 0.8237632508833922,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9903300680687328,
+          "pred_sum": 8506,
+          "gt_sum": 8010
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9642579324462641,
+          "iou": 0.9309826863783698,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9855374232803565,
+          "pred_sum": 11803,
+          "gt_sum": 12622
+        }
+      },
+      "overall": {
+        "dice": 0.7675088726831062,
+        "iou": 0.6775404650457401,
+        "hd95": 44.28076386721563,
+        "nsd": 0.8479903030560543
+      }
+    },
+    "patient133_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9278663629460896,
+          "iou": 0.8654390934844193,
+          "hd95": 3.125,
+          "nsd": 0.91510441796067,
+          "pred_sum": 7847,
+          "gt_sum": 7957
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8668669896363524,
+          "iou": 0.7650178590756576,
+          "hd95": 3.125,
+          "nsd": 0.9366391072969709,
+          "pred_sum": 8447,
+          "gt_sum": 7860
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9690367729583416,
+          "iou": 0.9399334016393442,
+          "hd95": 1.5625,
+          "nsd": 0.9643353061689051,
+          "pred_sum": 15013,
+          "gt_sum": 15281
+        }
+      },
+      "overall": {
+        "dice": 0.9212567085135945,
+        "iou": 0.8567967847331404,
+        "hd95": 2.6041666666666665,
+        "nsd": 0.9386929438088486
+      }
+    },
+    "patient133_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9223553934340802,
+          "iou": 0.8558994197292069,
+          "hd95": 3.125,
+          "nsd": 0.9311665575402339,
+          "pred_sum": 5837,
+          "gt_sum": 5677
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8518887262079063,
+          "iou": 0.7419914303203428,
+          "hd95": 3.125,
+          "nsd": 0.8981270477346663,
+          "pred_sum": 8827,
+          "gt_sum": 8248
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9565285501684029,
+          "iou": 0.9166791773007056,
+          "hd95": 3.125,
+          "nsd": 0.9201199023036455,
+          "pred_sum": 12530,
+          "gt_sum": 13004
+        }
+      },
+      "overall": {
+        "dice": 0.9102575566034631,
+        "iou": 0.8381900091167518,
+        "hd95": 3.125,
+        "nsd": 0.9164711691928487
+      }
+    },
+    "patient134_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8853557678596892,
+          "iou": 0.7942944863758475,
+          "hd95": 10.0,
+          "nsd": 0.7347947827605213,
+          "pred_sum": 7407,
+          "gt_sum": 6619
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9180618301000975,
+          "iou": 0.8485344686425413,
+          "hd95": 1.4453125,
+          "nsd": 0.9745725622393506,
+          "pred_sum": 5639,
+          "gt_sum": 5650
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9515097865643749,
+          "iou": 0.9075046904315197,
+          "hd95": 1.4453125,
+          "nsd": 0.9741582857951512,
+          "pred_sum": 4848,
+          "gt_sum": 5319
+        }
+      },
+      "overall": {
+        "dice": 0.9183091281747204,
+        "iou": 0.8501112151499696,
+        "hd95": 4.296875,
+        "nsd": 0.8945085435983411
+      }
+    },
+    "patient134_frame15": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8251041798206844,
+          "iou": 0.7022785898538263,
+          "hd95": 10.10390658224116,
+          "nsd": 0.7244329459371648,
+          "pred_sum": 4300,
+          "gt_sum": 3619
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9483479220881634,
+          "iou": 0.9017696460707858,
+          "hd95": 1.4453125,
+          "nsd": 0.9795711957247265,
+          "pred_sum": 6345,
+          "gt_sum": 6336
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9255150554675119,
+          "iou": 0.8613569321533924,
+          "hd95": 2.043980539367364,
+          "nsd": 0.9557296980208121,
+          "pred_sum": 1776,
+          "gt_sum": 2010
+        }
+      },
+      "overall": {
+        "dice": 0.8996557191254532,
+        "iou": 0.8218017226926682,
+        "hd95": 4.531066540536175,
+        "nsd": 0.8865779465609012
+      }
+    },
+    "patient135_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8900562851782364,
+          "iou": 0.801893171061528,
+          "hd95": 13.97737252479521,
+          "nsd": 0.8286082801450276,
+          "pred_sum": 5210,
+          "gt_sum": 5450
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9059862229552731,
+          "iou": 0.8281305427456545,
+          "hd95": 1.9531199932098389,
+          "nsd": 0.9851022807312315,
+          "pred_sum": 5150,
+          "gt_sum": 5157
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9754164427727029,
+          "iou": 0.9520125868624623,
+          "hd95": 1.9531199932098389,
+          "nsd": 0.9959492960479115,
+          "pred_sum": 7416,
+          "gt_sum": 7472
+        }
+      },
+      "overall": {
+        "dice": 0.9238196503020708,
+        "iou": 0.8606787668898815,
+        "hd95": 5.9612041704049625,
+        "nsd": 0.9365532856413902
+      }
+    },
+    "patient135_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6516949152542373,
+          "iou": 0.4833438089252043,
+          "hd95": 24.226415493958736,
+          "nsd": 0.5150790487578052,
+          "pred_sum": 4364,
+          "gt_sum": 2716
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9022682721926631,
+          "iou": 0.8219387755102041,
+          "hd95": 1.9531199932098389,
+          "nsd": 0.9681478027072838,
+          "pred_sum": 5335,
+          "gt_sum": 5378
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9671631685849695,
+          "iou": 0.9364142903965913,
+          "hd95": 1.9531199932098389,
+          "nsd": 0.9827874682275027,
+          "pred_sum": 5838,
+          "gt_sum": 5978
+        }
+      },
+      "overall": {
+        "dice": 0.8403754520106234,
+        "iou": 0.7472322916106666,
+        "hd95": 9.377551826792805,
+        "nsd": 0.822004773230864
+      }
+    },
+    "patient136_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7991648598731229,
+          "iou": 0.6655075565066203,
+          "hd95": 78.91379808366518,
+          "nsd": 0.5615247459157765,
+          "pred_sum": 7128,
+          "gt_sum": 5325
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.845021343322589,
+          "iou": 0.7316337305777644,
+          "hd95": 2.3201870450978093,
+          "nsd": 0.9372447811134934,
+          "pred_sum": 5773,
+          "gt_sum": 5706
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9593773537534521,
+          "iou": 0.9219262690600271,
+          "hd95": 1.6406199932098389,
+          "nsd": 0.9597348274906471,
+          "pred_sum": 9582,
+          "gt_sum": 10333
+        }
+      },
+      "overall": {
+        "dice": 0.8678545189830547,
+        "iou": 0.773022518714804,
+        "hd95": 27.624868373990946,
+        "nsd": 0.819501451506639
+      }
+    },
+    "patient136_frame12": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7524804177545692,
+          "iou": 0.6031812473838426,
+          "hd95": 106.73249519246173,
+          "nsd": 0.7591308795557352,
+          "pred_sum": 4505,
+          "gt_sum": 3155
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8500044614972785,
+          "iou": 0.7391371818746121,
+          "hd95": 3.2812399864196777,
+          "nsd": 0.9129900439667427,
+          "pred_sum": 5637,
+          "gt_sum": 5570
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9359262753065816,
+          "iou": 0.879569012547736,
+          "hd95": 3.2812399864196777,
+          "nsd": 0.9116192437494521,
+          "pred_sum": 6562,
+          "gt_sum": 7219
+        }
+      },
+      "overall": {
+        "dice": 0.8461370515194764,
+        "iou": 0.7406291472687302,
+        "hd95": 37.764991721767025,
+        "nsd": 0.8612467224239767
+      }
+    },
+    "patient137_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9493289853254735,
+          "iou": 0.9035454219887789,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9736224623774354,
+          "pred_sum": 7926,
+          "gt_sum": 8020
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9199499226747183,
+          "iou": 0.8517659893631528,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9963843312950293,
+          "pred_sum": 6770,
+          "gt_sum": 6809
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9777777777777777,
+          "iou": 0.9565217391304348,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9952230147993277,
+          "pred_sum": 10519,
+          "gt_sum": 10856
+        }
+      },
+      "overall": {
+        "dice": 0.9490188952593233,
+        "iou": 0.9039443834941222,
+        "hd95": 1.3671900033950806,
+        "nsd": 0.9884099361572641
+      }
+    },
+    "patient137_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7942406848915264,
+          "iou": 0.6587058253993868,
+          "hd95": 10.093027717458396,
+          "nsd": 0.657216779194022,
+          "pred_sum": 5846,
+          "gt_sum": 4433
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9139249726842297,
+          "iou": 0.8414934048736865,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.979769019769633,
+          "pred_sum": 7926,
+          "gt_sum": 8548
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9641779497098646,
+          "iou": 0.9308335823125187,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9880329858578587,
+          "pred_sum": 6411,
+          "gt_sum": 6514
+        }
+      },
+      "overall": {
+        "dice": 0.8907812024285402,
+        "iou": 0.8103442708618639,
+        "hd95": 4.275802574749519,
+        "nsd": 0.8750062616071711
+      }
+    },
+    "patient138_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8824638592080453,
+          "iou": 0.7896512935883014,
+          "hd95": 10.093027717458396,
+          "nsd": 0.7674686048266277,
+          "pred_sum": 7617,
+          "gt_sum": 6702
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9183620645027696,
+          "iou": 0.8490475734660669,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9796647756758531,
+          "pred_sum": 9760,
+          "gt_sum": 9557
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9336105747809298,
+          "iou": 0.8754874651810585,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9516331991056595,
+          "pred_sum": 6302,
+          "gt_sum": 7164
+        }
+      },
+      "overall": {
+        "dice": 0.9114788328305815,
+        "iou": 0.8380621107451423,
+        "hd95": 4.731532575881213,
+        "nsd": 0.8995888598693801
+      }
+    },
+    "patient138_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6143112701252236,
+          "iou": 0.4433255873999484,
+          "hd95": 59.8375879777154,
+          "nsd": 0.541039524955097,
+          "pred_sum": 7448,
+          "gt_sum": 3732
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9413156070307084,
+          "iou": 0.8891371340523883,
+          "hd95": 2.734380006790161,
+          "nsd": 0.950082590663379,
+          "pred_sum": 12097,
+          "gt_sum": 12424
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.8458498023715415,
+          "iou": 0.7328767123287672,
+          "hd95": 6.114259571499137,
+          "nsd": 0.8721415023930652,
+          "pred_sum": 1828,
+          "gt_sum": 2220
+        }
+      },
+      "overall": {
+        "dice": 0.8004922265091579,
+        "iou": 0.6884464779270346,
+        "hd95": 22.8954091853349,
+        "nsd": 0.7877545393371804
+      }
+    },
+    "patient139_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9684571198226343,
+          "iou": 0.9388432981633451,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9909063297422775,
+          "pred_sum": 9880,
+          "gt_sum": 9966
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8424978317432784,
+          "iou": 0.7278585343923273,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9692624696111034,
+          "pred_sum": 5580,
+          "gt_sum": 5950
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9567081886869512,
+          "iou": 0.9170091994519476,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9599504475838174,
+          "pred_sum": 9473,
+          "gt_sum": 10115
+        }
+      },
+      "overall": {
+        "dice": 0.9225543800842879,
+        "iou": 0.8612370106692065,
+        "hd95": 1.6826900243759155,
+        "nsd": 0.9733730823123995
+      }
+    },
+    "patient139_frame08": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9473987883450332,
+          "iou": 0.9000548145441257,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9781300736557397,
+          "pred_sum": 5097,
+          "gt_sum": 5302
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9062577294088549,
+          "iou": 0.8285843509724107,
+          "hd95": 2.3796830537423337,
+          "nsd": 0.9548657681656173,
+          "pred_sum": 5940,
+          "gt_sum": 6189
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9433908859326352,
+          "iou": 0.8928475756763997,
+          "hd95": 1.6826900243759155,
+          "nsd": 0.9773816335886547,
+          "pred_sum": 3371,
+          "gt_sum": 3695
+        }
+      },
+      "overall": {
+        "dice": 0.9323491345621745,
+        "iou": 0.8738289137309786,
+        "hd95": 1.9150210341647214,
+        "nsd": 0.9701258251366706
+      }
+    },
+    "patient140_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9630672983701319,
+          "iou": 0.9287654800127015,
+          "hd95": 2.3796830537423337,
+          "nsd": 0.9422570544061193,
+          "pred_sum": 26502,
+          "gt_sum": 28165
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8251958006998833,
+          "iou": 0.7024113475177305,
+          "hd95": 5.537408368205152,
+          "nsd": 0.9447831305315656,
+          "pred_sum": 6398,
+          "gt_sum": 5604
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9452741355743431,
+          "iou": 0.8962273207257367,
+          "hd95": 2.3796830537423337,
+          "nsd": 0.94901904170189,
+          "pred_sum": 9477,
+          "gt_sum": 10276
+        }
+      },
+      "overall": {
+        "dice": 0.911179078214786,
+        "iou": 0.842468049418723,
+        "hd95": 3.432258158563273,
+        "nsd": 0.945353075546525
+      }
+    },
+    "patient140_frame09": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9133008661164738,
+          "iou": 0.8404358093602404,
+          "hd95": 10.14058409156663,
+          "nsd": 0.7871471215997172,
+          "pred_sum": 17193,
+          "gt_sum": 17098
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.852087187324057,
+          "iou": 0.742292600896861,
+          "hd95": 6.9030113533930795,
+          "nsd": 0.9008800837156639,
+          "pred_sum": 6644,
+          "gt_sum": 5789
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.887403942532576,
+          "iou": 0.7975975975975976,
+          "hd95": 10.684438618414685,
+          "nsd": 0.7950311391351572,
+          "pred_sum": 4437,
+          "gt_sum": 4542
+        }
+      },
+      "overall": {
+        "dice": 0.8842639986577022,
+        "iou": 0.793442002618233,
+        "hd95": 9.242678021124798,
+        "nsd": 0.8276861148168461
+      }
+    },
+    "patient141_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9723137036003349,
+          "iou": 0.9461191678887622,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.988030818851352,
+          "pred_sum": 17640,
+          "gt_sum": 18190
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8784123910939012,
+          "iou": 0.7831866045226998,
+          "hd95": 10.0,
+          "nsd": 0.9559056738786109,
+          "pred_sum": 5343,
+          "gt_sum": 4987
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9543690827254384,
+          "iou": 0.912720795606353,
+          "hd95": 10.093027717458396,
+          "nsd": 0.9538811781560439,
+          "pred_sum": 6388,
+          "gt_sum": 6498
+        }
+      },
+      "overall": {
+        "dice": 0.9350317258065582,
+        "iou": 0.880675522672605,
+        "hd95": 7.15340590695116,
+        "nsd": 0.965939223628669
+      }
+    },
+    "patient141_frame11": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9567003050927012,
+          "iou": 0.916994713755483,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9799927261108826,
+          "pred_sum": 8407,
+          "gt_sum": 8637
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8856395855524354,
+          "iou": 0.794751477233229,
+          "hd95": 10.0,
+          "nsd": 0.9283691033443783,
+          "pred_sum": 5376,
+          "gt_sum": 4951
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.7801733718604135,
+          "iou": 0.6395772594752187,
+          "hd95": 24.5523336558492,
+          "nsd": 0.7620407602158298,
+          "pred_sum": 2390,
+          "gt_sum": 2109
+        }
+      },
+      "overall": {
+        "dice": 0.8741710875018501,
+        "iou": 0.783774483487977,
+        "hd95": 11.973174553081426,
+        "nsd": 0.8901341965570303
+      }
+    },
+    "patient142_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9364345015526966,
+          "iou": 0.8804671672029556,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9625141261292202,
+          "pred_sum": 7862,
+          "gt_sum": 7917
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9069533606620775,
+          "iou": 0.8297480894424002,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9907010230709652,
+          "pred_sum": 6529,
+          "gt_sum": 6400
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9501943414986893,
+          "iou": 0.9051145169622868,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9877718240103561,
+          "pred_sum": 5282,
+          "gt_sum": 5781
+        }
+      },
+      "overall": {
+        "dice": 0.9311940679044879,
+        "iou": 0.8717765912025476,
+        "hd95": 1.8229200045267742,
+        "nsd": 0.9803289910701803
+      }
+    },
+    "patient142_frame12": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.2666521074470408,
+          "iou": 0.15383646213934737,
+          "hd95": 157.93789395077152,
+          "nsd": 0.5027508891356475,
+          "pred_sum": 15363,
+          "gt_sum": 2953
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9384685210400052,
+          "iou": 0.8840703640361594,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9852371836006858,
+          "pred_sum": 7754,
+          "gt_sum": 7669
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.886,
+          "iou": 0.7953321364452424,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9808219091686936,
+          "pred_sum": 934,
+          "gt_sum": 1066
+        }
+      },
+      "overall": {
+        "dice": 0.697040209495682,
+        "iou": 0.6110796542069163,
+        "hd95": 53.55742465252056,
+        "nsd": 0.8229366606350089
+      }
+    },
+    "patient143_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9062798471824259,
+          "iou": 0.8286213295491759,
+          "hd95": 15.796730055004272,
+          "nsd": 0.8628754049038339,
+          "pred_sum": 8568,
+          "gt_sum": 8184
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8941292065831491,
+          "iou": 0.8085295424255886,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9804336553091699,
+          "pred_sum": 8119,
+          "gt_sum": 8165
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9634528893760157,
+          "iou": 0.9294829723619923,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9878869779338976,
+          "pred_sum": 12789,
+          "gt_sum": 13670
+        }
+      },
+      "overall": {
+        "dice": 0.9212873143805304,
+        "iou": 0.855544614778919,
+        "hd95": 6.177036687264811,
+        "nsd": 0.9437320127156338
+      }
+    },
+    "patient143_frame12": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.31530786615952816,
+          "iou": 0.18716052614357698,
+          "hd95": 136.35230948514845,
+          "nsd": 0.4931506178077118,
+          "pred_sum": 14782,
+          "gt_sum": 3359
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8927467835271644,
+          "iou": 0.8062715648467628,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9517968079094341,
+          "pred_sum": 8655,
+          "gt_sum": 9144
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9543059777102331,
+          "iou": 0.9126053676969286,
+          "hd95": 1.933498645142241,
+          "nsd": 0.9688875257457952,
+          "pred_sum": 9509,
+          "gt_sum": 10231
+        }
+      },
+      "overall": {
+        "dice": 0.7207868757989752,
+        "iou": 0.6353458195624228,
+        "hd95": 47.00672937902695,
+        "nsd": 0.8046116504876469
+      }
+    },
+    "patient144_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8679279773329678,
+          "iou": 0.7666720490876796,
+          "hd95": 10.0,
+          "nsd": 0.6835965584963482,
+          "pred_sum": 6042,
+          "gt_sum": 4899
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.896797153024911,
+          "iou": 0.8129032258064516,
+          "hd95": 1.40625,
+          "nsd": 0.9981599930441578,
+          "pred_sum": 4189,
+          "gt_sum": 3960
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9521137298915077,
+          "iou": 0.908604069975009,
+          "hd95": 1.40625,
+          "nsd": 0.996343601695664,
+          "pred_sum": 5101,
+          "gt_sum": 5591
+        }
+      },
+      "overall": {
+        "dice": 0.9056129534164622,
+        "iou": 0.82939311495638,
+        "hd95": 4.270833333333333,
+        "nsd": 0.8927000510787234
+      }
+    },
+    "patient144_frame09": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8148959474260679,
+          "iou": 0.6876155268022182,
+          "hd95": 48.96833615028831,
+          "nsd": 0.8207773799661762,
+          "pred_sum": 2948,
+          "gt_sum": 2530
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9174698127838706,
+          "iou": 0.8475235366352845,
+          "hd95": 1.988737822087165,
+          "nsd": 0.9757208170907099,
+          "pred_sum": 4734,
+          "gt_sum": 4293
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.894070619586942,
+          "iou": 0.808433734939759,
+          "hd95": 2.8125,
+          "nsd": 0.9459220258303618,
+          "pred_sum": 1362,
+          "gt_sum": 1640
+        }
+      },
+      "overall": {
+        "dice": 0.8754787932656268,
+        "iou": 0.7811909327924206,
+        "hd95": 17.92319132412516,
+        "nsd": 0.9141400742957493
+      }
+    },
+    "patient145_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7805129527000902,
+          "iou": 0.6400338194884803,
+          "hd95": 47.08055595628059,
+          "nsd": 0.7467632479173925,
+          "pred_sum": 4541,
+          "gt_sum": 3218
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9102409210432805,
+          "iou": 0.8352680318247033,
+          "hd95": 1.7578099966049194,
+          "nsd": 0.9736025489132981,
+          "pred_sum": 7124,
+          "gt_sum": 6947
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9447251114413076,
+          "iou": 0.8952407772458463,
+          "hd95": 1.7578099966049194,
+          "nsd": 0.9566297830615675,
+          "pred_sum": 6525,
+          "gt_sum": 6935
+        }
+      },
+      "overall": {
+        "dice": 0.8784929950615594,
+        "iou": 0.7901808761863433,
+        "hd95": 16.865391983163477,
+        "nsd": 0.892331859964086
+      }
+    },
+    "patient145_frame13": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.6812579685507862,
+          "iou": 0.5165968417660328,
+          "hd95": 27.570393534090034,
+          "nsd": 0.6408073195158799,
+          "pred_sum": 2807,
+          "gt_sum": 1899
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9197437083030583,
+          "iou": 0.851412498471322,
+          "hd95": 1.7578099966049194,
+          "nsd": 0.9712910933950538,
+          "pred_sum": 7490,
+          "gt_sum": 7649
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9426997245179063,
+          "iou": 0.8916102136529442,
+          "hd95": 1.7578099966049194,
+          "nsd": 0.954241374243888,
+          "pred_sum": 5308,
+          "gt_sum": 5582
+        }
+      },
+      "overall": {
+        "dice": 0.847900467123917,
+        "iou": 0.7532065179634331,
+        "hd95": 10.362004509099958,
+        "nsd": 0.8554465957182739
+      }
+    },
+    "patient146_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9182416953035509,
+          "iou": 0.8488418266048974,
+          "hd95": 10.0,
+          "nsd": 0.836224223205442,
+          "pred_sum": 7255,
+          "gt_sum": 6713
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8998022933965995,
+          "iou": 0.8178550891316849,
+          "hd95": 3.108925847997826,
+          "nsd": 0.9442418401382198,
+          "pred_sum": 6126,
+          "gt_sum": 6519
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9586802343509097,
+          "iou": 0.9206396209653539,
+          "hd95": 1.5458650398429004,
+          "nsd": 0.9525985354086793,
+          "pred_sum": 6328,
+          "gt_sum": 6644
+        }
+      },
+      "overall": {
+        "dice": 0.92557474101702,
+        "iou": 0.8624455122339788,
+        "hd95": 4.8849302959469085,
+        "nsd": 0.911021532917447
+      }
+    },
+    "patient146_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.880690737833595,
+          "iou": 0.7868162692847125,
+          "hd95": 18.915494403618638,
+          "nsd": 0.9155437658661647,
+          "pred_sum": 2695,
+          "gt_sum": 2401
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9278920741989882,
+          "iou": 0.8654838303762427,
+          "hd95": 4.453140020370483,
+          "nsd": 0.8922314269610505,
+          "pred_sum": 7059,
+          "gt_sum": 7766
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.8789473684210526,
+          "iou": 0.784037558685446,
+          "hd95": 4.198460674636226,
+          "nsd": 0.8964477092295373,
+          "pred_sum": 1387,
+          "gt_sum": 1273
+        }
+      },
+      "overall": {
+        "dice": 0.8958433934845452,
+        "iou": 0.8121125527821338,
+        "hd95": 9.189031699541783,
+        "nsd": 0.9014076340189175
+      }
+    },
+    "patient147_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9673872669192481,
+          "iou": 0.9368345323741007,
+          "hd95": 1.736109972000122,
+          "nsd": 0.9659458346505042,
+          "pred_sum": 19858,
+          "gt_sum": 20525
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8698399615358198,
+          "iou": 0.7696608727361128,
+          "hd95": 4.910460536347494,
+          "nsd": 0.93507583530475,
+          "pred_sum": 7664,
+          "gt_sum": 6895
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9393281389704943,
+          "iou": 0.8855973025048169,
+          "hd95": 14.761469487561492,
+          "nsd": 0.9199734848100436,
+          "pred_sum": 7557,
+          "gt_sum": 8101
+        }
+      },
+      "overall": {
+        "dice": 0.9255184558085207,
+        "iou": 0.8640309025383436,
+        "hd95": 7.1360133319697026,
+        "nsd": 0.9403317182550993
+      }
+    },
+    "patient147_frame09": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9101255532472224,
+          "iou": 0.8350737609812697,
+          "hd95": 18.873171857550933,
+          "nsd": 0.7458491883584525,
+          "pred_sum": 11329,
+          "gt_sum": 10813
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9327185792349727,
+          "iou": 0.87392,
+          "hd95": 2.455230268173747,
+          "nsd": 0.9377739049947484,
+          "pred_sum": 8655,
+          "gt_sum": 8913
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.8914646996838778,
+          "iou": 0.8041825095057035,
+          "hd95": 22.83236856062153,
+          "nsd": 0.8899479323067568,
+          "pred_sum": 2497,
+          "gt_sum": 2248
+        }
+      },
+      "overall": {
+        "dice": 0.9114362773886909,
+        "iou": 0.8377254234956578,
+        "hd95": 14.720256895448737,
+        "nsd": 0.8578570085533194
+      }
+    },
+    "patient148_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.939487975174554,
+          "iou": 0.8858814923189466,
+          "hd95": 4.198460674636226,
+          "nsd": 0.9505107712306817,
+          "pred_sum": 5179,
+          "gt_sum": 5133
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8881255009733195,
+          "iou": 0.7987641606591143,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.9757048197058829,
+          "pred_sum": 4277,
+          "gt_sum": 4456
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9680300893276916,
+          "iou": 0.9380410022779043,
+          "hd95": 1.4843800067901611,
+          "nsd": 0.985686752896819,
+          "pred_sum": 6198,
+          "gt_sum": 6564
+        }
+      },
+      "overall": {
+        "dice": 0.9318811884918551,
+        "iou": 0.8742288850853218,
+        "hd95": 2.3890735627388495,
+        "nsd": 0.9706341146111278
+      }
+    },
+    "patient148_frame10": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.927247191011236,
+          "iou": 0.8643623985336476,
+          "hd95": 2.9687600135803223,
+          "nsd": 0.9571661169415293,
+          "pred_sum": 3653,
+          "gt_sum": 3467
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.8907429479539134,
+          "iou": 0.8030085959885387,
+          "hd95": 2.099230337318113,
+          "nsd": 0.951516160890829,
+          "pred_sum": 5004,
+          "gt_sum": 5064
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.944282183778926,
+          "iou": 0.8944456267290913,
+          "hd95": 1.9147752381596155,
+          "nsd": 0.958496457174417,
+          "pred_sum": 4295,
+          "gt_sum": 4607
+        }
+      },
+      "overall": {
+        "dice": 0.9207574409146918,
+        "iou": 0.853938873750426,
+        "hd95": 2.327588529686017,
+        "nsd": 0.9557262450022584
+      }
+    },
+    "patient149_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.8813862846307806,
+          "iou": 0.7879273001224221,
+          "hd95": 10.0,
+          "nsd": 0.8067458060022058,
+          "pred_sum": 9313,
+          "gt_sum": 9673
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9086519741453157,
+          "iou": 0.8325959754531184,
+          "hd95": 1.40625,
+          "nsd": 0.9951012866343305,
+          "pred_sum": 6412,
+          "gt_sum": 6429
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9695346501506529,
+          "iou": 0.9408706952566601,
+          "hd95": 1.40625,
+          "nsd": 0.9861035753616259,
+          "pred_sum": 10196,
+          "gt_sum": 10713
+        }
+      },
+      "overall": {
+        "dice": 0.9198576363089165,
+        "iou": 0.8537979902774002,
+        "hd95": 4.270833333333333,
+        "nsd": 0.9293168893327207
+      }
+    },
+    "patient149_frame12": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.7844028014385765,
+          "iou": 0.6452818436624105,
+          "hd95": 10.944194379898413,
+          "nsd": 0.6777643434675529,
+          "pred_sum": 6217,
+          "gt_sum": 4349
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9200207545771255,
+          "iou": 0.8518874399450926,
+          "hd95": 1.40625,
+          "nsd": 0.9919695570942606,
+          "pred_sum": 6805,
+          "gt_sum": 6686
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9532478278858089,
+          "iou": 0.9106719367588932,
+          "hd95": 1.40625,
+          "nsd": 0.9766049498682686,
+          "pred_sum": 5822,
+          "gt_sum": 6263
+        }
+      },
+      "overall": {
+        "dice": 0.8858904613005038,
+        "iou": 0.8026137401221322,
+        "hd95": 4.585564793299471,
+        "nsd": 0.8821129501433607
+      }
+    },
+    "patient150_frame01": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9582752684646283,
+          "iou": 0.9198929807994963,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9906950774544557,
+          "pred_sum": 6022,
+          "gt_sum": 6177
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.897836399398357,
+          "iou": 0.8146126390930086,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9956998729351969,
+          "pred_sum": 4341,
+          "gt_sum": 4302
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.9610603441178892,
+          "iou": 0.9250396196513471,
+          "hd95": 1.3671900033950806,
+          "nsd": 0.9882846343557175,
+          "pred_sum": 5843,
+          "gt_sum": 6304
+        }
+      },
+      "overall": {
+        "dice": 0.9390573373269581,
+        "iou": 0.8865150798479506,
+        "hd95": 1.3671900033950806,
+        "nsd": 0.99155986158179
+      }
+    },
+    "patient150_frame12": {
+      "per_class": {
+        "Right ventricle cavity in cardiac MRI": {
+          "dice": 0.9127011297500855,
+          "iou": 0.8394206549118388,
+          "hd95": 2.734380006790161,
+          "nsd": 0.9605023848833851,
+          "pred_sum": 2983,
+          "gt_sum": 2859
+        },
+        "Left ventricular myocardium in cardiac MRI": {
+          "dice": 0.9276612053272013,
+          "iou": 0.8650822015725518,
+          "hd95": 1.933498645142241,
+          "nsd": 0.9717808897300297,
+          "pred_sum": 5181,
+          "gt_sum": 5256
+        },
+        "Left ventricle cavity in cardiac MRI": {
+          "dice": 0.914572864321608,
+          "iou": 0.8425925925925926,
+          "hd95": 1.933498645142241,
+          "nsd": 0.9817131948962197,
+          "pred_sum": 1392,
+          "gt_sum": 1593
+        }
+      },
+      "overall": {
+        "dice": 0.918311733132965,
+        "iou": 0.8490318163589944,
+        "hd95": 2.200459099024881,
+        "nsd": 0.9713321565032116
+      }
+    }
+  },
+  "n_cases": 100
+}

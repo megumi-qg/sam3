@@ -525,6 +525,8 @@ def _create_sam3_transformer(has_presence_token: bool = True) -> TransformerWrap
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 # gaoqi: 问题在于 _load_checkpoint 只提取包含 "detector" 的键。
+# 从原始权重中筛选出包含“detector”的键，并将其前缀“detector.”去掉
+# 如果当前模型包含inst_interactive_predictor，则还会提取包含“tracker”的键，并将其前缀“tracker.”替换为“inst_interactive_predictor.model.”。
 def _load_checkpoint(model, checkpoint_path):
     """Load model checkpoint from file."""
     with g_pathmgr.open(checkpoint_path, "rb") as f:
