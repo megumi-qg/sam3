@@ -1,5 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+# pyre-unsafe
+
 import copy
 import numpy as np
 from PIL import Image
@@ -11,6 +13,11 @@ import random
 from typing import Any, Dict, List, Optional, Set, Tuple
 import torch
 import torchvision
+# from decord import cpu, VideoReader
+
+from iopath.common.file_io import PathManager
+from PIL import Image as PILImage
+
 from .sam3_image_dataset import Datapoint, Sam3ImageDataset
 from .coco_json_loaders import COCO_VIDEO_FROM_JSON
 
@@ -337,9 +344,9 @@ class VideoGroundingDataset(Sam3ImageDataset):
             for query in filtered_queries:
                 ptr_x_is_empty = query["ptr_x_query_id"] in [None, -1]
                 ptr_y_is_empty = query["ptr_y_query_id"] in [None, -1]
-                assert (
-                    ptr_x_is_empty and ptr_y_is_empty
-                ), "Remapping stage ids is not supported for queries with non-empty ptr_x or ptr_y pointers"
+                assert ptr_x_is_empty and ptr_y_is_empty, (
+                    "Remapping stage ids is not supported for queries with non-empty ptr_x or ptr_y pointers"
+                )
                 query["query_processing_order"] = stage_id_old2new[
                     query["query_processing_order"]
                 ]

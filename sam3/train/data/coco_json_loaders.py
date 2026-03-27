@@ -1,5 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+# pyre-unsafe
+
 import json
 import random  # gaoqi: 添加 random 模块，用于从多个 prompt 中随机选择
 from collections import defaultdict
