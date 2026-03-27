@@ -299,17 +299,7 @@ class COCO_FROM_JSON:
                 query["query_text"] = random.choice(prompt_value)
             else:
                 query["query_text"] = prompt_value
-            
-            # === gaoqi:【新增】处理 is_exhaustive 字段 ===
-            # 优先从 JSON 文件的 image 信息中读取 is_instance_exhaustive
-            # 如果没有，则默认设置为 False（弱监督 scribble 场景）
-            if "is_instance_exhaustive" in image_info:
-                query["is_exhaustive"] = bool(image_info["is_instance_exhaustive"])
-            else:
-                # 对于弱监督 scribble 标注，默认设置为 False
-                query["is_exhaustive"] = False
-            # ==========================================
-            
+                        
             query["object_ids_output"] = cur_ann_ids
             queries.append(query)
 
@@ -336,6 +326,400 @@ class COCO_FROM_JSON:
             }
         ]
         return images
+
+
+class COCO_VIDEO_FROM_JSON:
+    """COCO video training API for loading video annotations from JSON."""
+
+    def __init__(
+        self,
+        annotation_file,
+        prompts=None,
+        include_negatives=True,
+        category_chunk_size=None,
+        max_frames_per_video=None,  # ← NEW PARAMETER
+    ):
+        with open(annotation_file, "r") as f:
+            data = json.load(f)
+        
+        # Check if this is video format
+        if "videos" in data:
+            self._videos = {v["id"]: v for v in data["videos"]}
+            # IMPORTANT: For video format, images are optional
+            self._images = {img["id"]: img for img in data.get("images", [])}
+        else:
+            raise ValueError("JSON must contain 'videos' field for video training")
+        
+        # Group annotations by video_id
+        self._anns_by_video = defaultdict(list)
+        for ann in data["annotations"]:
+            self._anns_by_video[ann["video_id"]].append(ann)
+        
+        # Categories
+        self._cat_idx_to_text = {cat["id"]: cat["name"] for cat in data["categories"]}
+        self._sorted_cat_ids = sorted(list(self._cat_idx_to_text.keys()))
+        
+        self.prompts = None
+        self.include_negatives = include_negatives
+        self.category_chunk_size = (
+            category_chunk_size
+            if category_chunk_size is not None
+            else len(self._sorted_cat_ids)
+        )
+        self.category_chunks = [
+            self._sorted_cat_ids[i : i + self.category_chunk_size]
+            for i in range(0, len(self._sorted_cat_ids), self.category_chunk_size)
+        ]
+        
+        if prompts is not None:
+            prompts = eval(prompts)
+            self.prompts = {}
+            for loc_dict in prompts:
+                self.prompts[int(loc_dict["id"])] = loc_dict["name"]
+
+
+    def loadImagesFromDatapoint(self, idx):
+        """
+        Load image information for video datapoint.
+        Handles both regular videos and NPZ medical imaging data.
+        """
+        video_idx = idx // len(self.category_chunks)
+        video_id_list = sorted(self._videos.keys())
+        
+        if video_idx >= len(video_id_list):
+            return []
+        
+        video_id = video_id_list[video_idx]
+        video_info = self._videos[video_id]
+        num_frames = video_info.get("length", 0) # 这里的 frames 是 3D 的 slices
+        
+        images = []
+        
+        # ✅ For NPZ medical data
+        if "npz_path" in video_info and video_info["npz_path"]:
+            npz_path = video_info["npz_path"]
+
+            # 这里我们并不真正加载庞大的 3D 数据，只是生成元数据
+            # 实际的数据加载通常发生在 dataset 的 __getitem__ 里
+            for frame_idx in range(num_frames):
+                images.append({
+                    "id": frame_idx,
+                    "file_name": npz_path,  # ✅ Use NPZ path as file_name!
+                    "video_id": video_id,
+                    "frame_idx": frame_idx,
+                    "height": video_info["height"],
+                    "width": video_info["width"],
+                    "is_npz": True,  # ✅ Add explicit flag
+                })
+        
+        # For regular video files
+        elif "file_names" in video_info:
+            for frame_idx, fname in enumerate(video_info["file_names"]):
+                images.append({
+                    "id": frame_idx,
+                    "file_name": fname,
+                    "video_id": video_id,
+                    "frame_idx": frame_idx,
+                    "height": video_info["height"],
+                    "width": video_info["width"],
+                    "is_npz": False,
+                })
+        
+        return images
+
+    def getDatapointIds(self):
+        """Return all datapoint indices for training."""
+        return list(range(len(self._videos) * len(self.category_chunks)))
+
+    def loadImgs(self, ids):
+        """
+        Load video/image metadata for given IDs.
+        
+        CRITICAL: For NPZ video data, we return video metadata with NPZ path.
+        """
+        if not hasattr(ids, '__iter__'):
+            ids = [ids]
+        
+        results = []
+        for datapoint_id in ids:
+            # Map datapoint_id to video_id
+            video_idx = datapoint_id // len(self.category_chunks)
+            video_id_list = sorted(self._videos.keys())
+            
+            if video_idx >= len(video_id_list):
+                continue
+            
+            video_id = video_id_list[video_idx]
+            video_info = self._videos[video_id]
+            
+            # Return video metadata with NPZ information
+            result = {
+                'id': datapoint_id,  # Keep original datapoint ID
+                'video_id': video_id,
+                'file_name': video_info.get('file_names', [''])[0],  # First frame
+                'video_name': video_info.get('video_name'),
+                'npz_path': video_info.get('npz_path'),  # CRITICAL for NPZ loading
+                'slice_indices': video_info.get('slice_indices'),  # CRITICAL for NPZ loading
+                'height': video_info['height'],
+                'width': video_info['width'],
+            }
+            results.append(result)
+        
+        return results
+
+    def loadQueriesAndAnnotationsFromDatapoint(self, idx, max_frames=None):
+        """Load queries and annotations - DEBUG VERSION."""
+        video_idx = idx // len(self.category_chunks)
+        chunk_idx = idx % len(self.category_chunks)
+        cat_chunk = self.category_chunks[chunk_idx]
+        
+        video_id_list = sorted(self._videos.keys())
+        if video_idx >= len(video_id_list):
+            return [], []
+        
+        video_id = video_id_list[video_idx]
+        video_info = self._videos[video_id]
+        
+        queries = []
+        annotations = []
+        annotation_id_counter = 0  # ← Global counter
+        
+        query_template = {
+            "id": None,
+            "original_cat_id": None,
+            "object_ids_output": None,
+            "query_text": None,
+            "query_processing_order": None,
+            "ptr_x_query_id": None,
+            "ptr_y_query_id": None,
+            "image_id": None,
+            "input_box": None,
+            "input_box_label": None,
+            "input_points": None,
+            "is_exhaustive": True,
+        }
+        
+        annot_template = {
+            "image_id": None,
+            "bbox": None,
+            "area": None,
+            "segmentation": None,
+            "object_id": None,
+            "is_crowd": 0,
+            "id": None,
+        }
+        
+        raw_annotations = self._anns_by_video.get(video_id, [])
+        
+        cat_id_to_anns = defaultdict(list)
+        for ann in raw_annotations:
+            cat_id_to_anns[ann["category_id"]].append(ann)
+        
+        width, height = video_info["width"], video_info["height"]
+        num_frames = video_info["length"]
+
+        # if max_frames is not None:
+        #     num_frames = min(num_frames, max_frames)
+
+        #     num_frames = video_info["length"]
+
+        # Only limit if explicitly requested
+        if max_frames is not None and max_frames > 0:
+            print(f"⚠️  WARNING: Limiting frames from {num_frames} to {max_frames}")
+            num_frames = min(num_frames, max_frames)
+
+
+        frame_cat_has_data = set()
+
+        for frame_idx in range(num_frames):
+            # print(f"\n  Checking frame {frame_idx}:")
+            for cat_id in cat_chunk:
+                # print(f"    Category {cat_id}:")
+                anns = cat_id_to_anns.get(cat_id, [])
+                # print(f"      Annotations for this cat: {len(anns)}")
+                
+                for obj_ann in anns:
+                    # print(f"        Ann {obj_ann['id']}:")
+                    # Check sparse format
+                    if "frame_indices" in obj_ann:
+                        # print(f"          frame_indices: {obj_ann['frame_indices']}")
+                        if frame_idx in obj_ann["frame_indices"]:
+                            # print(f"          ✅ Frame {frame_idx} FOUND! Adding to frame_cat_has_data")
+                            frame_cat_has_data.add((frame_idx, cat_id))
+                            break
+                        # else:
+                            # print(f"❌ Frame {frame_idx} NOT in frame_indices")
+                    # Check dense format
+                    elif "bboxes" in obj_ann:
+                        print(f"          Dense format: checking bbox at index {frame_idx}")
+                        if frame_idx < len(obj_ann["bboxes"]):
+                            bbox = obj_ann["bboxes"][frame_idx]
+                            print(f"          bbox: {bbox}")
+                            if bbox and sum(bbox) != 0:
+                                print(f"          ✅ Valid bbox! Adding to frame_cat_has_data")
+                                frame_cat_has_data.add((frame_idx, cat_id))
+                                break
+
+        # print(f"\n✅ frame_cat_has_data: {frame_cat_has_data}")
+
+        # ✅ STEP 2: Process only (frame, category) pairs that have data
+        queries_created = 0
+        queries_with_empty_anns = 0
+        
+        for frame_idx in range(num_frames):
+            for cat_id in cat_chunk:
+                # Skip if no data for this frame+category
+                if (frame_idx, cat_id) not in frame_cat_has_data:
+                    continue
+                
+                anns = cat_id_to_anns.get(cat_id, [])
+                # frame_obj_idx = 0 
+                cur_ann_ids = []
+                
+                # ✅ DEBUG: Track annotation processing for this query
+                annotations_attempted = 0
+                annotations_skipped = 0
+                
+                for obj_idx, obj_ann in enumerate(anns):
+                    annotations_attempted += 1
+                    
+                    # Handle sparse format
+                    if "frame_indices" in obj_ann:
+                        frame_indices = obj_ann["frame_indices"]
+                        
+                        if frame_idx not in frame_indices:
+                            annotations_skipped += 1
+                            continue
+                        
+                        list_idx = frame_indices.index(frame_idx)
+                        
+                        if list_idx >= len(obj_ann["bboxes"]):
+                            annotations_skipped += 1
+                            continue
+                        
+                        bbox = obj_ann["bboxes"][list_idx]
+                        segmentation = obj_ann["segmentations"][list_idx] if list_idx < len(obj_ann["segmentations"]) else []
+                    
+                    # Handle dense format
+                    elif "bboxes" in obj_ann and isinstance(obj_ann["bboxes"], list):
+                        if frame_idx >= len(obj_ann["bboxes"]):
+                            annotations_skipped += 1
+                            continue
+                        
+                        bbox = obj_ann["bboxes"][frame_idx]
+                        segmentation = obj_ann["segmentations"][frame_idx] if "segmentations" in obj_ann and frame_idx < len(obj_ann["segmentations"]) else []
+                    
+                    else:
+                        annotations_skipped += 1
+                        continue
+                    
+                    # Skip empty bboxes
+                    if not bbox or sum(bbox) == 0:
+                        annotations_skipped += 1
+                        continue
+                    
+                    if len(bbox) != 4:
+                        annotations_skipped += 1
+                        continue
+                    
+                    # x1, y1, x2, y2 = bbox
+                    x, y, w, h = bbox
+                    x1, y1 = x, y
+                    x2, y2 = x + w, y + h
+                    
+
+                    
+                    
+                    if x2 <= x1 or y2 <= y1:
+                        annotations_skipped += 1
+                        continue
+                    
+                    # Clip to bounds
+                    x1 = max(0.0, min(float(x1), float(width)))
+                    y1 = max(0.0, min(float(y1), float(height)))
+                    x2 = max(0.0, min(float(x2), float(width)))
+                    y2 = max(0.0, min(float(y2), float(height)))
+                    
+                    if x2 <= x1 or y2 <= y1:
+                        annotations_skipped += 1
+                        continue
+                    
+                    bbox_xyxy = [x1, y1, x2, y2]
+                    
+                    # Normalize
+                    normalized_boxes = convert_boxlist_to_normalized_tensor(
+                        [bbox_xyxy], width, height
+                    )
+                    normalized_bbox = normalized_boxes[0]
+                    
+                    box_width = normalized_bbox[2] - normalized_bbox[0]
+                    box_height = normalized_bbox[3] - normalized_bbox[1]
+                    
+                    if box_width <= 0 or box_height <= 0:
+                        annotations_skipped += 1
+                        continue
+                    
+                    # Create annotation
+                    annotation = annot_template.copy()
+                    # annotation["id"] = len(annotations)
+                    annotation["id"] = annotation_id_counter 
+                    annotation["object_id"] = obj_ann["id"]
+                    annotation["is_crowd"] = obj_ann.get("iscrowd", 0)
+                    annotation["image_id"] = frame_idx
+                    annotation["bbox"] = normalized_bbox
+                    annotation["area"] = (box_width * box_height).item()
+                    
+                    if segmentation and segmentation != []:
+                        annotation["segmentation"] = segmentation
+                    
+                    annotations.append(annotation)
+                    cur_ann_ids.append(annotation_id_counter)
+                    annotation_id_counter += 1  # ← Increment
+                    # cur_ann_ids.append(frame_obj_idx)  # Not annotation["id"]!
+                    # frame_obj_idx += 1
+
+                    # cur_ann_ids.append(annotation["id"])
+                
+                # ✅ CRITICAL DEBUG: Check before creating query
+                if len(cur_ann_ids) == 0:
+                    print(f"\n  ❌❌❌ WARNING: Creating query with EMPTY annotations!")
+                    print(f"    Frame {frame_idx}, Category {cat_id}")
+                    print(f"    Annotations attempted: {annotations_attempted}")
+                    print(f"    Annotations skipped: {annotations_skipped}")
+                    print(f"    frame_cat_has_data says this should have data!")
+                    
+                    # # Debug why all were skipped
+                    # for obj_ann in anns:
+                    #     print(f"    Ann {obj_ann['id']}:")
+                    #     if 'frame_indices' in obj_ann:
+                    #         has_frame = frame_idx in obj_ann['frame_indices']
+                    #         print(f"      Has frame {frame_idx}: {has_frame}")
+                    #         if has_frame:
+                    #             idx = obj_ann['frame_indices'].index(frame_idx)
+                    #             print(f"      Bbox: {obj_ann['bboxes'][idx]}")
+                    #     elif 'bboxes' in obj_ann:
+                    #         if frame_idx < len(obj_ann['bboxes']):
+                    #             print(f"      Bbox: {obj_ann['bboxes'][frame_idx]}")
+                    
+                    queries_with_empty_anns += 1
+                    # ❌ DON'T CREATE THIS QUERY
+                    continue
+                
+                # Create query
+                query = query_template.copy()
+                query["id"] = len(queries)
+                query["original_cat_id"] = cat_id
+                query["query_text"] = self._cat_idx_to_text[cat_id]
+                query["object_ids_output"] = cur_ann_ids
+                query["image_id"] = frame_idx
+                query["query_processing_order"] = frame_idx
+                queries.append(query)
+                queries_created += 1
+    
+        
+        return queries, annotations
+
+
 
 # ============================================================================
 # SAM3 Evaluation APIs

@@ -25,17 +25,12 @@ gaoqi:
 The main training script.
 It uses Hydra configuration management to handle complex training setups.
 The training script supports several command line arguments:
-CUDA_VISIBLE_DEVICES=0,1 nohup python sam3/train/train.py \
-    -c configs/acdc/acdc_train_weak.yaml \
-    --use-cluster 0 \
-    --num-gpus 2 \
-    > train.log 2>&1 &
 
-CUDA_VISIBLE_DEVICES=0,4 nohup python sam3/train/train.py \
-    -c configs/acdc/acdc_camus_weak_train_scribble_progress.yaml \
+CUDA_VISIBLE_DEVICES=3,4 nohup python sam3/train/train.py \
+    -c configs/final/weak_lora_1.yaml \
     --use-cluster 0 \
     --num-gpus 2 \
-    > acdc_camus_weak_train_scribble_progress.log 2>&1 &
+    > weak_lora_1.log 2>&1 &
 
 CUDA_VISIBLE_DEVICES=1 python sam3/train/train.py \
     -c configs/acdc/acdc_train_weak.yaml \

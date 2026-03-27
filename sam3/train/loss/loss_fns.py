@@ -777,7 +777,20 @@ class PartialMasks(LossWithWeights):
         if target_masks.dim() == 3:
             target_masks = target_masks.unsqueeze(1)
 
-        target_masks = target_masks.to(src_masks.device) 
+        target_masks = target_masks.to(src_masks.device)
+
+        # 防御：跳过维度不足、空间尺寸无效的 mask
+        if target_masks.dim() < 2:
+            return {
+                "loss_mask": src_masks.sum() * 0.0,
+                "loss_dice": src_masks.sum() * 0.0,
+            }
+        t_h, t_w = target_masks.shape[-2], target_masks.shape[-1]
+        if t_h <= 0 or t_w <= 0:
+            return {
+                "loss_mask": src_masks.sum() * 0.0,
+                "loss_dice": src_masks.sum() * 0.0,
+            }
 
         # 3. 上采样预测 Mask 到 Target 分辨率
         # 注意：只对 src 插值，不对 target 插值 (避免破坏整数标签)
@@ -942,6 +955,13 @@ class GatedCRFLoss(LossWithWeights):
             target_masks = target_masks.unsqueeze(1)
 
         target_masks = target_masks.to(src_masks.device)
+
+        # 防御：跳过维度不足、空间尺寸无效的 mask
+        if target_masks.dim() < 2:
+            return {"loss_crf": src_masks.sum() * 0.0}
+        t_h, t_w = target_masks.shape[-2], target_masks.shape[-1]
+        if t_h <= 0 or t_w <= 0:
+            return {"loss_crf": src_masks.sum() * 0.0}
 
         # 3. 上采样预测 Mask 到 Target 分辨率
         src_masks = interpolate(

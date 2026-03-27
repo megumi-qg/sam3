@@ -698,6 +698,65 @@ class Sam3ImageOnVideoMultiGPU(Sam3Image):
             gather_backbone_out = isinstance(self.backbone, SAM3VLBackbone)
         self.gather_backbone_out = gather_backbone_out
 
+    # ✅ ADD THIS METHOD:
+    def forward(self, input: BatchedDatapoint):
+        """
+        Override parent's forward to handle multiple frames.
+        Processes frames sequentially (not distributed like forward_video_grounding_multigpu).
+        """
+        device = self.device
+        backbone_out = {"img_batch_all_stages": input.img_batch}
+        backbone_out.update(self.backbone.forward_image(input.img_batch))
+        
+        num_frames = len(input.find_inputs)
+        # ✅ NO ASSERTION - allow multiple frames
+        print(f"[Sam3ImageOnVideoMultiGPU] Processing {num_frames} frames")
+        
+        text_outputs = self.backbone.forward_text(input.find_text_batch, device=device)
+        backbone_out.update(text_outputs)
+        
+        previous_stages_out = SAM3Output(
+            iter_mode=SAM3Output.IterMode.LAST_STEP_PER_STAGE
+        )
+        
+        # Process each frame sequentially
+        for frame_idx in range(num_frames):
+            find_input = input.find_inputs[frame_idx]
+            find_target = input.find_targets[frame_idx] if input.find_targets and frame_idx < len(input.find_targets) else None
+            
+            if find_input.input_points is not None and find_input.input_points.numel() > 0:
+                print("Warning: Point prompts are ignored in PCS.")
+            
+            num_interactive_steps = 0 if self.training else self.num_interactive_steps_val
+            geometric_prompt = Prompt(
+                box_embeddings=find_input.input_boxes,
+                box_mask=find_input.input_boxes_mask,
+                box_labels=find_input.input_boxes_label,
+            )
+            
+            # Init vars that are shared across the loop
+            stage_outs = []
+            for cur_step in range(num_interactive_steps + 1):
+                if cur_step > 0:
+                    # Sample interactive geometric prompts
+                    geometric_prompt, _ = self.interactive_prompt_sampler.sample(
+                        geo_prompt=geometric_prompt,
+                        find_target=find_target,
+                        previous_out=stage_outs[-1],
+                    )
+                
+                out = self.forward_grounding(
+                    backbone_out=backbone_out,
+                    find_input=find_input,
+                    find_target=find_target,
+                    geometric_prompt=geometric_prompt.clone(),
+                )
+                stage_outs.append(out)
+            
+            previous_stages_out.append(stage_outs)
+        
+        return previous_stages_out
+
     def forward_video_grounding_multigpu(
         self,
         backbone_out,

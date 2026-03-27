@@ -1,7 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
 import os
-from typing import Optional
+from typing import List, Optional
 
 # import pkg_resources
 import importlib.resources
@@ -42,6 +42,7 @@ from sam3.model.text_encoder_ve import VETextEncoder
 from sam3.model.tokenizer_ve import SimpleTokenizer
 from sam3.model.vitdet import ViT
 from sam3.model.vl_combiner import SAM3VLBackbone
+from sam3.model.lora import apply_lora_to_sam3
 from sam3.sam.transformer import RoPEAttention
 
 
@@ -570,6 +571,12 @@ def build_sam3_image_model(
     enable_segmentation=True,
     enable_inst_interactivity=False,
     compile=False,
+    use_lora: bool = False,
+    lora_r: int = 8,
+    lora_alpha: float = 16.0,
+    lora_target_components: Optional[List[str]] = None,
+    lora_freeze_non_lora: bool = True,
+    lora_unfreeze_components: Optional[List[str]] = None,
 ):
     """
     Build SAM3 image model
@@ -581,7 +588,17 @@ def build_sam3_image_model(
         checkpoint_path: Optional path to model checkpoint
         enable_segmentation: Whether to enable segmentation head
         enable_inst_interactivity: Whether to enable instance interactivity (SAM 1 task)
-        compile_mode: To enable compilation, set to "default"
+        compile: To enable compilation, set to True
+        use_lora: If True, inject LoRA for efficient fine-tuning
+        lora_r: LoRA rank (default 8)
+        lora_alpha: LoRA scaling, effective scale = lora_alpha / lora_r (default 16.0)
+        lora_target_components: Component names to apply LoRA. Options:
+            vision_encoder, text_encoder, geometry_encoder, detr_encoder, detr_decoder, mask_decoder.
+            Default: all of the above.
+        lora_freeze_non_lora: If True, freeze all non-LoRA parameters (default True)
+        lora_unfreeze_components: List of component names that should NOT be frozen even when
+            freeze_non_lora=True. These components will be fully fine-tuned.
+            E.g., ["mask_decoder"] to fully fine-tune mask_decoder while using LoRA for others.
 
     Returns:
         A SAM3 image model
@@ -642,6 +659,19 @@ def build_sam3_image_model(
     # Load checkpoint if provided
     if checkpoint_path is not None:
         _load_checkpoint(model, checkpoint_path)
+
+    # Inject LoRA for efficient fine-tuning (after loading checkpoint)
+    if use_lora:
+        replaced = apply_lora_to_sam3(
+            model,
+            target_components=lora_target_components,
+            r=lora_r,
+            lora_alpha=lora_alpha,
+            freeze_non_lora=lora_freeze_non_lora,
+            unfreeze_components=lora_unfreeze_components,
+        )
+        if replaced:
+            print(f"LoRA injected into {len(replaced)} linear layers")
 
     # Setup device and mode
     model = _setup_device_and_mode(model, device, eval_mode)
@@ -805,3 +835,115 @@ def build_sam3_video_predictor(*model_args, gpus_to_use=None, **model_kwargs):
     return Sam3VideoPredictorMultiGPU(
         *model_args, gpus_to_use=gpus_to_use, **model_kwargs
     )
+
+def build_sam3_image_video_model(
+    bpe_path=None,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    eval_mode=False, # Default to False for training
+    checkpoint_path=None,
+    load_from_HF=True,
+    enable_segmentation=True,
+    enable_inst_interactivity=False,
+    compile=False,
+    async_all_gather=True,
+    gather_backbone_out=None):
+    """
+        Build SAM3 image model with multi-GPU video support for training.
+        This is the same as build_sam3_image_model but returns Sam3ImageOnVideoMultiGPU
+        instead of Sam3Image, allowing training with multiple frames.    
+    Args:
+        bpe_path: Path to the BPE tokenizer vocabulary
+        device: Device to load the model on ('cuda' or 'cpu')
+        eval_mode: Whether to set the model to evaluation mode
+        checkpoint_path: Optional path to model checkpoint
+        enable_segmentation: Whether to enable segmentation head
+        enable_inst_interactivity: Whether to enable instance interactivity
+        compile: Whether to compile the model
+        async_all_gather: Enable async all-gather for multi-GPU (video specific)
+        gather_backbone_out: Whether to gather backbone features (video specific)
+    Returns:
+        Sam3ImageOnVideoMultiGPU: A SAM3 image model with multi-frame support
+    """
+    if bpe_path is None:
+        bpe_path = os.path.join(
+            os.path.dirname(__file__), "..", "assets", "bpe_simple_vocab_16e6.txt.gz"
+        )
+
+    # Create visual components
+    compile_mode = "default" if compile else None
+    vision_encoder = _create_vision_backbone(
+        compile_mode=compile_mode, enable_inst_interactivity=enable_inst_interactivity
+    )
+
+    # Create text components
+    text_encoder = _create_text_encoder(bpe_path)
+
+    # Create visual-language backbone
+    backbone = _create_vl_backbone(vision_encoder, text_encoder)
+
+    # Create transformer components
+    transformer = _create_sam3_transformer()
+
+    # Create dot product scoring
+    dot_prod_scoring = _create_dot_product_scoring()
+
+    # Create segmentation head if enabled
+    segmentation_head = (
+        _create_segmentation_head(compile_mode=compile_mode)
+        if enable_segmentation
+        else None
+    )
+
+    # Create geometry encoder
+    input_geometry_encoder = _create_geometry_encoder()
+
+    # Create instance interactivity predictor if enabled
+    if enable_inst_interactivity:
+        sam3_pvs_base = build_tracker(apply_temporal_disambiguation=False)
+        inst_predictor = SAM3InteractiveImagePredictor(sam3_pvs_base)
+    else:
+        inst_predictor = None
+
+    # Create matcher for training
+    matcher = None
+    if not eval_mode:
+        from sam3.train.matcher import BinaryHungarianMatcherV2
+        matcher = BinaryHungarianMatcherV2(
+            focal=True,
+            cost_class=2.0,
+            cost_bbox=5.0,
+            cost_giou=2.0,
+            alpha=0.25,
+            gamma=2,
+            stable=False,
+        )
+
+    # ✅ KEY DIFFERENCE: Use Sam3ImageOnVideoMultiGPU instead of Sam3Image
+    model = Sam3ImageOnVideoMultiGPU(
+        backbone=backbone,
+        transformer=transformer,
+        input_geometry_encoder=input_geometry_encoder,
+        segmentation_head=segmentation_head,
+        num_feature_levels=1,
+        o2m_mask_predict=True,
+        dot_prod_scoring=dot_prod_scoring,
+        use_instance_query=False,
+        multimask_output=True,
+        inst_interactive_predictor=inst_predictor,
+        matcher=matcher,
+        # Video-specific parameters
+        async_all_gather=async_all_gather,
+        gather_backbone_out=gather_backbone_out,
+    )
+
+    # Load checkpoint if provided
+    if load_from_HF and checkpoint_path is None:
+        checkpoint_path = download_ckpt_from_hf()
+
+    if checkpoint_path is not None:
+        _load_checkpoint(model, checkpoint_path)
+
+    # Setup device and mode
+    model = _setup_device_and_mode(model, device, eval_mode)
+
+    return model

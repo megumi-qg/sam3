@@ -24,7 +24,10 @@ from sam3.model.data_misc import BatchedDatapoint
 from sam3.model.model_misc import SAM3Output
 from sam3.model.utils.misc import copy_data_to_device
 
-from sam3.train.optim.optimizer import construct_optimizer
+from sam3.train.optim.optimizer import (
+    construct_optimizer,
+    unix_param_pattern_to_parameter_names,
+)
 
 from sam3.train.utils.checkpoint_utils import (
     assert_skipped_parameters_are_frozen,
@@ -75,6 +78,7 @@ class OptimConf:
     optimizer: torch.optim.Optimizer = None
     options: Optional[Dict[str, Any]] = None
     param_group_modifiers: Optional[List] = None
+    param_allowlist_patterns: Optional[List[str]] = None  # e.g. ["*lora_A*", "*lora_B*"] for LoRA
     amp: Optional[Dict[str, Any]] = None
     gradient_clip: Any = None
     gradient_logger: Any = None
@@ -1411,11 +1415,18 @@ class Trainer:
         logging.info("Finished setting up components: Model, loss, optim, meters etc.")
 
     def _construct_optimizers(self):
+        param_allowlist = None
+        if getattr(self.optim_conf, "param_allowlist_patterns", None):
+            param_names = dict(unwrap_ddp_if_wrapped(self.model).named_parameters())
+            param_allowlist = unix_param_pattern_to_parameter_names(
+                self.optim_conf.param_allowlist_patterns, param_names
+            )
         self.optim = construct_optimizer(
             self.model,
             self.optim_conf.optimizer,
             self.optim_conf.options,
             self.optim_conf.param_group_modifiers,
+            param_allowlist=param_allowlist,
         )
 
     def _log_loss_detailed_and_return_core_loss(self, loss, loss_str, step):

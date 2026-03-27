@@ -4,7 +4,7 @@ import os
 # 加载微调后的检查点文件
 # 可以选择原始检查点或转换后的检查点
 # CHECKPOINT_PATH = '/home/gaoqi/sam3/experiment/acdc_weak_finetune_3/checkpoints/checkpoint.pt'
-CHECKPOINT_PATH = '/home/gaoqi/sam3/gq_experiment/acdc_camus/weak/scribble/checkpoints/val_acdc_segmentation_coco_eval_segm_AP.pt'
+CHECKPOINT_PATH = '/home/gaoqi/sam3/gq_experiment/acdc/lora/checkpoints/val_acdc_segmentation_coco_eval_segm_AP.pt'
 
 print(f"正在加载: {CHECKPOINT_PATH}")
 ckpt = torch.load(CHECKPOINT_PATH, map_location='cpu', weights_only=False)

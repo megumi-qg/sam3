@@ -10,6 +10,7 @@
 import argparse
 from pathlib import Path
 
+import numpy as np
 import SimpleITK as sitk
 
 
@@ -25,12 +26,15 @@ def describe_nii(path: Path):
     origin = img.GetOrigin()
     direction = img.GetDirection()
 
+    uniq = np.unique(array)
+
     print(f"文件: {path}")
     print(f"数据类型: {array.dtype}")
     print(f"Shape (z, y, x): {shape}")
     print(f"体素间距 spacing (z, y, x): {spacing}")
     print(f"原点 origin: {origin}")
     print(f"方向矩阵 direction (flattened): {direction}")
+    print(f"Unique 值 ({len(uniq)} 个): {uniq}")
 
 
 def parse_args():
@@ -38,7 +42,7 @@ def parse_args():
     ap.add_argument(
         "--path",
         type=str,
-        default="/home/gaoqi/weaksam/data/ACDC/pre_test/gts_nii/patient101_frame01.nii.gz",
+        default="/home/gaoqi/dataset/using/btcv_1/train/scribble_bench/0759564-Mask_swapped.nii.gz",
         required=False,
         help="NIfTI 文件路径 (.nii 或 .nii.gz)",
     )
