@@ -1,5 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+# pyre-unsafe
+
 import contextlib
 import os
 import queue
@@ -11,9 +13,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
-
 from PIL import Image
-
 from sam3.logger import get_logger
 from tqdm import tqdm
 
@@ -299,6 +299,12 @@ def load_video_frames_from_video_file_using_cv2(
         pbar.update(1)
     cap.release()
     pbar.close()
+
+    if len(frames) == 0:
+        raise RuntimeError(
+            f"No frames could be decoded from video: {video_path}. "
+            f"The file may be corrupted, empty, or encoded with an unsupported codec."
+        )
 
     # Convert to tensor
     frames_np = np.stack(frames, axis=0).astype(np.float32)  # (T, H, W, C)
