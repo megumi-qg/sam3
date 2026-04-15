@@ -144,6 +144,10 @@ logs/
 runs/
 tensorboard/
 
+# Local tooling / experiment outputs
+.codex
+gq_experiment/
+
 # OS specific
 .DS_Store
 Thumbs.db

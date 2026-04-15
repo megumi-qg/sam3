@@ -2,10 +2,12 @@
 
 # pyre-unsafe
 
+import logging
 import os
-from typing import Optional
+from typing import List, Optional
 
-import pkg_resources
+import importlib.resources
+
 import torch
 import torch.nn as nn
 from huggingface_hub import hf_hub_download
@@ -35,15 +37,19 @@ from sam3.model.necks import Sam3DualViTDetNeck
 from sam3.model.position_encoding import PositionEmbeddingSine
 from sam3.model.sam1_task_predictor import SAM3InteractiveImagePredictor
 from sam3.model.sam3_image import Sam3Image, Sam3ImageOnVideoMultiGPU
+from sam3.model.sam3_image_slice_context import Sam3ImageSliceContext
 from sam3.model.sam3_tracking_predictor import Sam3TrackerPredictor
 from sam3.model.sam3_video_inference import Sam3VideoInferenceWithInstanceInteractivity
 from sam3.model.sam3_video_predictor import Sam3VideoPredictorMultiGPU
+from sam3.model.slice_context_adapter import SliceContextAdapter
 from sam3.model.text_encoder_ve import VETextEncoder
 from sam3.model.tokenizer_ve import SimpleTokenizer
 from sam3.model.vitdet import ViT
 from sam3.model.vl_combiner import SAM3VLBackbone
+from sam3.model.lora import apply_lora_to_sam3
 from sam3.sam.transformer import RoPEAttention
 
+logger = logging.getLogger(__name__)
 
 # Setup TensorFloat-32 for Ampere GPUs if available
 def _setup_tf32() -> None:
@@ -111,7 +117,7 @@ def _create_vit_neck(position_encoding, vit_backbone, enable_inst_interactivity=
 
 
 def _create_vl_backbone(vit_neck, text_encoder):
-    """Create visual-language backbone."""
+    """Create visual-language backbone (scalp=1 drops the lowest-res neck level)."""
     return SAM3VLBackbone(visual=vit_neck, text=text_encoder, scalp=1)
 
 
@@ -251,6 +257,8 @@ def _create_geometry_encoder():
         dim_feedforward=2048,
         dropout=0.1,
         pos_enc_at_attn=False,
+        pos_enc_at_cross_attn_keys=True,
+        pos_enc_at_cross_attn_queries=False,
         pre_norm=True,
         self_attention=MultiheadAttention(
             num_heads=8,
@@ -258,8 +266,6 @@ def _create_geometry_encoder():
             embed_dim=256,
             batch_first=False,
         ),
-        pos_enc_at_cross_attn_queries=False,
-        pos_enc_at_cross_attn_keys=True,
         cross_attention=MultiheadAttention(
             num_heads=8,
             dropout=0.1,
@@ -522,11 +528,10 @@ def _create_sam3_transformer(has_presence_token: bool = True) -> TransformerWrap
 
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
-
 def _load_checkpoint(model, checkpoint_path):
     """Load model checkpoint from file."""
     with g_pathmgr.open(checkpoint_path, "rb") as f:
-        ckpt = torch.load(f, map_location="cpu", weights_only=True)
+        ckpt = torch.load(f, map_location="cpu", weights_only=False)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
     sam3_image_ckpt = {
@@ -566,6 +571,12 @@ def build_sam3_image_model(
     enable_segmentation=True,
     enable_inst_interactivity=False,
     compile=False,
+    use_lora: bool = False,
+    lora_r: int = 8,
+    lora_alpha: float = 16.0,
+    lora_target_components: Optional[List[str]] = None,
+    lora_freeze_non_lora: bool = True,
+    lora_unfreeze_components: Optional[List[str]] = None,
 ):
     """
     Build SAM3 image model
@@ -577,15 +588,26 @@ def build_sam3_image_model(
         checkpoint_path: Optional path to model checkpoint
         enable_segmentation: Whether to enable segmentation head
         enable_inst_interactivity: Whether to enable instance interactivity (SAM 1 task)
-        compile_mode: To enable compilation, set to "default"
+        compile: To enable compilation, set to True
+        use_lora: If True, inject LoRA for efficient fine-tuning
+        lora_r: LoRA rank (default 8)
+        lora_alpha: LoRA scaling, effective scale = lora_alpha / lora_r (default 16.0)
+        lora_target_components: Component names to apply LoRA. Options:
+            vision_encoder, text_encoder, geometry_encoder, detr_encoder, detr_decoder, mask_decoder.
+            Default: all of the above.
+        lora_freeze_non_lora: If True, freeze all non-LoRA parameters (default True)
+        lora_unfreeze_components: List of component names that should NOT be frozen even when
+            freeze_non_lora=True. These components will be fully fine-tuned.
+            E.g., ["mask_decoder"] to fully fine-tune mask_decoder while using LoRA for others.
 
     Returns:
         A SAM3 image model
     """
     if bpe_path is None:
-        bpe_path = pkg_resources.resource_filename(
-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
+        path_resource = importlib.resources.files("sam3").joinpath(
+            "assets/bpe_simple_vocab_16e6.txt.gz"
         )
+        bpe_path = str(path_resource)
 
     # Create visual components
     compile_mode = "default" if compile else None
@@ -619,7 +641,7 @@ def build_sam3_image_model(
         inst_predictor = SAM3InteractiveImagePredictor(sam3_pvs_base)
     else:
         inst_predictor = None
-    # Create the SAM3 model
+
     model = _create_sam3_model(
         backbone,
         transformer,
@@ -634,6 +656,19 @@ def build_sam3_image_model(
     # Load checkpoint if provided
     if checkpoint_path is not None:
         _load_checkpoint(model, checkpoint_path)
+
+    # Inject LoRA for efficient fine-tuning (after loading checkpoint)
+    if use_lora:
+        replaced = apply_lora_to_sam3(
+            model,
+            target_components=lora_target_components,
+            r=lora_r,
+            lora_alpha=lora_alpha,
+            freeze_non_lora=lora_freeze_non_lora,
+            unfreeze_components=lora_unfreeze_components,
+        )
+        if replaced:
+            logger.info("LoRA injected into %s linear layers", len(replaced))
 
     # Setup device and mode
     model = _setup_device_and_mode(model, device, eval_mode)
@@ -672,9 +707,10 @@ def build_sam3_video_model(
         Sam3VideoInferenceWithInstanceInteractivity: The instantiated dense tracking model
     """
     if bpe_path is None:
-        bpe_path = pkg_resources.resource_filename(
-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
+        path_resource = importlib.resources.files("sam3").joinpath(
+            "assets/bpe_simple_vocab_16e6.txt.gz"
         )
+        bpe_path = str(path_resource)
 
     # Build Tracker module
     tracker = build_tracker(apply_temporal_disambiguation=apply_temporal_disambiguation)
@@ -795,3 +831,261 @@ def build_sam3_video_predictor(*model_args, gpus_to_use=None, **model_kwargs):
     return Sam3VideoPredictorMultiGPU(
         *model_args, gpus_to_use=gpus_to_use, **model_kwargs
     )
+
+def build_sam3_image_video_model(
+    bpe_path=None,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    eval_mode=False, # Default to False for training
+    checkpoint_path=None,
+    load_from_HF=True,
+    enable_segmentation=True,
+    enable_inst_interactivity=False,
+    compile=False,
+    async_all_gather=True,
+    gather_backbone_out=None,
+    use_lora: bool = False,
+    lora_r: int = 8,
+    lora_alpha: float = 16.0,
+    lora_target_components: Optional[List[str]] = None,
+    lora_freeze_non_lora: bool = True,
+    lora_unfreeze_components: Optional[List[str]] = None,
+):
+    """
+        Build SAM3 image model with multi-GPU video support for training.
+        This is the same as build_sam3_image_model but returns Sam3ImageOnVideoMultiGPU
+        instead of Sam3Image, allowing training with multiple frames.    
+    Args:
+        bpe_path: Path to the BPE tokenizer vocabulary
+        device: Device to load the model on ('cuda' or 'cpu')
+        eval_mode: Whether to set the model to evaluation mode
+        checkpoint_path: Optional path to model checkpoint
+        enable_segmentation: Whether to enable segmentation head
+        enable_inst_interactivity: Whether to enable instance interactivity
+        compile: Whether to compile the model
+        async_all_gather: Enable async all-gather for multi-GPU (video specific)
+        gather_backbone_out: Whether to gather backbone features (video specific)
+        use_lora: If True, inject LoRA for efficient fine-tuning
+        lora_r: LoRA rank
+        lora_alpha: LoRA scaling
+        lora_target_components: Component names to apply LoRA to
+        lora_freeze_non_lora: If True, freeze all non-LoRA parameters
+        lora_unfreeze_components: Components to keep fully trainable while using LoRA
+    Returns:
+        Sam3ImageOnVideoMultiGPU: A SAM3 image model with multi-frame support
+    """
+    if bpe_path is None:
+        bpe_path = os.path.join(
+            os.path.dirname(__file__), "..", "assets", "bpe_simple_vocab_16e6.txt.gz"
+        )
+
+    # Create visual components
+    compile_mode = "default" if compile else None
+    vision_encoder = _create_vision_backbone(
+        compile_mode=compile_mode, enable_inst_interactivity=enable_inst_interactivity
+    )
+
+    # Create text components
+    text_encoder = _create_text_encoder(bpe_path)
+
+    # Create visual-language backbone
+    backbone = _create_vl_backbone(vision_encoder, text_encoder)
+
+    # Create transformer components
+    transformer = _create_sam3_transformer()
+
+    # Create dot product scoring
+    dot_prod_scoring = _create_dot_product_scoring()
+
+    # Create segmentation head if enabled
+    segmentation_head = (
+        _create_segmentation_head(compile_mode=compile_mode)
+        if enable_segmentation
+        else None
+    )
+
+    # Create geometry encoder
+    input_geometry_encoder = _create_geometry_encoder()
+
+    # Create instance interactivity predictor if enabled
+    if enable_inst_interactivity:
+        sam3_pvs_base = build_tracker(apply_temporal_disambiguation=False)
+        inst_predictor = SAM3InteractiveImagePredictor(sam3_pvs_base)
+    else:
+        inst_predictor = None
+
+    # Create matcher for training
+    matcher = None
+    if not eval_mode:
+        from sam3.train.matcher import BinaryHungarianMatcherV2
+        matcher = BinaryHungarianMatcherV2(
+            focal=True,
+            cost_class=2.0,
+            cost_bbox=5.0,
+            cost_giou=2.0,
+            alpha=0.25,
+            gamma=2,
+            stable=False,
+        )
+
+    model = Sam3ImageOnVideoMultiGPU(
+        backbone=backbone,
+        transformer=transformer,
+        input_geometry_encoder=input_geometry_encoder,
+        segmentation_head=segmentation_head,
+        num_feature_levels=1,
+        o2m_mask_predict=True,
+        dot_prod_scoring=dot_prod_scoring,
+        use_instance_query=False,
+        multimask_output=True,
+        inst_interactive_predictor=inst_predictor,
+        matcher=matcher,
+        # Video-specific parameters
+        async_all_gather=async_all_gather,
+        gather_backbone_out=gather_backbone_out,
+    )
+
+    # Load checkpoint if provided
+    if load_from_HF and checkpoint_path is None:
+        checkpoint_path = download_ckpt_from_hf()
+
+    if checkpoint_path is not None:
+        _load_checkpoint(model, checkpoint_path)
+
+    # Inject LoRA for efficient fine-tuning (after loading checkpoint)
+    if use_lora:
+        replaced = apply_lora_to_sam3(
+            model,
+            target_components=lora_target_components,
+            r=lora_r,
+            lora_alpha=lora_alpha,
+            freeze_non_lora=lora_freeze_non_lora,
+            unfreeze_components=lora_unfreeze_components,
+        )
+        if replaced:
+            logger.info("LoRA injected into %s linear layers", len(replaced))
+
+    # Setup device and mode
+    model = _setup_device_and_mode(model, device, eval_mode)
+
+    return model
+
+
+def build_sam3_image_video_context_model(
+    bpe_path=None,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    eval_mode=False,
+    checkpoint_path=None,
+    load_from_HF=True,
+    enable_segmentation=True,
+    enable_inst_interactivity=False,
+    compile=False,
+    async_all_gather=True,
+    gather_backbone_out=None,
+    use_lora: bool = False,
+    lora_r: int = 8,
+    lora_alpha: float = 16.0,
+    lora_target_components: Optional[List[str]] = None,
+    lora_freeze_non_lora: bool = True,
+    lora_unfreeze_components: Optional[List[str]] = None,
+    context_pool_size: int = 2,
+    context_max_context_distance: int = 8,
+    context_max_neighbor_frames: Optional[int] = None,
+    context_output_dim: int = 256,
+    context_dropout: float = 0.0,
+    center_frame_strategy: str = "middle",
+    context_feature_level: int = -1,
+):
+    """
+    Build SAM3 image model with slice-context prompting.
+
+    This keeps the image-model decoder path and injects neighboring slices as
+    visual prompt tokens for the center slice only.
+    """
+    if bpe_path is None:
+        bpe_path = os.path.join(
+            os.path.dirname(__file__), "..", "assets", "bpe_simple_vocab_16e6.txt.gz"
+        )
+
+    compile_mode = "default" if compile else None
+    vision_encoder = _create_vision_backbone(
+        compile_mode=compile_mode, enable_inst_interactivity=enable_inst_interactivity
+    )
+    text_encoder = _create_text_encoder(bpe_path)
+    backbone = _create_vl_backbone(vision_encoder, text_encoder)
+    transformer = _create_sam3_transformer()
+    dot_prod_scoring = _create_dot_product_scoring()
+    segmentation_head = (
+        _create_segmentation_head(compile_mode=compile_mode)
+        if enable_segmentation
+        else None
+    )
+    input_geometry_encoder = _create_geometry_encoder()
+
+    if enable_inst_interactivity:
+        sam3_pvs_base = build_tracker(apply_temporal_disambiguation=False)
+        inst_predictor = SAM3InteractiveImagePredictor(sam3_pvs_base)
+    else:
+        inst_predictor = None
+
+    matcher = None
+    if not eval_mode:
+        from sam3.train.matcher import BinaryHungarianMatcherV2
+
+        matcher = BinaryHungarianMatcherV2(
+            focal=True,
+            cost_class=2.0,
+            cost_bbox=5.0,
+            cost_giou=2.0,
+            alpha=0.25,
+            gamma=2,
+            stable=False,
+        )
+
+    slice_context_adapter = SliceContextAdapter(
+        input_dim=256,
+        output_dim=context_output_dim,
+        pool_size=context_pool_size,
+        max_context_distance=context_max_context_distance,
+        max_neighbor_frames=context_max_neighbor_frames,
+        dropout=context_dropout,
+    )
+
+    model = Sam3ImageSliceContext(
+        backbone=backbone,
+        transformer=transformer,
+        input_geometry_encoder=input_geometry_encoder,
+        segmentation_head=segmentation_head,
+        num_feature_levels=1,
+        o2m_mask_predict=True,
+        dot_prod_scoring=dot_prod_scoring,
+        use_instance_query=False,
+        multimask_output=True,
+        inst_interactive_predictor=inst_predictor,
+        matcher=matcher,
+        async_all_gather=async_all_gather,
+        gather_backbone_out=gather_backbone_out,
+        slice_context_adapter=slice_context_adapter,
+        center_frame_strategy=center_frame_strategy,
+        context_feature_level=context_feature_level,
+    )
+
+    if load_from_HF and checkpoint_path is None:
+        checkpoint_path = download_ckpt_from_hf()
+
+    if checkpoint_path is not None:
+        _load_checkpoint(model, checkpoint_path)
+
+    if use_lora:
+        replaced = apply_lora_to_sam3(
+            model,
+            target_components=lora_target_components,
+            r=lora_r,
+            lora_alpha=lora_alpha,
+            freeze_non_lora=lora_freeze_non_lora,
+            unfreeze_components=lora_unfreeze_components,
+        )
+        if replaced:
+            logger.info("LoRA injected into %s linear layers", len(replaced))
+
+    model = _setup_device_and_mode(model, device, eval_mode)
+    return model

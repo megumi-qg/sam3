@@ -17,9 +17,12 @@ MyTensor = Union[torch.Tensor, List[Any]]
 
 
 def interpolate(
-    input, size=None, scale_factor=None, mode="nearest", align_corners=None
-):
-    # type: (Tensor, Optional[List[int]], Optional[float], str, Optional[bool]) -> Tensor
+    input: torch.Tensor,
+    size: Optional[List[int]] = None,
+    scale_factor: Optional[float] = None,
+    mode: str = "nearest",
+    align_corners: Optional[bool] = None,
+) -> torch.Tensor:
     """
     Equivalent to nn.functional.interpolate, but with support for empty channel sizes.
     """
@@ -100,9 +103,9 @@ class BatchedFindTarget:
     repeated_boxes: MyTensor
     repeated_boxes__type = torch.float
 
-    # Target Segmentation masks
+    # Target segmentation masks (weak supervision: 0=neg, 1=pos, 255=ignore)
     segments: Optional[MyTensor]
-    segments__type = torch.bool
+    segments__type = torch.long
 
     # Target Semantic Segmentation masks
     semantic_segments: Optional[MyTensor]

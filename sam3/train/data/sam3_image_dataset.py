@@ -25,6 +25,10 @@ from torchvision.datasets.vision import VisionDataset
 
 from .coco_json_loaders import COCO_FROM_JSON
 
+# 在 import 部分添加
+from pycocotools import mask as maskUtils
+import numpy as np
+
 
 @dataclass
 class InferenceMetadata:
@@ -286,14 +290,117 @@ class CustomCocoDetectionAPI(VisionDataset):
 
         for annotation in annotations:
             image_id = id2index_img[annotation["image_id"]]
-            bbox = box_xywh_to_xyxy(torch.as_tensor(annotation["bbox"])).view(1, 4)
             h, w = id2imsize[annotation["image_id"]]
-            bbox[:, 0::2].mul_(w).clamp_(min=0, max=w)
-            bbox[:, 1::2].mul_(h).clamp_(min=0, max=h)
+
+            # -----------------------------------------------------------
+            # 步骤 1: 预先解码当前对象的 Mask (只解码一次！)
+            # -----------------------------------------------------------
+            current_binary_mask = None
+            if isinstance(annotation["segmentation"], list):
+                # Polygon 格式
+                rle = maskUtils.frPyObjects(annotation["segmentation"], h, w)
+                m = maskUtils.decode(rle)
+                if len(m.shape) == 3:
+                    m = m.sum(axis=2) > 0
+                current_binary_mask = m.astype(bool)
+            elif isinstance(annotation["segmentation"], dict):
+                # RLE 格式
+                m = maskUtils.decode(annotation["segmentation"])
+                current_binary_mask = m.astype(bool)
+            else:
+                # 异常处理
+                current_binary_mask = np.zeros((h, w), dtype=bool)
+
+            # -----------------------------------------------------------
+            # 步骤 2: 获取 BBox ((如果 JSON 中没有，则从 Mask 生成伪 Box))
+            # -----------------------------------------------------------
+            # 优先级：推理得到的bbox > JSON中的bbox > 从scribble mask计算的bbox
+            ann_id = annotation.get("id", -1)
+            use_inferred_bbox = False
+            
+            # 检查是否有推理得到的bbox
+            if hasattr(self, 'inferred_bbox_cache') and ann_id in self.inferred_bbox_cache:
+                inferred_bbox_xywh = self.inferred_bbox_cache[ann_id]
+                if inferred_bbox_xywh is not None and len(inferred_bbox_xywh) == 4:
+                    # 使用推理得到的bbox
+                    bbox_xywh = torch.as_tensor(inferred_bbox_xywh)
+                    bbox = box_xywh_to_xyxy(bbox_xywh).view(1, 4)
+                    bbox[:, 0::2].mul_(w).clamp_(min=0, max=w)
+                    bbox[:, 1::2].mul_(h).clamp_(min=0, max=h)
+                    use_inferred_bbox = True
+            
+            if not use_inferred_bbox:
+                # COCO Loader 已经读取了 "bbox" 并进行了归一化 (0-1)
+                # 检查 JSON 里的 bbox 是否有效 (宽和高 > 0)
+                has_valid_json_bbox = False
+                if "bbox" in annotation:
+                    temp_bbox = torch.as_tensor(annotation["bbox"])
+                    # 注意：coco_json_loaders 可能会填充 [0,0,0,0]，需要过滤掉
+                    if temp_bbox[2] > 0 and temp_bbox[3] > 0:
+                        has_valid_json_bbox = True
+                
+                if has_valid_json_bbox:
+                    # 原始逻辑：从 JSON 加载并反归一化
+                    bbox_xywh = torch.as_tensor(annotation["bbox"])
+                    bbox = box_xywh_to_xyxy(bbox_xywh).view(1, 4)
+                    bbox[:, 0::2].mul_(w).clamp_(min=0, max=w)
+                    bbox[:, 1::2].mul_(h).clamp_(min=0, max=h)
+                else:
+                    # === 新增逻辑：从 Scribble Mask 计算 Pseudo BBox ===
+                    if current_binary_mask.any():
+                        y_indices, x_indices = np.where(current_binary_mask)
+                        x_min, x_max = x_indices.min(), x_indices.max()
+                        y_min, y_max = y_indices.min(), y_indices.max()
+                        # 构造绝对坐标 XYXY
+                        # 稍微给一点 buffer (可选)，或者直接紧贴 scribble
+                        bbox = torch.tensor([[x_min, y_min, x_max, y_max]], dtype=torch.float32)
+                    else:
+                        # 空 Mask 的情况 (防御性代码)
+                        bbox = torch.tensor([[0.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
+
+            # -----------------------------------------------------------
+            # 步骤 3: 生成 Mask (全监督: 0/1, 弱监督: 0/1/255)
+            # -----------------------------------------------------------
             segment = None
-            if self.load_segmentation and "segmentation" in annotation:
-                # We're not decoding the RLE here, a transform will do it lazily later
-                segment = annotation["segmentation"]
+            if self.load_segmentation: # 只要开启分割就生成
+                # 检测是否为弱监督任务（通过 valid_mask 判断）
+                has_valid_mask = "valid_mask" in annotation and annotation["valid_mask"] is not None
+                
+                if has_valid_mask:
+                    # === 弱监督任务：生成 Tri-state Mask (0=负, 1=正, 255=忽略) ===
+                    # 1. 初始化 Ignore (255)
+                    tri_state_mask = np.full((h, w), 255, dtype=np.uint8)
+
+                    # 2. 解码 valid_mask 并设定背景 (0)
+                    # valid_mask=1 的区域是所有已知 scribble 的并集
+                    rle_valid = annotation["valid_mask"]
+                    if isinstance(rle_valid, list): # 兼容 polygon
+                        rle_valid = maskUtils.frPyObjects(rle_valid, h, w)
+                    m_valid = maskUtils.decode(rle_valid)
+                    if len(m_valid.shape) == 3: m_valid = m_valid.sum(axis=2) > 0
+                    
+                    # 将所有有效区域设为 0 (背景)
+                    # 稍后会将正样本覆盖为 1
+                    tri_state_mask[m_valid.astype(bool)] = 0
+                    
+                    # 3. 设定正样本 (1) - 使用 Step 1 中已经解码好的 current_binary_mask
+                    if current_binary_mask is not None:
+                        tri_state_mask[current_binary_mask] = 1
+                    
+                    # 4. 转 Tensor
+                    segment = torch.from_numpy(tri_state_mask).long()
+                else:
+                    # === 全监督任务：生成二值 Mask (0=背景, 1=前景) ===
+                    if current_binary_mask is not None:
+                        # 直接使用二值 mask：True -> 1, False -> 0
+                        binary_mask = current_binary_mask.astype(np.uint8)
+                    else:
+                        # 防御性代码：如果没有 mask，创建全零 mask
+                        binary_mask = np.zeros((h, w), dtype=np.uint8)
+                    
+                    # 转 Tensor
+                    segment = torch.from_numpy(binary_mask).long()
+
             images[image_id].objects.append(
                 Object(
                     bbox=bbox[0],
@@ -304,7 +411,7 @@ class CustomCocoDetectionAPI(VisionDataset):
                     frame_index=(
                         annotation["frame_index"] if "frame_index" in annotation else -1
                     ),
-                    segment=segment,
+                    segment=segment, # 这里现在是 [H, W] 的 0/1/255 Tensor
                     is_crowd=(
                         annotation["is_crowd"] if "is_crowd" in annotation else None
                     ),
@@ -482,6 +589,10 @@ class Sam3ImageDataset(CustomCocoDetectionAPI):
         print(f"Raw dataset length = {len(self.ids)}")
 
         self._MAX_RETRIES = 100
+        
+        # 用于存储推理得到的bbox缓存: {annotation_id: bbox_xywh}
+        # bbox_xywh是归一化的格式 [x, y, w, h]
+        self.inferred_bbox_cache: Dict[int, List[float]] = {}
 
     def __getitem__(self, idx):
         return self.__orig_getitem__(idx)
@@ -527,3 +638,31 @@ class Sam3ImageDataset(CustomCocoDetectionAPI):
             )
 
         return datapoint
+    
+    def update_inferred_bbox_cache(self, bbox_cache: Dict[int, List[float]]):
+        """
+        更新推理得到的bbox缓存
+        
+        Args:
+            bbox_cache: Dict[annotation_id, bbox_xywh]
+                bbox_xywh是归一化的格式 [x, y, w, h]
+        """
+        import torch.distributed as dist
+        
+        self.inferred_bbox_cache.update(bbox_cache)
+        
+        # 获取当前rank（如果是分布式训练）
+        # 使用print而不是logging，因为nohup会捕获所有rank的stdout
+        rank = dist.get_rank() if dist.is_available() and dist.is_initialized() else 0
+        print(f"Rank {rank}: 更新了 {len(bbox_cache)} 个推理得到的bbox")
+    
+    def clear_inferred_bbox_cache(self):
+        """清空推理得到的bbox缓存"""
+        import torch.distributed as dist
+        
+        self.inferred_bbox_cache.clear()
+        
+        # 获取当前rank（如果是分布式训练）
+        # 使用print而不是logging，因为nohup会捕获所有rank的stdout
+        rank = dist.get_rank() if dist.is_available() and dist.is_initialized() else 0
+        print(f"Rank {rank}: 已清空推理得到的bbox缓存")

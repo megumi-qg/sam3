@@ -3,16 +3,14 @@
 # pyre-unsafe
 
 import copy
-import io
-import json
+import numpy as np
+from PIL import Image
+import os
 import logging
 import math
 import os
-import pickle
 import random
-import sys
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
-
+from typing import Any, Dict, List, Optional, Set, Tuple
 import torch
 import torchvision
 # from decord import cpu, VideoReader
@@ -21,7 +19,7 @@ from iopath.common.file_io import PathManager
 from PIL import Image as PILImage
 
 from .sam3_image_dataset import Datapoint, Sam3ImageDataset
-
+from .coco_json_loaders import COCO_VIDEO_FROM_JSON
 
 SEED = 42
 
@@ -67,6 +65,11 @@ class VideoGroundingDataset(Sam3ImageDataset):
         - random_reverse_time_axis: whether to randomly invert the video's temporal axis
           (i.e. playing it backwards) during training
         """
+        # ✅ 修改点 1：显式传递 coco_json_loader 为你的自定义类
+        # 注意：这里我们通过 kwargs 将其传递给 Sam3ImageDataset -> CustomCocoDetectionAPI
+        if "coco_json_loader" not in kwargs:
+            kwargs["coco_json_loader"] = COCO_VIDEO_FROM_JSON
+        
         super().__init__(**kwargs)
         assert num_stages_sample >= 1
         assert stage_stride_min >= 1
@@ -85,6 +88,129 @@ class VideoGroundingDataset(Sam3ImageDataset):
         self.max_masklet_num_in_video = max_masklet_num_in_video
         self.rng = random.Random()
         self.set_curr_epoch(0)
+    
+    # ✅ 修改点 2：重写 _load_images 以支持 NPZ 切片加载
+    def _load_images(
+        self, datapoint_id: int, img_ids_to_load: Optional[Set[int]] = None
+    ) -> Tuple[List[Tuple[int, Image.Image]], List[Dict[str, Any]]]:
+        
+        all_images = []
+        all_img_metadata = []
+        
+        # 使用你的 COCO_VIDEO_FROM_JSON 类获取元数据
+        images_meta = self.coco.loadImagesFromDatapoint(datapoint_id)
+        
+        for current_meta in images_meta:
+            img_id = current_meta["id"]
+            
+            # 过滤不需要的帧（根据时间采样逻辑）
+            if img_ids_to_load is not None and img_id not in img_ids_to_load:
+                continue
+            
+            # 处理文件名（兼容基类逻辑）
+            if self.fix_fname:
+                current_meta["file_name"] = current_meta["file_name"].split("/")[-1]
+            
+            # 记录元数据
+            all_img_metadata.append(current_meta)
+            
+            # 获取文件绝对路径
+            path = os.path.join(self.root, current_meta["file_name"])
+
+            # ----------------------------------------------------------------
+            #  新增逻辑：处理 NPZ 格式的医学图像切片
+            # ----------------------------------------------------------------
+            if current_meta.get("is_npz", False):
+                try:
+                    slice_idx = current_meta["frame_idx"]
+                    
+                    # 读取 NPZ
+                    # ⚠️ 性能提示：如果在同一个 batch 中频繁读取同一个大的 npz 文件，
+                    # 建议在这里增加一个 LRU Cache 或者将 data 加载到内存中，
+                    # 否则频繁 IO 会导致训练速度变慢。
+                    with np.load(path) as data:
+                        # 假设数据存储在第一个 key 下，或者是 'arr_0'，或者是 'volume'
+                        # 根据你的 npz 结构调整 key
+                        keys = list(data.keys())
+                        vol_key = 'volume' if 'volume' in keys else keys[0]
+                        volume = data[vol_key]
+                        
+                        # 提取特定层
+                        # 假设 volume 是 [D, H, W]
+                        if slice_idx < volume.shape[0]:
+                            img_array = volume[slice_idx]
+                        else:
+                            raise ValueError(f"Slice index {slice_idx} out of bounds for {path}")
+                    
+                    # 归一化并转为 PIL (SAM3 需要 RGB PIL 输入)
+                    img_pil = self._numpy_to_pil(img_array)
+                    all_images.append((img_id, img_pil))
+                    
+                except Exception as e:
+                    print(f"Error loading NPZ slice: {path}, index: {slice_idx}")
+                    raise e
+            
+            # ----------------------------------------------------------------
+            #  原有逻辑：处理常规视频或图片 (保留以兼容混合数据集)
+            # ----------------------------------------------------------------
+            else:
+                try:
+                    # 处理 MP4
+                    if ".mp4" in path and path.endswith(".mp4"):
+                        # 这里沿用父类逻辑，如果父类引用不可用，需要复制父类相关代码
+                        # 假设 path 格式为 "video.mp4@frame_idx" 如果不是，需要适配
+                        if "@" in path:
+                            video_path, frame = path.split("@")
+                            # 需要确保 VideoReader 可用
+                            from decord import VideoReader, cpu
+                            video = VideoReader(video_path, ctx=cpu(0))
+                            pil_img = torchvision.transforms.ToPILImage()(
+                                video[int(frame)].asnumpy()
+                            )
+                            all_images.append((img_id, pil_img))
+                        else: 
+                            # 如果只是普通 MP4 文件名，需要根据 frame_idx 读取
+                            frame_idx = current_meta.get("frame_idx", 0)
+                            from decord import VideoReader, cpu
+                            video = VideoReader(path, ctx=cpu(0))
+                            pil_img = torchvision.transforms.ToPILImage()(
+                                video[frame_idx].asnumpy()
+                            )
+                            all_images.append((img_id, pil_img))
+
+                    # 处理普通图片 (JPG/PNG)
+                    else:
+                        with open(path, "rb") as fopen:
+                            img = Image.open(fopen).convert("RGB")
+                            all_images.append((img_id, img))
+                            
+                except FileNotFoundError as e:
+                    print(f"File not found: {path} from dataset: {self.annFile}")
+                    raise e
+
+        return all_images, all_img_metadata
+
+    def _numpy_to_pil(self, img_array):
+        """
+        辅助函数：将任意范围的 numpy 数组 (e.g. CT 值) 转换为 RGB PIL Image
+        """
+        # 1. 归一化到 0-255
+        if img_array.max() > img_array.min():
+            img_array = (img_array - img_array.min()) / (img_array.max() - img_array.min())
+        else:
+            img_array = np.zeros_like(img_array)
+            
+        img_array = (img_array * 255).astype(np.uint8)
+        
+        # 2. 转为 PIL
+        img_pil = Image.fromarray(img_array)
+        
+        # 3. 如果是单通道，转为 RGB (SAM3 需要)
+        if img_pil.mode != 'RGB':
+            img_pil = img_pil.convert('RGB')
+            
+        return img_pil
+
 
     def set_curr_epoch(self, epoch: int):
         super().set_curr_epoch(epoch)

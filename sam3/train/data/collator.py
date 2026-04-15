@@ -286,8 +286,9 @@ def collate_fn_api(
                         current_seg_mask.append(seg_mask)
                         current_is_valid_segment.append(1)
                     else:
+                        # Weak-sup: 0=neg, 1=pos, 255=ignore
                         dummy_mask = torch.zeros(
-                            data.images[q.image_id].data.shape[-2:], dtype=torch.bool
+                            data.images[q.image_id].data.shape[-2:], dtype=torch.long
                         )
                         current_seg_mask.append(dummy_mask)
                         current_is_valid_segment.append(0)

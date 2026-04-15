@@ -263,8 +263,8 @@ class UniversalSegmentationHead(SegmentationHead):
         self.cross_attend_prompt = cross_attend_prompt
         if self.cross_attend_prompt is not None:
             self.cross_attn_norm = nn.LayerNorm(self.d_model)
-
-        self.semantic_seg_head = nn.Conv2d(self.pixel_decoder.out_dim, 1, kernel_size=1)
+        # No semantic-seg loss in this training setup; omit head to avoid unused-parameter errors.
+        # self.semantic_seg_head = nn.Conv2d(self.pixel_decoder.out_dim, 1, kernel_size=1)
         self.instance_seg_head = nn.Conv2d(
             self.pixel_decoder.out_dim, self.d_model, kernel_size=1
         )
@@ -322,6 +322,6 @@ class UniversalSegmentationHead(SegmentationHead):
 
         return {
             "pred_masks": mask_pred,
-            "semantic_seg": self.semantic_seg_head(pixel_embed),
+            # "semantic_seg": self.semantic_seg_head(pixel_embed),
             "presence_logit": presence_logit,
         }

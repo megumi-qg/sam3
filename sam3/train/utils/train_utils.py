@@ -144,13 +144,39 @@ def get_amp_type(amp_type: Optional[str] = None):
 
 
 def log_env_variables():
-    env_keys = sorted(list(os.environ.keys()))
-    st = ""
-    for k in env_keys:
-        v = os.environ[k]
-        st += f"{k}={v}\n"
-    logging.info("Logging ENV_VARIABLES")
-    logging.info(st)
+    """
+    Log a concise, non-sensitive subset of runtime environment variables.
+
+    Full environment dumps make the training logs noisy and may accidentally
+    write secrets like API keys into log files. By default we disable the dump.
+    Set `SAM3_LOG_ENV_VARS=1` if concise env logging is needed for debugging.
+    """
+    if os.environ.get("SAM3_LOG_ENV_VARS", "0") != "1":
+        logging.info(
+            "Environment variable dump disabled by default. "
+            "Set SAM3_LOG_ENV_VARS=1 to enable concise runtime env logging."
+        )
+        return
+
+    whitelist = [
+        "CONDA_DEFAULT_ENV",
+        "CONDA_PREFIX",
+        "CUDA_VISIBLE_DEVICES",
+        "CUDA_HOME",
+        "MASTER_ADDR",
+        "MASTER_PORT",
+        "WORLD_SIZE",
+        "RANK",
+        "LOCAL_RANK",
+        "OMP_NUM_THREADS",
+        "PYTHONPATH",
+        "PWD",
+        "HOSTNAME",
+        "SLURM_JOB_ID",
+    ]
+    lines = [f"{k}={os.environ[k]}" for k in whitelist if k in os.environ]
+    logging.info("Logging concise ENV_VARIABLES")
+    logging.info("\n".join(lines) if lines else "(no whitelisted env vars found)")
 
 
 class AverageMeter:

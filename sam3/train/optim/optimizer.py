@@ -166,25 +166,56 @@ def map_scheduler_cfgs_to_param_groups(
     return schedulers, param_groups
 
 
-def validate_param_group_params(param_groups: List[Dict], model: nn.Module):
-    """Check that the param groups are non-overlapping and cover all the parameters.
+def validate_param_group_params(
+    param_groups: List[Dict],
+    model: nn.Module,
+    required_param_names: Optional[Set[str]] = None,
+):
+    """Check that the param groups are non-overlapping and cover the required parameters.
 
     Args:
         param_groups: List of all param groups
-        model: Model to validate against. The check ensures that all the model
-            parameters are part of param_groups
+        model: Model to validate against
+        required_param_names: If set, only these parameter names must be covered
+            (e.g. when using LoRA, only LoRA params are required). If None, all
+            model parameters must be covered.
     """
     for pg in param_groups:
-        # no param should be repeated within a group
         assert len(pg["params"]) == len(set(pg["params"]))
     parameters = [set(param_group["params"]) for param_group in param_groups]
-    model_parameters = {parameter for _, parameter in model.named_parameters()}
+    if required_param_names is not None:
+        model_parameters = {
+            p for n, p in model.named_parameters() if n in required_param_names
+        }
+    else:
+        model_parameters = {p for _, p in model.named_parameters()}
     for p1, p2 in itertools.permutations(parameters, 2):
         assert p1.isdisjoint(p2), "Scheduler generated param_groups should be disjoint"
     assert set.union(*parameters) == model_parameters, (
-        "Scheduler generated param_groups must include all parameters of the model."
-        f" Found {len(set.union(*parameters))} params whereas model has"
-        f" {len(model_parameters)} params"
+        "Scheduler generated param_groups must include all required parameters. "
+        f"Found {len(set.union(*parameters))} in groups whereas required set has "
+        f"{len(model_parameters)}"
+    )
+
+
+def _format_parameter_match_log(
+    match_key: str,
+    matching_parameters: Set[str],
+    max_examples: int = 5,
+) -> str:
+    """
+    Format a compact parameter-match log line.
+
+    Dumping every matched parameter name is noisy for large models. For logs we keep
+    the total count plus a few deterministic examples, which is usually enough to
+    verify that the allowlist/pattern is behaving correctly.
+    """
+    sorted_params = sorted(matching_parameters)
+    examples = sorted_params[:max_examples]
+    suffix = "" if len(sorted_params) <= max_examples else ", ..."
+    return (
+        f"Matches for {match_key}: {len(sorted_params)} params"
+        f" | examples={examples}{suffix}"
     )
 
 
@@ -215,7 +246,10 @@ def unix_module_cls_pattern_to_parameter_names(
             f"module_cls_name {module_cls_name} does not contain any parameters in the model"
         )
         logging.info(
-            f"Matches for module_cls_name [{module_cls_name}]: {matching_parameters} "
+            _format_parameter_match_log(
+                f"module_cls_name [{module_cls_name}]",
+                matching_parameters,
+            )
         )
         allowed_parameter_names.append(matching_parameters)
     return set.union(*allowed_parameter_names)
@@ -242,7 +276,12 @@ def unix_param_pattern_to_parameter_names(
         assert len(matching_parameters) >= 1, (
             f"param_name {param_name} does not match any parameters in the model"
         )
-        logging.info(f"Matches for param_name [{param_name}]: {matching_parameters}")
+        logging.info(
+            _format_parameter_match_log(
+                f"param_name [{param_name}]",
+                matching_parameters,
+            )
+        )
         allowed_parameter_names.append(matching_parameters)
     return set.union(*allowed_parameter_names)
 
@@ -363,7 +402,10 @@ def construct_optimizer(
         all_scheduler_cfgs, named_parameters
     )
     if validate_param_groups:
-        validate_param_group_params(param_groups, model)
+        validate_param_group_params(
+            param_groups, model,
+            required_param_names=param_allowlist if param_allowlist is not None else None,
+        )
     optimizer = hydra.utils.instantiate(optimizer_conf, param_groups)
     return Optimizer(optimizer, schedulers)
 

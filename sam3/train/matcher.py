@@ -14,9 +14,21 @@ from torch import nn
 
 
 def _do_matching(cost, repeats=1, return_tgt_indices=False, do_filtering=False):
+    if isinstance(cost, torch.Tensor):
+        cost = cost.detach().cpu().numpy()
+
+    if not np.isfinite(cost).all():
+        cost = np.nan_to_num(cost, nan=0.0, posinf=1e8, neginf=-1e8)
+
+    if cost.shape[0] == 0 or cost.shape[1] == 0:
+        empty_arr = np.array([], dtype=np.int64)
+        if return_tgt_indices:
+            return empty_arr, empty_arr
+        return empty_arr
+
     if repeats > 1:
         cost = np.tile(cost, (1, repeats))
-
+    # # 现在传入的 cost 保证是干净的 NumPy 数组
     i, j = linear_sum_assignment(cost)
     if do_filtering:
         # filter out invalid entries (i.e. those with cost > 1e8)
@@ -26,6 +38,9 @@ def _do_matching(cost, repeats=1, return_tgt_indices=False, do_filtering=False):
         i, j = np.array(i, dtype=np.int64), np.array(j, dtype=np.int64)
     if return_tgt_indices:
         return i, j
+
+    if len(i) == 0:
+        return np.array([], dtype=np.int64)
     order = np.argsort(j)
     return i[order]
 

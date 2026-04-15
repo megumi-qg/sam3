@@ -1,0 +1,61 @@
+# @package _global_
+defaults:
+  - full_video_lora_100
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/acdc/full_video_lora_100_context_v1
+
+scratch:
+  num_stages_sample: 5
+  stage_stride_min: 1
+  stage_stride_max: 1
+
+trainer:
+  mode: train
+  skip_first_val: false
+  model:
+    _target_: sam3.model_builder.build_sam3_image_video_context_model
+    bpe_path: ${paths.bpe_path}
+    device: cpus
+    eval_mode: false
+    enable_segmentation: ${scratch.enable_segmentation}
+    checkpoint_path: ${paths.pretrained_checkpoint}
+    load_from_HF: false
+    async_all_gather: true
+    gather_backbone_out: true
+    use_lora: true
+    lora_r: 8
+    lora_alpha: 16.0
+    lora_freeze_non_lora: true
+    lora_target_components:
+    - vision_encoder
+    - text_encoder
+    - geometry_encoder
+    - detr_encoder
+    - detr_decoder
+    lora_unfreeze_components:
+    - mask_decoder
+    - dot_prod_scoring
+    context_pool_size: 2
+    context_max_context_distance: 4
+    context_max_neighbor_frames: 4
+    context_output_dim: 256
+    context_dropout: 0.1
+    center_frame_strategy: middle
+    context_feature_level: -1
+  checkpoint:
+    save_dir: ${launcher.experiment_log_dir}/checkpoints
+    save_freq: 5
+    save_best_meters:
+    - val_acdc/detection
+    - val_acdc/segmentation
+  logging:
+    tensorboard_writer:
+      _target_: sam3.train.utils.logger.make_tensorboard_logger
+      log_dir: ${launcher.experiment_log_dir}/tensorboard
+      flush_secs: 120
+      should_log: true
+    wandb_writer: null
+    log_dir: ${launcher.experiment_log_dir}/logs/acdc_full_video_lora_100_context_v1
+    log_freq: 10

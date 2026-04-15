@@ -19,6 +19,7 @@ from omegaconf import OmegaConf
 from sam3.train.utils.train_utils import makedir, register_omegaconf_resolvers
 from tqdm import tqdm
 
+"""Hydra entrypoint for SAM3 training. See `sam3/train/configs/` for example YAMLs."""
 
 os.environ["HYDRA_FULL_ERROR"] = "1"
 
@@ -45,6 +46,7 @@ def single_proc_run(local_rank, main_port, cfg, world_size):
     """Single GPU process"""
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = str(main_port)
+    # [RANK] serves as the Global Unique Identifier for each process (which typically corresponds to one GPU).
     os.environ["RANK"] = str(local_rank)
     os.environ["LOCAL_RANK"] = str(local_rank)
     os.environ["WORLD_SIZE"] = str(world_size)
@@ -143,23 +145,20 @@ def main(args) -> None:
         cfg.launcher.experiment_log_dir = os.path.join(
             os.getcwd(), "sam3_logs", args.config
         )
-    print("###################### Train App Config ####################")
-    print(OmegaConf.to_yaml(cfg))
-    print("############################################################")
 
     add_pythonpath_to_sys_path()
     makedir(cfg.launcher.experiment_log_dir)
-    with g_pathmgr.open(
-        os.path.join(cfg.launcher.experiment_log_dir, "config.yaml"), "w"
-    ) as f:
+    config_fpath = os.path.join(cfg.launcher.experiment_log_dir, "config.yaml")
+    with g_pathmgr.open(config_fpath, "w") as f:
         f.write(OmegaConf.to_yaml(cfg))
 
     cfg_resolved = OmegaConf.to_container(cfg, resolve=False)
     cfg_resolved = OmegaConf.create(cfg_resolved)
 
-    with g_pathmgr.open(
-        os.path.join(cfg.launcher.experiment_log_dir, "config_resolved.yaml"), "w"
-    ) as f:
+    resolved_config_fpath = os.path.join(
+        cfg.launcher.experiment_log_dir, "config_resolved.yaml"
+    )
+    with g_pathmgr.open(resolved_config_fpath, "w") as f:
         f.write(OmegaConf.to_yaml(cfg_resolved, resolve=True))
 
     submitit_conf = cfg.get("submitit", None)
@@ -167,6 +166,8 @@ def main(args) -> None:
 
     experiment_log_dir = cfg.launcher.experiment_log_dir
     print(f"Experiment Log Dir:\n{experiment_log_dir}")
+    print(f"Saved config to:\n{config_fpath}")
+    print(f"Saved resolved config to:\n{resolved_config_fpath}")
     submitit_dir = os.path.join(experiment_log_dir, "submitit_logs")
 
     # Prioritize cmd line args

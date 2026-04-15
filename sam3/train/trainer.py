@@ -23,7 +23,12 @@ from iopath.common.file_io import g_pathmgr
 from sam3.model.data_misc import BatchedDatapoint
 from sam3.model.model_misc import SAM3Output
 from sam3.model.utils.misc import copy_data_to_device
-from sam3.train.optim.optimizer import construct_optimizer
+
+from sam3.train.optim.optimizer import (
+    construct_optimizer,
+    unix_param_pattern_to_parameter_names,
+)
+
 from sam3.train.utils.checkpoint_utils import (
     assert_skipped_parameters_are_frozen,
     exclude_params_matching_unix_pattern,
@@ -71,6 +76,7 @@ class OptimConf:
     optimizer: torch.optim.Optimizer = None
     options: Optional[Dict[str, Any]] = None
     param_group_modifiers: Optional[List] = None
+    param_allowlist_patterns: Optional[List[str]] = None  # e.g. ["*lora_A*", "*lora_B*"] for LoRA
     amp: Optional[Dict[str, Any]] = None
     gradient_clip: Any = None
     gradient_logger: Any = None
@@ -168,6 +174,17 @@ class Trainer:
         skip_saving_ckpts: bool = False,
         empty_gpu_mem_cache_after_eval: bool = True,
         gradient_accumulation_steps: int = 1,
+        enable_progressive_training: bool = False,
+        bbox_update_epoch_interval: int = 5,
+        initial_weak_supervision_epochs: int = 5,
+        strong_loss_bbox_weight: float = 5.0,
+        strong_loss_giou_weight: float = 2.0,
+        strong_matcher_cost_class: float = 2.0,
+        strong_matcher_cost_bbox: float = 5.0,
+        strong_matcher_cost_giou: float = 2.0,
+        weak_matcher_cost_class: float = 5.0,
+        weak_matcher_cost_bbox: float = 1.0,
+        weak_matcher_cost_giou: float = 1.0,
     ):
         self._setup_env_variables(env_variables)
         self._setup_timers()
@@ -190,6 +207,20 @@ class Trainer:
         self.skip_first_val = skip_first_val
         self.skip_saving_ckpts = skip_saving_ckpts
         self.empty_gpu_mem_cache_after_eval = empty_gpu_mem_cache_after_eval
+
+        self.enable_progressive_training = enable_progressive_training
+        self.bbox_update_epoch_interval = bbox_update_epoch_interval
+        self.initial_weak_supervision_epochs = initial_weak_supervision_epochs
+        self._use_strong_supervision = False
+
+        self.strong_loss_bbox_weight = strong_loss_bbox_weight
+        self.strong_loss_giou_weight = strong_loss_giou_weight
+        self.strong_matcher_cost_class = strong_matcher_cost_class
+        self.strong_matcher_cost_bbox = strong_matcher_cost_bbox
+        self.strong_matcher_cost_giou = strong_matcher_cost_giou
+        self.weak_matcher_cost_class = weak_matcher_cost_class
+        self.weak_matcher_cost_bbox = weak_matcher_cost_bbox
+        self.weak_matcher_cost_giou = weak_matcher_cost_giou
 
         self._infer_distributed_backend_if_none(distributed, accelerator)
 
@@ -437,7 +468,7 @@ class Trainer:
         logging.info(f"Resuming training from {ckpt_path}")
 
         with g_pathmgr.open(ckpt_path, "rb") as f:
-            checkpoint = torch.load(f, map_location="cpu")
+            checkpoint = torch.load(f, map_location="cpu", weights_only=False)
         load_state_dict_into_model(
             model=self.model,
             state_dict=checkpoint["model"],
@@ -493,7 +524,6 @@ class Trainer:
     ):
         key, batch = batch.popitem()
         batch = copy_data_to_device(batch, self.device, non_blocking=True)
-
         find_stages = model(batch)
         find_targets = [
             unwrap_ddp_if_wrapped(model).back_convert(x) for x in batch.find_targets
@@ -578,9 +608,36 @@ class Trainer:
             self.train_dataset = instantiate(self.data_conf.train)
 
     def run_train(self):
+        enable_progressive_training = getattr(self, 'enable_progressive_training', False)
+        bbox_update_epoch_interval = getattr(self, 'bbox_update_epoch_interval', 5)
+        initial_weak_supervision_epochs = getattr(self, 'initial_weak_supervision_epochs', 10)
+
         while self.epoch < self.max_epochs:
+            if enable_progressive_training:
+                should_update_bbox = False
+                if self.epoch == initial_weak_supervision_epochs:
+                    should_update_bbox = True
+                elif self.epoch > initial_weak_supervision_epochs:
+                    should_update_bbox = (
+                        self.epoch - initial_weak_supervision_epochs
+                    ) % bbox_update_epoch_interval == 0
+
+                if should_update_bbox:
+                    logging.info(
+                        "Epoch %s rank %s: running inference to refresh pseudo bboxes",
+                        self.epoch,
+                        self.distributed_rank,
+                    )
+                    self._run_inference_and_update_bbox()
+                    barrier()
+                else:
+                    barrier()
+
+                self._update_loss_and_matcher_weights()
+            else:
+                barrier()
+            
             dataloader = self.train_dataset.get_loader(epoch=int(self.epoch))
-            barrier()
             outs = self.train_epoch(dataloader)
             self.logger.log_dict(outs, self.epoch)  # Logged only on rank 0
 
@@ -618,6 +675,152 @@ class Trainer:
             self.epoch += 1
         # epoch was incremented in the loop but the val step runs out of the loop
         self.epoch -= 1
+
+    def _run_inference_and_update_bbox(self):
+        """Run detector on training split and refresh cached pseudo-bboxes (distributed)."""
+        from sam3.train.utils.inference_for_bbox_update import run_inference_on_training_dataset_v2_distributed
+
+        model = unwrap_ddp_if_wrapped(self.model)
+        model.eval()
+
+        train_dataset_wrapper = self.train_dataset
+        if hasattr(train_dataset_wrapper, 'dataset'):
+            if isinstance(train_dataset_wrapper.dataset, torch.utils.data.ConcatDataset):
+                datasets = train_dataset_wrapper.dataset.datasets
+            else:
+                datasets = [train_dataset_wrapper.dataset]
+        else:
+            datasets = [train_dataset_wrapper]
+
+        for dataset in datasets:
+            if not isinstance(dataset, torch.utils.data.Dataset):
+                continue
+
+            if not hasattr(dataset, 'update_inferred_bbox_cache'):
+                continue
+
+            categories = []
+            if hasattr(dataset, 'coco') and dataset.coco is not None:
+                coco_obj = dataset.coco
+                if hasattr(coco_obj, '_cat_idx_to_text'):
+                    for cat_id, cat_name in coco_obj._cat_idx_to_text.items():
+                        if isinstance(cat_name, list):
+                            name = cat_name[0] if len(cat_name) > 0 else f"category_{cat_id}"
+                        else:
+                            name = cat_name
+                        categories.append({"id": cat_id, "name": name})
+                elif hasattr(coco_obj, 'loadCats') and hasattr(coco_obj, 'getCatIds'):
+                    categories = coco_obj.loadCats(coco_obj.getCatIds())
+
+            if not categories:
+                logging.warning(
+                    "Rank %s: skip inference for %s (no categories)",
+                    self.distributed_rank,
+                    getattr(dataset, "annFile", dataset),
+                )
+                continue
+
+            logging.info(
+                "Rank %s: inference on %s (%s categories)",
+                self.distributed_rank,
+                getattr(dataset, "annFile", ""),
+                len(categories),
+            )
+
+            bbox_cache_dict = run_inference_on_training_dataset_v2_distributed(
+                model=model,
+                train_dataset=dataset,
+                categories=categories,
+                device=str(self.device),
+                confidence_threshold=0.5,
+                rank=self.distributed_rank,
+                world_size=dist.get_world_size() if dist.is_initialized() else 1,
+            )
+
+            if dataset.annFile in bbox_cache_dict:
+                bbox_cache = bbox_cache_dict[dataset.annFile]
+                bbox_cache_int = {int(k): v for k, v in bbox_cache.items()}
+                dataset.update_inferred_bbox_cache(bbox_cache_int)
+        
+        if dist.is_initialized():
+            barrier()
+
+        model.train()
+
+    def _update_loss_and_matcher_weights(self):
+        """
+        Progressive weak-to-strong schedule: warmup with class-only matching, then ramp box losses.
+        """
+        current_epoch = self.epoch
+        initial_weak_supervision_epochs = getattr(self, 'initial_weak_supervision_epochs', 10)
+        bbox_update_epoch_interval = getattr(self, 'bbox_update_epoch_interval', 5)
+        
+        if current_epoch < initial_weak_supervision_epochs:
+            target_w = {
+                'loss_bbox': 0.0,
+                'loss_giou': 0.0,
+                'cost_class': 5.0,
+                'cost_bbox': 0.0,
+                'cost_giou': 0.0
+            }
+            phase_name = f"warmup(epochs 0..{initial_weak_supervision_epochs - 1})"
+        else:
+            cost_class = 5.0
+            cost_bbox = 1.0
+            cost_giou = 1.0
+
+            epochs_since_stage2 = current_epoch - initial_weak_supervision_epochs
+            num_increments = epochs_since_stage2 // bbox_update_epoch_interval
+
+            loss_bbox = 0.2
+            loss_giou = 0.1
+
+            loss_bbox += num_increments * 0.3
+            loss_giou += num_increments * 0.2
+
+            loss_bbox = min(loss_bbox, 2.0)
+            loss_giou = min(loss_giou, 1.0)
+
+            target_w = {
+                'loss_bbox': loss_bbox,
+                'loss_giou': loss_giou,
+                'cost_class': cost_class,
+                'cost_bbox': cost_bbox,
+                'cost_giou': cost_giou
+            }
+            phase_name = f"ramp(increments={num_increments})"
+
+        # Apply to loss + matcher
+        loss_key = "all"
+        if loss_key in self.loss:
+            loss_wrapper = self.loss[loss_key]
+            
+            if hasattr(loss_wrapper, 'loss_fns_find'):
+                from sam3.train.loss.loss_fns import Boxes
+                for loss_fn in loss_wrapper.loss_fns_find:
+                    if isinstance(loss_fn, Boxes):
+                        loss_fn.weight_dict['loss_bbox'] = target_w['loss_bbox']
+                        loss_fn.weight_dict['loss_giou'] = target_w['loss_giou']
+                        logging.info(
+                            "Epoch %s [%s] loss bbox=%.3f giou=%.3f",
+                            current_epoch,
+                            phase_name,
+                            target_w['loss_bbox'],
+                            target_w['loss_giou'],
+                        )
+
+            if hasattr(loss_wrapper, 'matcher') and loss_wrapper.matcher is not None:
+                loss_wrapper.matcher.cost_class = target_w['cost_class']
+                loss_wrapper.matcher.cost_bbox = target_w['cost_bbox']
+                loss_wrapper.matcher.cost_giou = target_w['cost_giou']
+                logging.info(
+                    "Epoch %s [%s] matcher class=%s bbox=%s giou=%s",
+                    current_epoch,
+                    phase_name,
+                    target_w['cost_class'],
+                    target_w['cost_bbox'],
+                    target_w['cost_giou'],
+                )
 
     def run_val(self):
         if not self.val_dataset:
@@ -801,6 +1004,7 @@ class Trainer:
             #     self.device, non_blocking=True
             # )  # move tensors in a tensorclass
 
+
             try:
                 self._run_step(batch, phase, loss_mts, extra_loss_mts)
 
@@ -971,8 +1175,13 @@ class Trainer:
         checkpoint_save_keys = []
         for key, meter in self._get_meters(phases).items():
             meter_output = meter.compute_synced()
-            is_better_check = getattr(meter, "is_better", None)
 
+            is_better_check = getattr(meter, "is_better", None)
+            if is_better_check is None:
+                if self.checkpoint_conf.save_best_meters is not None and key in self.checkpoint_conf.save_best_meters:
+                    def default_is_better(new_val, old_val):
+                        return new_val > old_val
+                    is_better_check = default_is_better
             for meter_subkey, meter_value in meter_output.items():
                 out_dict[os.path.join("Meters_train", key, meter_subkey)] = meter_value
 
@@ -980,6 +1189,7 @@ class Trainer:
                     continue
 
                 tracked_meter_key = os.path.join(key, meter_subkey)
+
                 if tracked_meter_key not in self.best_meter_values or is_better_check(
                     meter_value,
                     self.best_meter_values[tracked_meter_key],
@@ -990,9 +1200,14 @@ class Trainer:
                         self.checkpoint_conf.save_best_meters is not None
                         and key in self.checkpoint_conf.save_best_meters
                     ):
-                        checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+                        target_subkeys = ["coco_eval_segm_AP", "coco_eval_bbox_AP"]
+
+                        if meter_subkey in target_subkeys:
+                            logging.info(f"New best found for {tracked_meter_key}: {meter_value}")
+                            checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
 
         if len(checkpoint_save_keys) > 0:
+            logging.info(f"Saving best checkpoints for: {checkpoint_save_keys}")
             self.save_checkpoint(self.epoch + 1, checkpoint_save_keys)
 
         return out_dict
@@ -1067,9 +1282,8 @@ class Trainer:
         self.steps = {Phase.TRAIN: 0, Phase.VAL: 0}
 
         self.logger = Logger(self.logging_conf)
-
         self.model = instantiate(self.model_conf, _convert_="all")
-        print_model_summary(self.model)
+        print_model_summary(self.model, self.logging_conf.log_dir)
 
         self.loss = None
         if self.loss_conf:
@@ -1099,11 +1313,18 @@ class Trainer:
         logging.info("Finished setting up components: Model, loss, optim, meters etc.")
 
     def _construct_optimizers(self):
+        param_allowlist = None
+        if getattr(self.optim_conf, "param_allowlist_patterns", None):
+            param_names = dict(unwrap_ddp_if_wrapped(self.model).named_parameters())
+            param_allowlist = unix_param_pattern_to_parameter_names(
+                self.optim_conf.param_allowlist_patterns, param_names
+            )
         self.optim = construct_optimizer(
             self.model,
             self.optim_conf.optimizer,
             self.optim_conf.options,
             self.optim_conf.param_group_modifiers,
+            param_allowlist=param_allowlist,
         )
 
     def _log_loss_detailed_and_return_core_loss(self, loss, loss_str, step):
@@ -1132,9 +1353,13 @@ def print_model_summary(model: torch.nn.Module, log_dir: str = ""):
     )
     total_parameters = sum(p.numel() for p in model.parameters(**param_kwargs))
     non_trainable_parameters = total_parameters - trainable_parameters
+    output_fpath = os.path.join(log_dir, "model.txt") if log_dir else ""
     logging.info("==" * 10)
     logging.info(f"Summary for model {type(model)}")
-    logging.info(f"Model is {model}")
+    if output_fpath:
+        logging.info(f"Model structure saved to {output_fpath}")
+    else:
+        logging.info("Model structure file path not provided; skipping model dump.")
     logging.info(f"\tTotal parameters {get_human_readable_count(total_parameters)}")
     logging.info(
         f"\tTrainable parameters {get_human_readable_count(trainable_parameters)}"
@@ -1144,8 +1369,7 @@ def print_model_summary(model: torch.nn.Module, log_dir: str = ""):
     )
     logging.info("==" * 10)
 
-    if log_dir:
-        output_fpath = os.path.join(log_dir, "model.txt")
+    if output_fpath:
         with g_pathmgr.open(output_fpath, "w") as f:
             print(model, file=f)
 
