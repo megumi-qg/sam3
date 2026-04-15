@@ -9,4 +9,4 @@ from .model_builder import (
 
 __version__ = "0.1.0"
 
-__all__ = ["build_sam3_image_model", "build_sam3_image_video_context_model"]
+__all__ = ["build_sam3_image_model", "build_sam3_image_video_context_model", "build_sam3_predictor"]
