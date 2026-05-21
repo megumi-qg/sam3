@@ -4,9 +4,9 @@
 
 import logging
 import os
+from importlib import resources
 from typing import List, Optional
 
-import pkg_resources
 import torch
 import torch.nn as nn
 from huggingface_hub import hf_hub_download
@@ -41,6 +41,8 @@ from sam3.model.position_encoding import PositionEmbeddingSine
 from sam3.model.sam1_task_predictor import SAM3InteractiveImagePredictor
 from sam3.model.sam3_image import Sam3Image, Sam3ImageOnVideoMultiGPU
 from sam3.model.sam3_image_slice_context import Sam3ImageSliceContext
+from sam3.model.sam3_multiplex_train_adapter import Sam3MultiplexTrainAdapter
+from sam3.model.sam3_tracker_train_adapter import Sam3TrackerTrainAdapter
 from sam3.model.sam3_tracking_predictor import Sam3TrackerPredictor
 from sam3.model.sam3_video_inference import Sam3VideoInferenceWithInstanceInteractivity
 from sam3.model.sam3_video_predictor import Sam3VideoPredictorMultiGPU
@@ -54,6 +56,11 @@ from sam3.model.lora import apply_lora_to_sam3
 from sam3.sam.transformer import RoPEAttention
 
 logger = logging.getLogger(__name__)
+
+
+def _get_package_resource_path(*relative_parts: str) -> str:
+    """Return an on-disk path for a package resource."""
+    return os.fspath(resources.files("sam3").joinpath(*relative_parts))
 
 
 # Setup TensorFloat-32 for Ampere GPUs if available
@@ -614,9 +621,7 @@ def build_sam3_image_model(
         A SAM3 image model
     """
     if bpe_path is None:
-        bpe_path = pkg_resources.resource_filename(
-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
-        )
+        bpe_path = _get_package_resource_path("assets", "bpe_simple_vocab_16e6.txt.gz")
 
     # Create visual components
     compile_mode = "default" if compile else None
@@ -725,9 +730,7 @@ def build_sam3_video_model(
         Sam3VideoInferenceWithInstanceInteractivity: The instantiated dense tracking model
     """
     if bpe_path is None:
-        bpe_path = pkg_resources.resource_filename(
-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
-        )
+        bpe_path = _get_package_resource_path("assets", "bpe_simple_vocab_16e6.txt.gz")
 
     # Build Tracker module
     tracker = build_tracker(apply_temporal_disambiguation=apply_temporal_disambiguation)
@@ -872,9 +875,7 @@ def build_sam3_image_video_model(
     Build SAM3 image model with multi-frame support for training.
     """
     if bpe_path is None:
-        bpe_path = pkg_resources.resource_filename(
-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
-        )
+        bpe_path = _get_package_resource_path("assets", "bpe_simple_vocab_16e6.txt.gz")
 
     compile_mode = "default" if compile else None
     vision_encoder = _create_vision_backbone(
@@ -977,9 +978,7 @@ def build_sam3_image_video_context_model(
     Build SAM3 image model with slice-context prompting.
     """
     if bpe_path is None:
-        bpe_path = pkg_resources.resource_filename(
-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
-        )
+        bpe_path = _get_package_resource_path("assets", "bpe_simple_vocab_16e6.txt.gz")
 
     compile_mode = "default" if compile else None
     vision_encoder = _create_vision_backbone(
@@ -1312,6 +1311,132 @@ def build_sam3_multiplex_video_model(
     return model
 
 
+def build_sam3_multiplex_train_model(
+    checkpoint_path: Optional[str] = None,
+    load_from_HF: bool = True,
+    multiplex_count: int = 16,
+    use_fa3: bool = False,
+    use_rope_real: bool = False,
+    strict_state_dict_loading: bool = False,
+    freeze_image_encoder: bool = True,
+    freeze_patterns: Optional[List[str]] = None,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    eval_mode: bool = False,
+    compile: bool = False,
+):
+    """
+    Build a trainable SAM 3.1 multiplex tracker adapter for our trainer.
+
+    This is the minimal path to treat a 3D volume as a video sequence during
+    training while keeping the rest of our training stack unchanged.
+    """
+    from sam3 import perflib
+
+    if perflib.is_enabled:
+        logger.info("Disabling perflib for multiplex tracker training adapter.")
+        perflib.is_enabled = False
+
+    maskmem_backbone = _create_multiplex_maskmem_backbone(
+        multiplex_count=multiplex_count
+    )
+    transformer = _create_multiplex_transformer(
+        use_fa3=use_fa3, use_rope_real=use_rope_real
+    )
+    tri_neck = _create_multiplex_tri_backbone(
+        compile_mode="max-autotune" if compile else None
+    )
+    backbone = TriHeadVisionOnly(
+        visual=tri_neck,
+        n_features=256,
+        scalp=0,
+    )
+    multiplex_controller = MultiplexController(
+        multiplex_count=multiplex_count,
+        eval_multiplex_count=multiplex_count,
+    )
+
+    if load_from_HF and checkpoint_path is None:
+        checkpoint_path = download_ckpt_from_hf(version="sam3.1")
+
+    model = Sam3MultiplexTrainAdapter(
+        backbone=backbone,
+        transformer=transformer,
+        maskmem_backbone=maskmem_backbone,
+        multiplex_controller=multiplex_controller,
+        checkpoint_path=checkpoint_path,
+        strict_state_dict_loading=strict_state_dict_loading,
+        freeze_image_encoder=freeze_image_encoder,
+        freeze_patterns=freeze_patterns,
+        forward_backbone_per_frame_for_eval=False,
+    )
+
+    model = _setup_device_and_mode(model, device, eval_mode)
+    return model
+
+
+def build_sam3_tracker_train_model(
+    checkpoint_path: Optional[str] = None,
+    image_backbone_checkpoint_path: Optional[str] = None,
+    image_backbone_lora_alpha: float = 16.0,
+    image_backbone_lora_r: int = 8,
+    load_from_HF: bool = True,
+    strict_state_dict_loading: bool = False,
+    freeze_image_encoder: bool = True,
+    use_memory_selection: bool = False,
+    init_frame_strategy: str = "earliest",
+    earliest_init_frame_prob: float = 0.5,
+    use_noisy_seed_mask: bool = False,
+    clean_seed_prob: float = 1.0,
+    light_noise_prob: float = 0.0,
+    medium_noise_prob: float = 0.0,
+    seed_shift_max_px: int = 8,
+    seed_erode_dilate_max_kernel: int = 7,
+    seed_dropout_max_ratio: float = 0.15,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    eval_mode: bool = False,
+    compile: bool = False,
+):
+    """
+    Build a trainable adapter for the original SAM3 single-object tracker.
+
+    This path is intended for medical single-class propagation, where each
+    (volume, category) pair is treated as one video/object training sample.
+    """
+    compile_mode = "default" if compile else None
+    maskmem_backbone = _create_tracker_maskmem_backbone()
+    transformer = _create_tracker_transformer()
+    vision_backbone = _create_vision_backbone(compile_mode=compile_mode)
+    backbone = SAM3VLBackbone(scalp=1, visual=vision_backbone, text=None)
+
+    if load_from_HF and checkpoint_path is None:
+        checkpoint_path = download_ckpt_from_hf(version="sam3")
+
+    model = Sam3TrackerTrainAdapter(
+        backbone=backbone,
+        transformer=transformer,
+        maskmem_backbone=maskmem_backbone,
+        checkpoint_path=checkpoint_path,
+        image_backbone_checkpoint_path=image_backbone_checkpoint_path,
+        image_backbone_lora_alpha=image_backbone_lora_alpha,
+        image_backbone_lora_r=image_backbone_lora_r,
+        strict_state_dict_loading=strict_state_dict_loading,
+        freeze_image_encoder=freeze_image_encoder,
+        use_memory_selection=use_memory_selection,
+        init_frame_strategy=init_frame_strategy,
+        earliest_init_frame_prob=earliest_init_frame_prob,
+        use_noisy_seed_mask=use_noisy_seed_mask,
+        clean_seed_prob=clean_seed_prob,
+        light_noise_prob=light_noise_prob,
+        medium_noise_prob=medium_noise_prob,
+        seed_shift_max_px=seed_shift_max_px,
+        seed_erode_dilate_max_kernel=seed_erode_dilate_max_kernel,
+        seed_dropout_max_ratio=seed_dropout_max_ratio,
+    )
+
+    model = _setup_device_and_mode(model, device, eval_mode)
+    return model
+
+
 def build_sam3_multiplex_video_predictor(
     checkpoint_path: Optional[str] = None,
     bpe_path: Optional[str] = None,
@@ -1350,9 +1475,7 @@ def build_sam3_multiplex_video_predictor(
         Sam3MultiplexVideoPredictor: The fully-initialized predictor
     """
     if bpe_path is None:
-        bpe_path = pkg_resources.resource_filename(
-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
-        )
+        bpe_path = _get_package_resource_path("assets", "bpe_simple_vocab_16e6.txt.gz")
 
     from sam3.model.sam3_multiplex_base import Sam3MultiplexPredictorWrapper
     from sam3.model.sam3_multiplex_detector import Sam3MultiplexDetector

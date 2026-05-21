@@ -1,0 +1,82 @@
+# @package _global_
+defaults:
+  - full_sam3_tracker_image_init_v2
+  - _self_
+
+# Strict weak-supervision tracker prototype.
+#
+# No full-label checkpoint is used for tracker initialization.  The visual
+# backbone is initialized from the scribble-trained image/video model, and the
+# training annotation should be generated from high-confidence pseudo masks from
+# that same model while preserving scribble valid_mask as the supervision gate.
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/acdc/scribble_sam3_tracker_image_init_v1
+  image_backbone_checkpoint: /home/gaoqi/sam3/gq_experiment/acdc/scribble_video_lora_100/checkpoints/val_acdc_segmentation_coco_eval_segm_AP.pt
+  # Expected offline artifact:
+  # - segmentation: high-confidence pseudo mask used as tracker condition seed
+  # - valid_masks: original scribble valid region used by weak tracker loss
+  # - confidence / source metadata may be stored for analysis by the generator
+  pseudo_seed_ann_file: /home/gaoqi/sam3/gq_experiment/acdc/scribble_video_lora_100/pseudo_seed_bank/scribble_tmi_pseudo_seed_video_annotations.coco.json
+
+acdc_train:
+  loss:
+    _target_: sam3.train.loss.sam3_tracker_loss.Sam3WeakTrackerLossWrapper
+    mask_weight: 20.0
+    # Keep dice weak at first; sparse scribble regions make dense-style Dice noisy.
+    dice_weight: 0.5
+    focal_alpha: 0.25
+    focal_gamma: 2.0
+    ignore_index: 255
+    use_high_res_masks: true
+    # Absence is unreliable when a slice has no scribble, so start without
+    # explicit presence supervision.  Temporal ptr still uses positive scribble
+    # frames only through the weak target-presence rule.
+    presence_weight: 0.0
+    presence_pos_weight: 5.0
+    temporal_ptr_weight: 0.05
+
+scratch:
+  train_batch_size: 4
+  val_batch_size: 1
+  num_stages_sample: 6
+  stage_stride_min: 1
+  stage_stride_max: 2
+  random_reverse_time_axis: true
+  lr: 0.0001
+
+trainer:
+  data:
+    train:
+      dataset:
+        # This file must be produced without full labels.  It should contain
+        # only extremely high-confidence scribble-model pseudo masks.
+        ann_file: ${paths.pseudo_seed_ann_file}
+        tracker_mode: true
+        coco_json_loader:
+          _target_: sam3.train.data.coco_json_loaders.COCO_VIDEO_FROM_JSON
+          include_negatives: true
+          category_chunk_size: 1
+          _partial_: true
+    val:
+      dataset:
+        # Validation/evaluation may use full labels for reporting metrics only.
+        ann_file: ${paths.acdc_data_root}/val/video_annotations.coco.json
+  model:
+    image_backbone_checkpoint_path: ${paths.image_backbone_checkpoint}
+    image_backbone_lora_alpha: 16.0
+    image_backbone_lora_r: 8
+    freeze_image_encoder: true
+    init_frame_strategy: mixed
+    earliest_init_frame_prob: 0.5
+    # Pseudo masks already carry model uncertainty; still keep light corruption
+    # to avoid overfitting to one seed shape.
+    use_noisy_seed_mask: true
+    clean_seed_prob: 0.7
+    light_noise_prob: 0.2
+    medium_noise_prob: 0.1
+    seed_shift_max_px: 6
+    seed_erode_dilate_max_kernel: 5
+    seed_dropout_max_ratio: 0.10
+  logging:
+    log_dir: ${launcher.experiment_log_dir}/logs/acdc_scribble_sam3_tracker_image_init_v1

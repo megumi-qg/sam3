@@ -257,7 +257,13 @@ def main():
     output_json_path = Path(args.output_json_path)
     if args.dataset == "mscmr":
         _assert_mscmr_train_paths_only(img_dir, scribble_dir, output_json_path)
-    split = 'test' if 'test' in str(img_dir) else 'train'
+    path_parts = set(img_dir.resolve().parts)
+    if 'val' in path_parts:
+        split = 'val'
+    elif 'test' in path_parts:
+        split = 'test'
+    else:
+        split = 'train'
 
     process_split(
         img_dir=img_dir,

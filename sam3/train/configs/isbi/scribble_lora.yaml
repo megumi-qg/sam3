@@ -1,6 +1,6 @@
 # @package _global_
 # ISBI：scribble 弱监督（PartialMasks）+ LoRA，mask_decoder / dot_prod_scoring 全量微调
-# 训练使用 train/scribble_annotations.coco.json；由于没有 val，验证集使用 test/image_annotations.coco.json
+# 训练使用 train/scribble_annotations.coco.json；验证集使用从原 train 中划出的 val/full_annotations.coco.json
 defaults:
   - _self_
 
@@ -8,7 +8,7 @@ defaults:
 # Paths Configuration
 # ============================================================================
 paths:
-  isbi_data_root: /home/gaoqi/dataset/using/isbi/processed/png_coco_sam3_fullframes
+  isbi_data_root: /home/gaoqi/dataset/using/isbi/processed/png_coco_sam3_fullframes_train_val_test
   experiment_log_dir: /home/gaoqi/sam3/gq_experiment/isbi/scribble_lora
   bpe_path: /home/gaoqi/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
   pretrained_checkpoint: /home/gaoqi/official_ckpt/sam3_hf/sam3.pt
@@ -249,8 +249,8 @@ trainer:
           include_negatives: true
           category_chunk_size: 2
           _partial_: true
-        img_folder: ${paths.isbi_data_root}/test/
-        ann_file: ${paths.isbi_data_root}/test/image_annotations.coco.json
+        img_folder: ${paths.isbi_data_root}/val/
+        ann_file: ${paths.isbi_data_root}/val/full_annotations.coco.json
         transforms: ${isbi_train.val_transforms}
         max_ann_per_img: 100000
         multiplier: 1
@@ -298,7 +298,7 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.isbi_data_root}/test/image_annotations.coco.json
+              gt_path: ${paths.isbi_data_root}/val/full_annotations.coco.json
               tide: False
               iou_type: "bbox"
         segmentation:
@@ -311,7 +311,7 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.isbi_data_root}/test/image_annotations.coco.json
+              gt_path: ${paths.isbi_data_root}/val/full_annotations.coco.json
               tide: False
               iou_type: "segm"
 

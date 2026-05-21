@@ -10,6 +10,7 @@ import logging
 import math
 import os
 import random
+from collections import Counter
 from typing import Any, Dict, List, Optional, Set, Tuple
 import torch
 import torchvision
@@ -51,6 +52,7 @@ class VideoGroundingDataset(Sam3ImageDataset):
         # than this limit, we skip the datapoint to avoid OOM errors (this is useful for
         # training with large videos that contain many objects)
         max_masklet_num_in_video: int = 300,  # 300 masklets is usually OK to avoid OOM
+        tracker_mode: bool = False,
         **kwargs,
     ):
         """
@@ -86,6 +88,7 @@ class VideoGroundingDataset(Sam3ImageDataset):
         self.max_query_num = max_query_num
         self.override_query_is_exhaustive_to_true = override_query_is_exhaustive_to_true
         self.max_masklet_num_in_video = max_masklet_num_in_video
+        self.tracker_mode = tracker_mode
         self.rng = random.Random()
         self.set_curr_epoch(0)
     
@@ -216,6 +219,51 @@ class VideoGroundingDataset(Sam3ImageDataset):
         super().set_curr_epoch(epoch)
         self.rng.seed(SEED + epoch)
 
+    def _prepare_tracker_datapoint(self, datapoint: Datapoint, datapoint_id: int) -> Datapoint:
+        """
+        Tracker mode currently targets the ACDC full-supervision video setup.
+
+        We keep the existing dataset format but enforce a few invariants that the
+        SAM 3.1 multiplex tracker relies on:
+        - stable per-stage ordering across categories
+        - every stage points to exactly one frame
+        - every stage has the same number of category queries
+        """
+        datapoint.find_queries.sort(
+            key=lambda q: (
+                q.query_processing_order,
+                q.inference_metadata.original_category_id
+                if q.inference_metadata is not None
+                else q.query_text,
+            )
+        )
+
+        stage_counts = Counter(q.query_processing_order for q in datapoint.find_queries)
+        expected_stage_ids = list(range(len(datapoint.images)))
+        if sorted(stage_counts.keys()) != expected_stage_ids:
+            raise ValueError(
+                f"Tracker mode expects contiguous stages for datapoint {datapoint_id}, "
+                f"got stage ids {sorted(stage_counts.keys())} for {len(datapoint.images)} frames."
+            )
+
+        per_stage_query_count = set(stage_counts.values())
+        if len(per_stage_query_count) != 1:
+            raise ValueError(
+                f"Tracker mode expects a fixed query count per stage for datapoint {datapoint_id}, "
+                f"got {dict(stage_counts)}."
+            )
+
+        for stage_id in expected_stage_ids:
+            image_ids = {
+                q.image_id for q in datapoint.find_queries if q.query_processing_order == stage_id
+            }
+            if len(image_ids) != 1:
+                raise ValueError(
+                    f"Tracker mode expects one frame per stage for datapoint {datapoint_id}, "
+                    f"got image_ids={sorted(image_ids)} at stage {stage_id}."
+                )
+        return datapoint
+
     def _load_datapoint(self, index: int) -> Datapoint:
         id = self.ids[index].item()
         queries, annotations = self.coco.loadQueriesAndAnnotationsFromDatapoint(id)
@@ -275,6 +323,9 @@ class VideoGroundingDataset(Sam3ImageDataset):
             datapoint = self._tile_single_image_data(datapoint, self.num_stages_sample)
         if self.max_query_num > 0:
             datapoint = self._subsample_queries(datapoint, self.max_query_num)
+
+        if self.tracker_mode:
+            datapoint = self._prepare_tracker_datapoint(datapoint, id)
 
         # ensure that all find queries have the same processing order as their image id
         for query in datapoint.find_queries:

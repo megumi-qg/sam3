@@ -505,6 +505,7 @@ class COCO_VIDEO_FROM_JSON:
             "bbox": None,
             "area": None,
             "segmentation": None,
+            "seed_segmentation": None,
             "valid_mask": None,
             "object_id": None,
             "is_crowd": 0,
@@ -554,6 +555,12 @@ class COCO_VIDEO_FROM_JSON:
                         
                         bbox = obj_ann["bboxes"][list_idx]
                         segmentation = obj_ann["segmentations"][list_idx] if list_idx < len(obj_ann["segmentations"]) else []
+                        seed_segmentation = (
+                            obj_ann["seed_segmentations"][list_idx]
+                            if "seed_segmentations" in obj_ann
+                            and list_idx < len(obj_ann["seed_segmentations"])
+                            else None
+                        )
                         valid_mask = (
                             obj_ann["valid_masks"][list_idx]
                             if "valid_masks" in obj_ann and list_idx < len(obj_ann["valid_masks"])
@@ -567,6 +574,12 @@ class COCO_VIDEO_FROM_JSON:
                         
                         bbox = obj_ann["bboxes"][frame_idx]
                         segmentation = obj_ann["segmentations"][frame_idx] if "segmentations" in obj_ann and frame_idx < len(obj_ann["segmentations"]) else []
+                        seed_segmentation = (
+                            obj_ann["seed_segmentations"][frame_idx]
+                            if "seed_segmentations" in obj_ann
+                            and frame_idx < len(obj_ann["seed_segmentations"])
+                            else None
+                        )
                         valid_mask = (
                             obj_ann["valid_masks"][frame_idx]
                             if "valid_masks" in obj_ann and frame_idx < len(obj_ann["valid_masks"])
@@ -625,6 +638,8 @@ class COCO_VIDEO_FROM_JSON:
                     
                     if segmentation and segmentation != []:
                         annotation["segmentation"] = segmentation
+                    if seed_segmentation and seed_segmentation != []:
+                        annotation["seed_segmentation"] = seed_segmentation
                     if valid_mask and valid_mask != []:
                         annotation["valid_mask"] = valid_mask
                     

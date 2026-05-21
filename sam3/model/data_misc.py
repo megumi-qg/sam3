@@ -163,6 +163,11 @@ class BatchedFindTarget:
     segments: Optional[MyTensor]
     segments__type = torch.long
 
+    # Optional conditioning seed masks.  Used by weak tracker training to keep
+    # pseudo condition masks separate from scribble supervision masks.
+    seed_segments: Optional[MyTensor]
+    seed_segments__type = torch.long
+
     # Target Semantic Segmentation masks
     semantic_segments: Optional[MyTensor]
     semantic_segments__type = torch.bool

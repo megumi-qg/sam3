@@ -1,0 +1,48 @@
+# @package _global_
+defaults:
+  - full_sam3_tracker_image_init
+  - _self_
+
+paths:
+  acdc_data_root: /home/gaoqi/dataset/using/acdc/processed/sam3_video_npz_coco_fullframes_100
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/acdc/full_sam3_tracker_image_init_test
+
+scratch:
+  segmentation_postprocessor:
+    detection_threshold: -1.0
+
+trainer:
+  mode: val
+  max_epochs: 1
+  val_epoch_freq: 1
+  skip_first_val: false
+  skip_saving_ckpts: true
+  data:
+    val:
+      dataset:
+        img_folder: ${paths.acdc_data_root}/test/
+        ann_file: ${paths.acdc_data_root}/test/video_annotations.coco.json
+  meters:
+    val:
+      acdc:
+        segmentation:
+          dump_dir: ${launcher.experiment_log_dir}/dumps/acdc
+          pred_file_evaluators:
+          - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+            gt_path: ${paths.acdc_data_root}/test/frame_annotations.coco.json
+            tide: false
+            iou_type: segm
+  checkpoint:
+    save_dir: ${launcher.experiment_log_dir}/checkpoints
+    save_best_meters: []
+    resume_from: /home/gaoqi/sam3/gq_experiment/acdc/full_sam3_tracker_image_init/checkpoints/val_acdc_segmentation_coco_eval_segm_AP.pt
+  logging:
+    tensorboard_writer:
+      _target_: sam3.train.utils.logger.make_tensorboard_logger
+      log_dir: ${launcher.experiment_log_dir}/tensorboard
+      flush_secs: 120
+      should_log: true
+    wandb_writer: null
+    log_dir: ${launcher.experiment_log_dir}/logs/acdc_full_sam3_tracker_image_init_test
+    log_freq: 10
+    log_scalar_frequency: 10

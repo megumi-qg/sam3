@@ -52,6 +52,10 @@ def crop(
         # crop the mask
         if obj.segment is not None:
             obj.segment = F.crop(obj.segment, int(i), int(j), int(h), int(w))
+        if obj.seed_segment is not None:
+            obj.seed_segment = F.crop(
+                obj.seed_segment, int(i), int(j), int(h), int(w)
+            )
 
         # crop the bounding box
         if recompute_box_from_mask and obj.segment is not None:
@@ -124,6 +128,8 @@ def hflip(datapoint, index):
         obj.bbox = boxes
         if obj.segment is not None:
             obj.segment = F.hflip(obj.segment)
+        if obj.seed_segment is not None:
+            obj.seed_segment = F.hflip(obj.seed_segment)
 
     for query in datapoint.find_queries:
         if query.semantic_target is not None:
@@ -169,6 +175,29 @@ except ImportError:
     # 兼容旧版本 Torchvision
     from PIL import Image
     NEAREST = Image.NEAREST
+
+
+def _mask_pad_fill(mask):
+    # Scribble weak targets use 255 as ignore; padding should remain ignored.
+    if torch.is_tensor(mask) and mask.dtype != torch.bool and (mask == 255).any():
+        return 255
+    return 0
+
+
+def _resize_mask(mask, size):
+    return F.resize(
+        mask[None, None],
+        size,
+        interpolation=NEAREST,
+    ).squeeze()
+
+
+def _pad_mask(mask, padding, v2=False):
+    fill = _mask_pad_fill(mask)
+    if v2:
+        return Fv2.pad(mask[None], padding, fill=fill).squeeze(0)
+    return F.pad(mask, padding, fill=fill)
+
 
 def resize(datapoint, index, size, max_size=None, square=False, v2=False):
     # size can be min_size (scalar) or (w, h) tuple
@@ -217,11 +246,9 @@ def resize(datapoint, index, size, max_size=None, square=False, v2=False):
         obj.bbox = scaled_boxes
         obj.area *= ratio_width * ratio_height
         if obj.segment is not None:
-            obj.segment = F.resize(
-                obj.segment[None, None], 
-                size,
-                interpolation=NEAREST,
-            ).squeeze()
+            obj.segment = _resize_mask(obj.segment, size)
+        if obj.seed_segment is not None:
+            obj.seed_segment = _resize_mask(obj.seed_segment, size)
 
     for query in datapoint.find_queries:
         if query.semantic_target is not None:
@@ -291,16 +318,27 @@ def pad(datapoint, index, padding, v2=False):
         if obj.segment is not None:
             if v2:
                 if len(padding) == 2:
-                    obj.segment = Fv2.pad(
-                        obj.segment[None], (0, 0, padding[0], padding[1])
-                    ).squeeze(0)
+                    obj.segment = _pad_mask(
+                        obj.segment, (0, 0, padding[0], padding[1]), v2=True
+                    )
                 else:
-                    obj.segment = Fv2.pad(obj.segment[None], tuple(padding)).squeeze(0)
+                    obj.segment = _pad_mask(obj.segment, tuple(padding), v2=True)
             else:
                 if len(padding) == 2:
-                    obj.segment = F.pad(obj.segment, (0, 0, padding[0], padding[1]))
+                    obj.segment = _pad_mask(
+                        obj.segment, (0, 0, padding[0], padding[1])
+                    )
                 else:
-                    obj.segment = F.pad(obj.segment, tuple(padding))
+                    obj.segment = _pad_mask(obj.segment, tuple(padding))
+        if obj.seed_segment is not None:
+            if len(padding) == 2:
+                obj.seed_segment = _pad_mask(
+                    obj.seed_segment,
+                    (0, 0, padding[0], padding[1]),
+                    v2=v2,
+                )
+            else:
+                obj.seed_segment = _pad_mask(obj.seed_segment, tuple(padding), v2=v2)
 
     for query in datapoint.find_queries:
         if query.semantic_target is not None:
@@ -814,10 +852,13 @@ def random_mosaic_frame(
     # Step 2: downsize the masks and paste them into the target grid of the mosaic
     # (note that we don't scale input/target boxes since they are not used in TA)
     for obj in datapoint.images[index].objects:
-        if obj.segment is None:
+        masks_to_mosaic = []
+        if obj.segment is not None:
+            masks_to_mosaic.append(("segment", obj.segment))
+        if obj.seed_segment is not None:
+            masks_to_mosaic.append(("seed_segment", obj.seed_segment))
+        if not masks_to_mosaic:
             continue
-        assert obj.segment.shape == (H_im, W_im) and obj.segment.dtype == torch.uint8
-        segment_output = torch.zeros_like(obj.segment)
 
         target_y_offset_b = target_grid_y * H_im // grid_h
         target_x_offset_b = target_grid_x * W_im // grid_w
@@ -826,19 +867,25 @@ def random_mosaic_frame(
         target_H_im_downsize = target_y_offset_e - target_y_offset_b
         target_W_im_downsize = target_x_offset_e - target_x_offset_b
 
-        segment_downsize = F.resize(
-            obj.segment[None, None],
-            size=(target_H_im_downsize, target_W_im_downsize),
-            interpolation=InterpolationMode.BILINEAR,
-            antialias=True,  # antialiasing for downsizing
-        )[0, 0]
-        if should_hflip[target_grid_y, target_grid_x].item():
-            segment_downsize = F.hflip(segment_downsize[None, None])[0, 0]
+        for attr_name, mask in masks_to_mosaic:
+            assert mask.shape == (H_im, W_im)
+            fill = _mask_pad_fill(mask)
+            segment_output = torch.full_like(mask, fill)
 
-        segment_output[
-            target_y_offset_b:target_y_offset_e, target_x_offset_b:target_x_offset_e
-        ] = segment_downsize
-        obj.segment = segment_output
+            segment_downsize = F.resize(
+                mask[None, None],
+                size=(target_H_im_downsize, target_W_im_downsize),
+                interpolation=InterpolationMode.BILINEAR,
+                antialias=True,  # antialiasing for downsizing
+            )[0, 0]
+            if should_hflip[target_grid_y, target_grid_x].item():
+                segment_downsize = F.hflip(segment_downsize[None, None])[0, 0]
+
+            segment_output[
+                target_y_offset_b:target_y_offset_e,
+                target_x_offset_b:target_x_offset_e,
+            ] = segment_downsize
+            setattr(obj, attr_name, segment_output)
 
     return datapoint
 

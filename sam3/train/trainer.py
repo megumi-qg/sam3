@@ -20,6 +20,7 @@ import torch.distributed as dist
 import torch.nn as nn
 from hydra.utils import instantiate
 from iopath.common.file_io import g_pathmgr
+from omegaconf import DictConfig, ListConfig
 from sam3.model.data_misc import BatchedDatapoint
 from sam3.model.model_misc import SAM3Output
 from sam3.model.utils.misc import copy_data_to_device
@@ -118,6 +119,7 @@ class CheckpointConf:
     save_list: List[int] = field(default_factory=list)
     model_weight_initializer: Any = None
     save_best_meters: List[str] = None
+    global_best_meter: Optional[Any] = None
     skip_saving_parameters: List[str] = field(default_factory=list)
     initialize_after_preemption: Optional[bool] = None
     # if not None, training will be resumed from this checkpoint
@@ -1172,6 +1174,7 @@ class Trainer:
     def _log_meters_and_save_best_ckpts(self, phases: List[str]):
         logging.info("Synchronizing meters")
         out_dict = {}
+        current_meter_values = {}
         checkpoint_save_keys = []
         for key, meter in self._get_meters(phases).items():
             meter_output = meter.compute_synced()
@@ -1184,11 +1187,11 @@ class Trainer:
                     is_better_check = default_is_better
             for meter_subkey, meter_value in meter_output.items():
                 out_dict[os.path.join("Meters_train", key, meter_subkey)] = meter_value
+                tracked_meter_key = os.path.join(key, meter_subkey)
+                current_meter_values[tracked_meter_key] = meter_value
 
                 if is_better_check is None:
                     continue
-
-                tracked_meter_key = os.path.join(key, meter_subkey)
 
                 if tracked_meter_key not in self.best_meter_values or is_better_check(
                     meter_value,
@@ -1205,6 +1208,58 @@ class Trainer:
                         if meter_subkey in target_subkeys:
                             logging.info(f"New best found for {tracked_meter_key}: {meter_value}")
                             checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
+
+        global_best_conf = self.checkpoint_conf.global_best_meter
+        global_best_confs = []
+        if global_best_conf is not None:
+            if isinstance(global_best_conf, (list, tuple, ListConfig)):
+                global_best_confs = global_best_conf
+            else:
+                global_best_confs = [global_best_conf]
+        for global_best_conf in global_best_confs:
+            if Phase.VAL not in phases:
+                continue
+            if not isinstance(global_best_conf, (dict, DictConfig)):
+                raise TypeError(
+                    "Each checkpoint.global_best_meter entry must be a mapping, "
+                    f"got {type(global_best_conf).__name__}: {global_best_conf}"
+                )
+            metric_keys = list(global_best_conf.get("metric_keys", []))
+            metric_values = [
+                float(current_meter_values[key])
+                for key in metric_keys
+                if key in current_meter_values
+            ]
+            missing_keys = [key for key in metric_keys if key not in current_meter_values]
+            if len(metric_values) == len(metric_keys) and len(metric_values) > 0:
+                reduction = global_best_conf.get("reduction", "mean")
+                if reduction != "mean":
+                    raise ValueError(f"Unsupported global_best_meter reduction: {reduction}")
+
+                global_value = float(np.mean(metric_values))
+                name = global_best_conf.get("name", "val_global")
+                subkey = global_best_conf.get("subkey", "global_score")
+                tracked_meter_key = os.path.join(name, subkey)
+                out_dict[os.path.join("Meters_train", tracked_meter_key)] = global_value
+
+                old_value = self.best_meter_values.get(tracked_meter_key)
+                if old_value is None or global_value > old_value:
+                    self.best_meter_values[tracked_meter_key] = global_value
+                    checkpoint_name = global_best_conf.get(
+                        "checkpoint_name", tracked_meter_key.replace("/", "_")
+                    )
+                    logging.info(
+                        "New global best found for %s: %.6f from %s",
+                        tracked_meter_key,
+                        global_value,
+                        dict(zip(metric_keys, metric_values)),
+                    )
+                    checkpoint_save_keys.append(checkpoint_name.replace("/", "_"))
+            elif get_rank() == 0:
+                logging.warning(
+                    "Skipping global_best_meter because some metric keys are missing: %s",
+                    missing_keys,
+                )
 
         if len(checkpoint_save_keys) > 0:
             logging.info(f"Saving best checkpoints for: {checkpoint_save_keys}")

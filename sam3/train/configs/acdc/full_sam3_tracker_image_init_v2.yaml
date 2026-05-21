@@ -1,0 +1,24 @@
+# @package _global_
+defaults:
+  - full_sam3_tracker_image_init
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/acdc/full_sam3_tracker_image_init_v2
+
+scratch:
+  random_reverse_time_axis: true
+
+trainer:
+  model:
+    init_frame_strategy: mixed
+    earliest_init_frame_prob: 0.5
+    use_noisy_seed_mask: true
+    clean_seed_prob: 0.5
+    light_noise_prob: 0.25
+    medium_noise_prob: 0.25
+    seed_shift_max_px: 8
+    seed_erode_dilate_max_kernel: 7
+    seed_dropout_max_ratio: 0.15
+  logging:
+    log_dir: ${launcher.experiment_log_dir}/logs/acdc_full_sam3_tracker_image_init_v2

@@ -1,0 +1,16 @@
+# @package _global_
+defaults:
+  - full_sam3_tracker
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/acdc/full_sam3_tracker_image_init
+  image_backbone_checkpoint: /home/gaoqi/sam3/gq_experiment/acdc/full_video_lora_100/checkpoints/val_acdc_segmentation_coco_eval_segm_AP.pt
+
+trainer:
+  model:
+    image_backbone_checkpoint_path: ${paths.image_backbone_checkpoint}
+    image_backbone_lora_alpha: 16.0
+    image_backbone_lora_r: 8
+  logging:
+    log_dir: ${launcher.experiment_log_dir}/logs/acdc_full_sam3_tracker_image_init

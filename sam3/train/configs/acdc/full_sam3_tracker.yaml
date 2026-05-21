@@ -1,0 +1,266 @@
+# @package _global_
+defaults:
+  - _self_
+
+paths:
+  acdc_data_root: /home/gaoqi/dataset/using/acdc/processed/sam3_video_npz_coco_fullframes_100
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/acdc/full_sam3_tracker
+  pretrained_checkpoint: /home/gaoqi/official_ckpt/sam3_hf/sam3.pt
+
+acdc_train:
+  train_transforms:
+  - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
+    transforms:
+    - _target_: sam3.train.transforms.filter_query_transforms.FlexibleFilterFindGetQueries
+      query_filter:
+        _target_: sam3.train.transforms.filter_query_transforms.FilterCrowds
+    - _target_: sam3.train.transforms.segmentation.DecodeRle
+    - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
+      sizes:
+        _target_: sam3.train.transforms.basic.get_random_resize_scales
+        size: ${scratch.resolution}
+        min_size: 480
+        rounded: false
+      max_size:
+        _target_: sam3.train.transforms.basic.get_random_resize_max_size
+        size: ${scratch.resolution}
+      square: true
+      consistent_transform: ${scratch.consistent_transform}
+    - _target_: sam3.train.transforms.basic_for_api.PadToSizeAPI
+      size: ${scratch.resolution}
+      consistent_transform: ${scratch.consistent_transform}
+    - _target_: sam3.train.transforms.basic_for_api.ToTensorAPI
+    - _target_: sam3.train.transforms.basic_for_api.NormalizeAPI
+      mean: ${scratch.train_norm_mean}
+      std: ${scratch.train_norm_std}
+
+  val_transforms:
+  - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
+    transforms:
+    - _target_: sam3.train.transforms.segmentation.DecodeRle
+    - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
+      sizes: ${scratch.resolution}
+      max_size:
+        _target_: sam3.train.transforms.basic.get_random_resize_max_size
+        size: ${scratch.resolution}
+      square: true
+      consistent_transform: false
+    - _target_: sam3.train.transforms.basic_for_api.ToTensorAPI
+    - _target_: sam3.train.transforms.basic_for_api.NormalizeAPI
+      mean: ${scratch.train_norm_mean}
+      std: ${scratch.train_norm_std}
+
+  loss:
+    _target_: sam3.train.loss.sam3_tracker_loss.Sam3TrackerLossWrapper
+    mask_weight: 20.0
+    dice_weight: 1.0
+    focal_alpha: 0.25
+    focal_gamma: 2.0
+    use_high_res_masks: true
+    presence_weight: 1.0
+    presence_pos_weight: 5.0
+    temporal_ptr_weight: 0.1
+
+scratch:
+  resolution: 1008
+  consistent_transform: false
+  use_presence_eval: true
+  gather_pred_via_filesys: false
+  segmentation_postprocessor:
+    _target_: sam3.eval.postprocessors.PostProcessImage
+    max_dets_per_img: -1
+    iou_type: segm
+    use_original_ids: true
+    use_original_sizes_box: true
+    use_original_sizes_mask: true
+    use_presence: ${scratch.use_presence_eval}
+  train_norm_mean: [0.5, 0.5, 0.5]
+  train_norm_std: [0.5, 0.5, 0.5]
+  num_train_workers: 6
+  num_val_workers: 1
+  max_data_epochs: 50
+  hybrid_repeats: 1
+  train_batch_size: 6
+  val_batch_size: 1
+  gradient_accumulation_steps: 1
+  enable_segmentation: true
+  num_stages_sample: 6
+  stage_stride_min: 1
+  stage_stride_max: 1
+  random_reverse_time_axis: false
+  max_masklet_num_in_video: 300
+  lr: 0.0001
+  wd: 0.01
+  scheduler_timescale: 20
+  scheduler_warmup: 20
+  scheduler_cooldown: 20
+  collate_fn:
+    _target_: sam3.train.data.collator.collate_fn_api
+    _partial_: true
+    repeats: ${scratch.hybrid_repeats}
+    dict_key: all
+    with_seg_masks: ${scratch.enable_segmentation}
+  collate_fn_val:
+    _target_: sam3.train.data.collator.collate_fn_api
+    _partial_: true
+    repeats: ${scratch.hybrid_repeats}
+    dict_key: acdc
+    with_seg_masks: ${scratch.enable_segmentation}
+
+trainer:
+  _target_: sam3.train.trainer.Trainer
+  mode: train
+  accelerator: cuda
+  seed_value: 123
+  max_epochs: ${scratch.max_data_epochs}
+  val_epoch_freq: 2
+  skip_first_val: false
+  skip_saving_ckpts: false
+  empty_gpu_mem_cache_after_eval: true
+  gradient_accumulation_steps: ${scratch.gradient_accumulation_steps}
+  distributed:
+    backend: nccl
+    find_unused_parameters: true
+    gradient_as_bucket_view: true
+  loss:
+    all: ${acdc_train.loss}
+    default:
+      _target_: sam3.train.loss.sam3_loss.DummyLoss
+  data:
+    train:
+      _target_: sam3.train.data.torch_dataset.TorchDataset
+      dataset:
+        _target_: sam3.train.data.sam3_video_dataset.VideoGroundingDataset
+        img_folder: ${paths.acdc_data_root}/train/
+        ann_file: ${paths.acdc_data_root}/train/video_annotations.coco.json
+        transforms: ${acdc_train.train_transforms}
+        load_segmentation: ${scratch.enable_segmentation}
+        max_ann_per_img: 500000
+        multiplier: 1
+        max_train_queries: 50000
+        max_val_queries: 50000
+        training: true
+        use_caching: false
+        num_stages_sample: ${scratch.num_stages_sample}
+        stage_stride_min: ${scratch.stage_stride_min}
+        stage_stride_max: ${scratch.stage_stride_max}
+        random_reverse_time_axis: ${scratch.random_reverse_time_axis}
+        max_masklet_num_in_video: ${scratch.max_masklet_num_in_video}
+        tracker_mode: true
+        coco_json_loader:
+          _target_: sam3.train.data.coco_json_loaders.COCO_VIDEO_FROM_JSON
+          include_negatives: true
+          category_chunk_size: 1
+          _partial_: true
+      shuffle: true
+      batch_size: ${scratch.train_batch_size}
+      num_workers: ${scratch.num_train_workers}
+      pin_memory: true
+      drop_last: true
+      collate_fn: ${scratch.collate_fn}
+    val:
+      _target_: sam3.train.data.torch_dataset.TorchDataset
+      dataset:
+        _target_: sam3.train.data.sam3_video_dataset.VideoGroundingDataset
+        img_folder: ${paths.acdc_data_root}/val/
+        ann_file: ${paths.acdc_data_root}/val/video_annotations.coco.json
+        transforms: ${acdc_train.val_transforms}
+        load_segmentation: ${scratch.enable_segmentation}
+        max_ann_per_img: 100000
+        multiplier: 1
+        max_train_queries: 50000
+        max_val_queries: 50000
+        training: false
+        use_caching: false
+        max_masklet_num_in_video: ${scratch.max_masklet_num_in_video}
+        tracker_mode: true
+        coco_json_loader:
+          _target_: sam3.train.data.coco_json_loaders.COCO_VIDEO_FROM_JSON
+          include_negatives: true
+          category_chunk_size: 1
+          _partial_: true
+      shuffle: false
+      batch_size: ${scratch.val_batch_size}
+      num_workers: ${scratch.num_val_workers}
+      pin_memory: true
+      drop_last: false
+      collate_fn: ${scratch.collate_fn_val}
+  model:
+    _target_: sam3.model_builder.build_sam3_tracker_train_model
+    checkpoint_path: ${paths.pretrained_checkpoint}
+    load_from_HF: false
+    strict_state_dict_loading: false
+    freeze_image_encoder: true
+    use_memory_selection: false
+    device: cpu
+    eval_mode: false
+  meters:
+    val:
+      acdc:
+        segmentation:
+          _target_: sam3.eval.coco_writer.PredictionDumper
+          iou_type: segm
+          dump_dir: ${launcher.experiment_log_dir}/dumps/acdc
+          merge_predictions: true
+          postprocessor: ${scratch.segmentation_postprocessor}
+          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
+          maxdets: 100
+          pred_file_evaluators:
+          - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+            gt_path: ${paths.acdc_data_root}/val/frame_annotations.coco.json
+            tide: false
+            iou_type: segm
+  optim:
+    amp:
+      enabled: true
+      amp_dtype: bfloat16
+    optimizer:
+      _target_: torch.optim.AdamW
+    gradient_clip:
+      _target_: sam3.train.optim.optimizer.GradientClipper
+      max_norm: 0.1
+      norm_type: 2
+    param_group_modifiers: []
+    options:
+      lr:
+      - scheduler:
+          _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+          base_lr: ${scratch.lr}
+          timescale: ${scratch.scheduler_timescale}
+          warmup_steps: ${scratch.scheduler_warmup}
+          cooldown_steps: ${scratch.scheduler_cooldown}
+      weight_decay:
+      - scheduler:
+          _target_: fvcore.common.param_scheduler.ConstantParamScheduler
+          value: ${scratch.wd}
+  checkpoint:
+    save_dir: ${launcher.experiment_log_dir}/checkpoints
+    save_freq: 5
+    save_best_meters:
+    - val_acdc/segmentation
+  logging:
+    tensorboard_writer:
+      _target_: sam3.train.utils.logger.make_tensorboard_logger
+      log_dir: ${launcher.experiment_log_dir}/tensorboard
+      flush_secs: 120
+      should_log: true
+    wandb_writer: null
+    log_dir: ${launcher.experiment_log_dir}/logs/acdc_full_sam3_tracker
+    log_freq: 10
+    log_scalar_frequency: 10
+
+launcher:
+  num_nodes: 1
+  gpus_per_node: 1
+  experiment_log_dir: ${paths.experiment_log_dir}
+  multiprocessing_context: forkserver
+
+submitit:
+  account: null
+  partition: null
+  qos: null
+  timeout_hour: 72
+  use_cluster: false
+  cpus_per_task: 8
+  port_range: [10000, 65000]
+  constraint: null

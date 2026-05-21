@@ -872,6 +872,7 @@ class Sam3TrackerBase(torch.nn.Module):
             "cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
             "non_cond_frame_outputs": {},  # dict containing {frame_idx: <out>}
         }
+        expected_stage_batch_size = None
         for stage_id in processing_order:
             # Get the image features for the current frames
             img_ids = input.find_inputs[stage_id].img_ids
@@ -889,6 +890,18 @@ class Sam3TrackerBase(torch.nn.Module):
                     current_vision_pos_embeds,
                     feat_sizes,
                 ) = self._prepare_backbone_features_per_frame(input.img_batch, img_ids)
+            current_stage_batch_size = current_vision_feats[-1].size(1)
+            if expected_stage_batch_size is None:
+                expected_stage_batch_size = current_stage_batch_size
+            elif current_stage_batch_size != expected_stage_batch_size:
+                raise ValueError(
+                    "SAM3 tracker expects a constant per-stage query/object count across "
+                    f"the sampled sequence, but stage {stage_id} has batch size "
+                    f"{current_stage_batch_size} while earlier stages used "
+                    f"{expected_stage_batch_size}. This usually happens when variable-length "
+                    "videos/volumes are batched together during validation. Please set "
+                    "`val_batch_size=1` for tracker evaluation on full 3D volumes."
+                )
             # Get output masks based on this frame's prompts and previous memory
             current_out = self.track_step(
                 frame_idx=stage_id,
@@ -1007,18 +1020,15 @@ class Sam3TrackerBase(torch.nn.Module):
         # Use the final prediction (after all correction steps for output and eval)
         current_out["pred_masks"] = low_res_masks
         current_out["pred_masks_high_res"] = high_res_masks
+        current_out["pred_ious"] = ious
         current_out["obj_ptr"] = obj_ptr
+        current_out["object_score_logits"] = object_score_logits
         if self.use_memory_selection:
-            current_out["object_score_logits"] = object_score_logits
             iou_score = ious.max(-1)[0]
             current_out["iou_score"] = iou_score
             current_out["eff_iou_score"] = self.cal_mem_score(
                 object_score_logits, iou_score
             )
-        if not self.training:
-            # Only add this in inference (to avoid unused param in activation checkpointing;
-            # it's mainly used in the demo to encode spatial memories w/ consolidated masks)
-            current_out["object_score_logits"] = object_score_logits
 
         # Finally run the memory encoder on the predicted mask to encode
         # it into a new memory feature (that can be used in future frames)

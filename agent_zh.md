@@ -103,6 +103,11 @@ MSCMR 默认 processed 路径：
 - `sam3/train/configs/acdc/full_video_lora_100.yaml`
 - `sam3/train/configs/acdc/scribble_video_lora_100.yaml`
 
+理解 tracker 训练路径时，优先看：
+
+- `sam3/train/configs/acdc/full_sam3_tracker.yaml`
+- `sam3/train/configs/acdc/full_sam3_tracker_image_init.yaml`
+
 理解切片上下文实验时，优先看：
 
 - `sam3/train/configs/acdc/full_video_lora_100_context_v1.yaml`
@@ -116,8 +121,12 @@ MSCMR 默认 processed 路径：
 - `gq_scripts/evaluate/batch_inference_context.py`
 - `gq_scripts/evaluate/batch_evaluate.py`
 - `gq_scripts/evaluate/batch_evaluate_utils.py`
+- `gq_scripts/evaluate/evaluate_tracker_coco_predictions.py`
+- `gq_scripts/evaluate/readme.txt`
 - `gq_scripts/evaluate/run_inference_and_eval.sh`
 - `gq_scripts/evaluate/run_context_inference_and_eval.sh`
+- `gq_scripts/evaluate/run_tracker_auto_seed_inference_and_eval.sh`
+- `gq_scripts/evaluate/tracker_auto_seed_inference.py`
 
 当前工作流中的默认推理阈值：
 
@@ -145,6 +154,36 @@ MSCMR 默认 processed 路径：
 - `HD95` 和 `NSD` 依赖 spacing
 - 评估时优先读取 `test_dir/spacing_map.json`
 - 某些场景下也可从原始 NIfTI 推断
+
+### Tracker 相关说明
+
+本文件只保留 tracker 的最小索引信息。
+
+如果后续 AI 要处理以下任一问题：
+
+- tracker 训练配置
+- tracker loss / adapter 语义
+- auto-seed 推理链
+- tracker 与 image model 的对比结论
+- 本轮 tracker 排错与实验结论
+- 后续值得推进的 tracker 训练方向
+
+应优先阅读：
+
+- `agent_tracker_zh.md`
+
+当前只保留最小入口提示：
+
+- tracker 训练主配置：
+  `sam3/train/configs/acdc/full_sam3_tracker.yaml`
+- tracker image-init 配置：
+  `sam3/train/configs/acdc/full_sam3_tracker_image_init.yaml`
+- tracker 自动推理脚本：
+  `gq_scripts/evaluate/run_tracker_auto_seed_inference_and_eval.sh`
+- tracker 自动推理实现：
+  `gq_scripts/evaluate/tracker_auto_seed_inference.py`
+
+后续 AI 不应在本文件和 `agent_tracker_zh.md` 两边重复维护 tracker 细节，以免内容漂移。
 
 ## 预处理与 JSON 语义
 
@@ -334,6 +373,53 @@ ACDC 3D 路径默认会导出：
 
 当前 3D 路径主要解决的是第 1 点和部分第 2 点，不是第 3 点。
 
+## Tracker 专题入口
+
+tracker 训练、自动推理、实验结论和后续训练建议已单独整理到：
+
+- `agent_tracker_zh.md`
+
+本文件不再重复维护这些细节。
+## SAM 3.1 现状
+
+仓库当前已经合入了官方 `SAM 3.1` / `Object Multiplex` 相关代码。
+
+它带来的主要新功能是：
+
+- 面向视频多目标跟踪的 multiplex 架构
+- 更统一的 predictor 入口
+- `sam3.1` checkpoint 自动下载支持
+- 更偏向高效视频推理，而不是医学 image fine-tuning
+
+当前本地代码中已存在的相关入口包括：
+
+- `build_sam3_predictor(version="sam3.1")`
+- `build_sam3_multiplex_video_model(...)`
+- `build_sam3_multiplex_video_predictor(...)`
+
+对应 checkpoint 默认来自：
+
+- `facebook/sam3.1`
+
+当前用户本地已经下载好的 `sam3.1` 权重位于：
+
+- `/home/gaoqi/official_ckpt/sam3.1_hf`
+
+但后续 AI 需要注意：**官方主仓库还不算已经把 `SAM 3.1 tracker` 训练闭环完全接好。**
+
+当前仍缺少的关键部分是：
+
+- 没看到官方现成的 `SAM 3.1 multiplex tracker` Hydra 训练配置
+- `README_TRAIN.md` 没有明确给出一套 `SAM 3.1` tracker 训练 recipe
+- 现有很多 `SAM 3.1` builder 更偏向 predictor / demo 入口
+- 对医学 3D 数据来说，也还缺少现成的 tracker-style 标注语义适配
+
+因此，当前更准确的理解应是：
+
+- `SAM 3.1` 的推理 / tracking 代码基础比以前完整得多
+- 但它还不能直接替代当前这套 ACDC 2D / 3D video-like / context 训练主线
+- 如果后续要尝试 `SAM 3.1` tracker 训练，优先建议先从 full supervision 的最小闭环开始
+
 ## 切片上下文研究背景
 
 用户当前的研究动机是：
@@ -416,9 +502,9 @@ ACDC 3D 路径默认会导出：
 
 截至目前，以下链路已跑通：
 
-- context 训练 smoke
+- context 训练最小闭环
 - context 自动 val + best checkpoint
-- context 离线推理 smoke
+- context 离线推理验证链路
 - ACDC test 上 full / scribble context 模型的正式推理评估
 
 ### 当前结果结论

@@ -50,6 +50,7 @@ except ImportError:
 
 import sam3
 from sam3 import build_sam3_image_model
+from sam3.model.lora import merge_lora_into_sam3
 from sam3.model.sam3_image_processor import Sam3Processor
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -142,6 +143,7 @@ def load_checkpoint_and_model(
     lora_alpha: float = DEFAULT_LORA_ALPHA,
     lora_target_components: Optional[List[str]] = None,
     lora_unfreeze_components: Optional[List[str]] = None,
+    merge_lora_for_inference: bool = True,
 ):
     """构建 SAM3 + Processor，并加载训练保存的 checkpoint（支持 LoRA 结构）。"""
     ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
@@ -207,6 +209,10 @@ def load_checkpoint_and_model(
         logger.info("Checkpoint 权重已加载。")
     if unexpected:
         logger.info("Checkpoint 中未使用的键（已忽略）: %d 个", len(unexpected))
+
+    if use_lora and merge_lora_for_inference:
+        merged = merge_lora_into_sam3(model)
+        logger.info("推理前已合并 LoRA 权重，共 %d 个线性层。", len(merged))
 
     processor = Sam3Processor(
         model, resolution=resize_size, confidence_threshold=confidence_threshold
@@ -471,6 +477,13 @@ def main():
     )
     parser.add_argument("--lora_r", type=int, default=DEFAULT_LORA_R)
     parser.add_argument("--lora_alpha", type=float, default=DEFAULT_LORA_ALPHA)
+    parser.add_argument(
+        "--merge_lora_for_inference",
+        type=lambda x: x.lower() == "true",
+        default=True,
+        metavar="true|false",
+        help="是否在推理前把 LoRA 权重合并进基础线性层；默认 true。",
+    )
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -507,6 +520,7 @@ def main():
         use_lora=args.use_lora,
         lora_r=args.lora_r,
         lora_alpha=args.lora_alpha,
+        merge_lora_for_inference=args.merge_lora_for_inference,
     )
 
     logger.info("读取 COCO: %s", json_path)

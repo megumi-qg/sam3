@@ -95,21 +95,44 @@ class PostProcessImage(nn.Module):
                 )
                 ret_tensordict = False
 
+        is_tracker_style_output = (
+            "pred_logits" not in outputs and "object_score_logits" in outputs
+        )
+
         out_bbox = outputs["pred_boxes"] if "pred_boxes" in outputs else None
-        out_logits = outputs["pred_logits"]
-        pred_masks = outputs["pred_masks"] if self.iou_type == "segm" else None
-        out_probs = out_logits.sigmoid()
-        if self.use_presence:
-            presence_score = outputs["presence_logit_dec"].sigmoid().unsqueeze(1)
-            out_probs = out_probs * presence_score
+        pred_masks = None
+        if self.iou_type == "segm":
+            pred_masks = outputs.get("pred_masks_high_res", outputs.get("pred_masks"))
+
+        if is_tracker_style_output:
+            out_probs = outputs["object_score_logits"].float().view(
+                outputs["object_score_logits"].shape[0], -1
+            )
+            if out_probs.shape[1] != 1:
+                out_probs = out_probs[:, :1]
+            out_probs = out_probs.sigmoid()
+        else:
+            out_logits = outputs["pred_logits"]
+            out_probs = out_logits.sigmoid()
+            if self.use_presence:
+                presence_score = outputs["presence_logit_dec"].sigmoid().unsqueeze(1)
+                out_probs = out_probs * presence_score
 
         assert target_sizes_boxes.shape[1] == 2
         assert target_sizes_masks.shape[1] == 2
         batch_size = target_sizes_boxes.shape[0]
 
-        boxes, scores, labels, keep = self._process_boxes_and_labels(
-            target_sizes_boxes, forced_labels, out_bbox, out_probs
-        )
+        if is_tracker_style_output:
+            boxes, scores, labels, keep = self._process_scores_and_labels_without_boxes(
+                batch_size=batch_size,
+                forced_labels=forced_labels,
+                out_probs=out_probs,
+                device=target_sizes_boxes.device,
+            )
+        else:
+            boxes, scores, labels, keep = self._process_boxes_and_labels(
+                target_sizes_boxes, forced_labels, out_bbox, out_probs
+            )
         assert boxes is None or len(boxes) == batch_size
         out_masks = self._process_masks(
             target_sizes_masks, pred_masks, consistent=consistent, keep=keep
@@ -149,6 +172,44 @@ class PostProcessImage(nn.Module):
             ]
 
         return results
+
+    def _process_scores_and_labels_without_boxes(
+        self,
+        *,
+        batch_size,
+        forced_labels,
+        out_probs,
+        device,
+    ):
+        assert len(out_probs) == batch_size
+        if self.to_cpu:
+            out_probs = out_probs.cpu()
+
+        if forced_labels is None:
+            labels = torch.ones_like(out_probs, dtype=torch.long)
+        else:
+            labels = forced_labels[:, None].expand_as(out_probs)
+            if self.to_cpu:
+                labels = labels.cpu()
+
+        keep = None
+        if self.detection_threshold > 0:
+            keep = out_probs > self.detection_threshold
+            scores = [s[k.to(s.device)] for s, k in zip(out_probs, keep)]
+            labels = [l[k.to(l.device)] for l, k in zip(labels, keep)]
+            zero_boxes = [
+                torch.zeros((len(score), 4), dtype=torch.float32, device=score.device)
+                for score in scores
+            ]
+        else:
+            scores = list(out_probs)
+            labels = list(labels)
+            zero_boxes = [
+                torch.zeros((score.shape[0], 4), dtype=torch.float32, device=score.device)
+                for score in scores
+            ]
+
+        return zero_boxes, scores, labels, keep
 
     def _process_masks(self, target_sizes, pred_masks, consistent=True, keep=None):
         if pred_masks is None:
@@ -257,11 +318,15 @@ class PostProcessImage(nn.Module):
     def process_results(
         self, find_stages, find_metadatas: List[BatchedInferenceMetadata], **kwargs
     ):
-        if find_stages.loss_stages is not None:
-            find_metadatas = [find_metadatas[i] for i in find_stages.loss_stages]
+        loss_stages = getattr(find_stages, "loss_stages", None)
+        if loss_stages is not None:
+            find_metadatas = [find_metadatas[i] for i in loss_stages]
         assert len(find_stages) == len(find_metadatas)
         results = {}
         for outputs, meta in zip(find_stages, find_metadatas):
+            if isinstance(outputs, (list, tuple)):
+                assert len(outputs) > 0, "Empty stage outputs cannot be postprocessed."
+                outputs = outputs[-1]
             img_size_for_boxes = (
                 meta.original_size
                 if self.use_original_sizes_box

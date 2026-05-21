@@ -99,6 +99,14 @@ DATASET_CONFIG = {
             3: "left ventricle",
         },
     },
+    "mscmr_scribble": {
+        "gt_replace": (".nii.gz", "_scribble.nii.gz"),
+        "categories": {
+            1: "right ventricle",
+            2: "myocardium",
+            3: "left ventricle",
+        },
+    },
 }
 
 

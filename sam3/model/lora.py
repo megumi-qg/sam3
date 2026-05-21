@@ -83,10 +83,60 @@ class LoRALinear(nn.Module):
         return self.linear.out_features
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        input_dtype = x.dtype
+        compute_dtype = self.linear.weight.dtype
+        if x.dtype != compute_dtype:
+            x = x.to(compute_dtype)
+
         out = self.linear(x)
         # x @ A @ B  with A (in,r), B (r,out) => (x @ A) @ B
-        lora_out = (x @ self.lora_A @ self.lora_B) * self.scaling
-        return out + lora_out
+        lora_a = self.lora_A if self.lora_A.dtype == x.dtype else self.lora_A.to(x.dtype)
+        lora_b = self.lora_B if self.lora_B.dtype == x.dtype else self.lora_B.to(x.dtype)
+        lora_out = (x @ lora_a @ lora_b) * self.scaling
+        out = out + lora_out
+
+        if out.dtype != input_dtype:
+            out = out.to(input_dtype)
+        return out
+
+
+class DTypeSafeLinear(nn.Module):
+    """
+    Wrap nn.Linear and preserve the old LoRA wrapper's dtype behavior.
+
+    Some SAM3 inference paths feed bfloat16 activations into modules whose
+    weights stay in float32. A bare nn.Linear would then raise a dtype mismatch.
+    """
+
+    def __init__(self, linear: nn.Linear):
+        super().__init__()
+        self.linear = linear
+
+    @property
+    def weight(self):
+        return self.linear.weight
+
+    @property
+    def bias(self):
+        return self.linear.bias
+
+    @property
+    def in_features(self):
+        return self.linear.in_features
+
+    @property
+    def out_features(self):
+        return self.linear.out_features
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        input_dtype = x.dtype
+        weight_dtype = self.linear.weight.dtype
+        if x.dtype != weight_dtype:
+            x = x.to(weight_dtype)
+        out = self.linear(x)
+        if out.dtype != input_dtype:
+            out = out.to(input_dtype)
+        return out
 
 
 def _apply_lora_to_module(
@@ -200,10 +250,18 @@ def merge_lora_into_sam3(model: nn.Module) -> List[str]:
                     child.linear.out_features,
                     bias=child.linear.bias is not None,
                 )
-                linear_new.weight.data = w_merged
+                linear_new = linear_new.to(
+                    device=child.linear.weight.device, dtype=child.linear.weight.dtype
+                )
+                linear_new.weight.data = w_merged.to(
+                    device=child.linear.weight.device, dtype=child.linear.weight.dtype
+                )
                 if b is not None:
-                    linear_new.bias.data = b
-                setattr(module, name, linear_new)
+                    linear_new.bias.data = b.to(
+                        device=child.linear.weight.device,
+                        dtype=child.linear.weight.dtype,
+                    )
+                setattr(module, name, DTypeSafeLinear(linear_new))
                 merged_paths.append(full_name)
             else:
                 _merge_recursive(child, full_name)

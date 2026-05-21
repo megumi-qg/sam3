@@ -111,6 +111,8 @@ class Object:
 
     segment: Optional[Union[torch.Tensor, dict]] = None  # RLE dict or binary mask
 
+    seed_segment: Optional[Union[torch.Tensor, dict]] = None
+
     is_crowd: bool = False
 
     source: Optional[str] = None
@@ -311,6 +313,18 @@ class CustomCocoDetectionAPI(VisionDataset):
                 # 异常处理
                 current_binary_mask = np.zeros((h, w), dtype=bool)
 
+            seed_binary_mask = None
+            seed_segmentation = annotation.get("seed_segmentation")
+            if seed_segmentation:
+                if isinstance(seed_segmentation, list):
+                    seed_rle = maskUtils.frPyObjects(seed_segmentation, h, w)
+                    seed_m = maskUtils.decode(seed_rle)
+                    if len(seed_m.shape) == 3:
+                        seed_m = seed_m.sum(axis=2) > 0
+                    seed_binary_mask = seed_m.astype(bool)
+                elif isinstance(seed_segmentation, dict):
+                    seed_binary_mask = maskUtils.decode(seed_segmentation).astype(bool)
+
             # -----------------------------------------------------------
             # 步骤 2: 获取 BBox ((如果 JSON 中没有，则从 Mask 生成伪 Box))
             # -----------------------------------------------------------
@@ -362,6 +376,7 @@ class CustomCocoDetectionAPI(VisionDataset):
             # 步骤 3: 生成 Mask (全监督: 0/1, 弱监督: 0/1/255)
             # -----------------------------------------------------------
             segment = None
+            seed_segment = None
             if self.load_segmentation: # 只要开启分割就生成
                 # 检测是否为弱监督任务（通过 valid_mask 判断）
                 has_valid_mask = "valid_mask" in annotation and annotation["valid_mask"] is not None
@@ -401,6 +416,9 @@ class CustomCocoDetectionAPI(VisionDataset):
                     # 转 Tensor
                     segment = torch.from_numpy(binary_mask).long()
 
+                if seed_binary_mask is not None:
+                    seed_segment = torch.from_numpy(seed_binary_mask.astype(np.uint8)).long()
+
             images[image_id].objects.append(
                 Object(
                     bbox=bbox[0],
@@ -412,6 +430,7 @@ class CustomCocoDetectionAPI(VisionDataset):
                         annotation["frame_index"] if "frame_index" in annotation else -1
                     ),
                     segment=segment, # 这里现在是 [H, W] 的 0/1/255 Tensor
+                    seed_segment=seed_segment,
                     is_crowd=(
                         annotation["is_crowd"] if "is_crowd" in annotation else None
                     ),

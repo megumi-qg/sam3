@@ -171,6 +171,7 @@ def collate_fn_api(
             boxes_padded=[],
             is_exhaustive=[],
             segments=[],
+            seed_segments=[],
             semantic_segments=[],
             is_valid_segment=[],
             repeated_boxes=[],
@@ -279,11 +280,17 @@ def collate_fn_api(
 
             if with_seg_masks:
                 current_seg_mask = []
+                current_seed_seg_mask = []
                 current_is_valid_segment = []
                 for object_id in q.object_ids_output:
-                    seg_mask = data.images[q.image_id].objects[object_id].segment
+                    obj = data.images[q.image_id].objects[object_id]
+                    seg_mask = obj.segment
                     if seg_mask is not None:
                         current_seg_mask.append(seg_mask)
+                        if obj.seed_segment is not None:
+                            current_seed_seg_mask.append(obj.seed_segment)
+                        else:
+                            current_seed_seg_mask.append(seg_mask)
                         current_is_valid_segment.append(1)
                     else:
                         # Weak-sup: 0=neg, 1=pos, 255=ignore
@@ -291,12 +298,15 @@ def collate_fn_api(
                             data.images[q.image_id].data.shape[-2:], dtype=torch.long
                         )
                         current_seg_mask.append(dummy_mask)
+                        current_seed_seg_mask.append(dummy_mask)
                         current_is_valid_segment.append(0)
                 find_targets[stage_id].segments.extend(current_seg_mask)
+                find_targets[stage_id].seed_segments.extend(current_seed_seg_mask)
                 find_targets[stage_id].is_valid_segment.extend(current_is_valid_segment)
             else:
                 # We are not loading segmentation masks
                 find_targets[stage_id].segments = None
+                find_targets[stage_id].seed_segments = None
                 find_targets[stage_id].is_valid_segment = None
 
             if q.semantic_target is not None:
