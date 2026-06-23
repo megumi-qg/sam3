@@ -79,6 +79,27 @@ python sam3/train/train.py -c configs/roboflow_v100/roboflow_v100_full_ft_100_im
 python sam3/train/train.py -c configs/roboflow_v100/roboflow_v100_full_ft_100_images.yaml --use-cluster 0
 ```
 
+#### CMPB Main Training
+
+```bash
+conda activate sam3
+cd /home/gaoqi/sam3
+
+CUDA_VISIBLE_DEVICES=0,1 nohup python sam3/train/train.py \
+    -c configs/final/full_lora.yaml \
+    --use-cluster 0 \
+    --num-gpus 2 \
+    < /dev/null \
+    > full_lora_cmpb.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=0,1 nohup python sam3/train/train.py \
+    -c configs/final/weak_lora.yaml \
+    --use-cluster 0 \
+    --num-gpus 2 \
+    < /dev/null \
+    > weak_lora_cmpb.log 2>&1 &
+```
+
 #### Cluster Training Examples
 
 ```bash

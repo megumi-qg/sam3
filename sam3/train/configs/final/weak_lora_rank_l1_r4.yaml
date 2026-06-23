@@ -1,0 +1,13 @@
+# @package _global_
+# LoRA rank ablation L1: lower rank with the same hybrid LoRA scope.
+defaults:
+  - weak_lora
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/cmpb/ablation_lora_rank_l1_r4
+
+trainer:
+  model:
+    lora_r: 4
+    lora_alpha: 8.0

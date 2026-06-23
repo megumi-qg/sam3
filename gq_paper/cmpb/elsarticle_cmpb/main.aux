@@ -1,0 +1,158 @@
+\relax 
+\emailauthor{hhfang@ieee.org}{Huihui Fang\corref {cor1}}
+\Newlabel{cor1}{1}
+\Newlabel{inst1}{a}
+\Newlabel{inst2}{b}
+\citation{ronneberger2015unet}
+\citation{isensee2021nnunet}
+\citation{kirillov2023sam}
+\citation{carion2025sam3}
+\citation{zhao2025biomedparse}
+\citation{zhao2025sat}
+\citation{rokuss2026voxtell}
+\citation{han2024DMSPS,li2024ScribFormer,liu2025effdnet}
+\citation{gotkowski2025scribblebench}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparison between dense pixel-level annotations and sparse scribble annotations on the BTCV\_cervix dataset. Full annotation requires precise boundary contouring, whereas scribble supervision uses minimal interior hints for the target organs (bladder, uterus, and rectum) and sparse background scribbles.}}{2}{}\protected@file@percent }
+\newlabel{fig:annotation_comparison}{{1}{2}}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{}\protected@file@percent }
+\citation{carion2020detr,hatamizadeh2022unetr}
+\citation{rezatofighi2019giou}
+\citation{hu2021lora}
+\citation{bernard2018acdc}
+\citation{landman2015btcv}
+\citation{litjens2014promise}
+\citation{kirillov2023sam}
+\citation{zhang2023samed}
+\citation{wu2025medicalsamadapter}
+\citation{cheng2023sammed2d}
+\citation{ma2024medsam}
+\citation{gong2024threedsamadapter}
+\citation{chen2023masam}
+\citation{ma2025medsam2}
+\citation{zhao2025biomedparse}
+\citation{zhao2025sat}
+\citation{rokuss2026voxtell}
+\citation{lin2016ScribbleSup}
+\citation{wang2018deepigeos}
+\citation{zhang2022cyclemix}
+\citation{han2024DMSPS}
+\citation{li2024ScribFormer}
+\citation{liu2025effdnet}
+\citation{chen2025crossimage}
+\citation{zhang2025medcl}
+\citation{zhang2024modelmix}
+\citation{boettcher2024scribblesforall}
+\citation{gotkowski2025scribblebench}
+\citation{zhang2026zscribbleseg}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related work}{4}{}\protected@file@percent }
+\newlabel{sec:related_work}{{2}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Promptable foundation models for medical image segmentation}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Scribble-supervised medical image segmentation}{4}{}\protected@file@percent }
+\citation{carion2020detr,kuhn1955hungarian}
+\citation{rezatofighi2019giou}
+\citation{hu2021lora}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Adapting segmentation foundation models with sparse supervision}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Methods}{5}{}\protected@file@percent }
+\newlabel{sec:methods}{{3}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}SAM3 image model}{5}{}\protected@file@percent }
+\citation{Lin2017focal}
+\citation{milletari2016dice}
+\citation{rezatofighi2019giou}
+\citation{kuhn1955hungarian}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Scribble-compatible objective}{6}{}\protected@file@percent }
+\newlabel{sec:scribble_objective}{{3.2}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Bypassing geometric constraints}{6}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Overview of the proposed scribble-supervised adaptation framework. The image and text prompt are processed by SAM3 encoders and a DETR-style transformer with LoRA modules. Weak supervision is provided by a partial mask loss gated by the valid scribble region, together with semantic and presence losses derived from sparse annotations.}}{7}{}\protected@file@percent }
+\newlabel{fig:framework}{{2}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Partial mask loss}{7}{}\protected@file@percent }
+\citation{bernard2018acdc}
+\citation{landman2015btcv}
+\citation{litjens2014promise}
+\citation{valvano2021scribbles}
+\citation{gotkowski2025scribblebench}
+\citation{piegl2012nurbs}
+\citation{valvano2021scribbles}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Hybrid LoRA adaptation}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experimental setup}{8}{}\protected@file@percent }
+\newlabel{sec:experiments}{{4}{8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Datasets and annotation protocol}{8}{}\protected@file@percent }
+\citation{zhao2025biomedparse,zhao2025boltzmann}
+\citation{zhao2025sat}
+\citation{rokuss2026voxtell}
+\citation{li2024ScribFormer}
+\citation{gotkowski2025scribblebench}
+\citation{liu2025effdnet}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Dataset protocol and scribble annotation statistics. Cases and images are reported as train/validation/test. Foreground scribble ratios are computed on the training split against the corresponding dense target masks.}}{9}{}\protected@file@percent }
+\newlabel{tab:dataset_protocol}{{1}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Baselines}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Implementation details}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Results}{10}{}\protected@file@percent }
+\newlabel{sec:results}{{5}{10}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Quantitative comparison on ACDC. Values are reported as mean $\pm $ standard deviation. Gray cells indicate data-leakage cases. Best valid scores, excluding leakage cases and the SAM3-Full upper bound, are in bold; second-best scores are underlined.}}{10}{}\protected@file@percent }
+\newlabel{tab:main_results_acdc}{{2}{10}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Quantitative comparison on BTCV\_cervix. Values are reported as mean $\pm $ standard deviation. Gray cells indicate data-leakage cases. Best valid scores, excluding leakage cases and the SAM3-Full upper bound, are in bold; second-best scores are underlined.}}{11}{}\protected@file@percent }
+\newlabel{tab:main_results_btcv}{{3}{11}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Quantitative comparison on PROMISE12. Values are reported as mean $\pm $ standard deviation. Gray cells indicate data-leakage cases. Best valid scores, excluding leakage cases and the SAM3-Full upper bound, are in bold; second-best scores are underlined.}}{11}{}\protected@file@percent }
+\newlabel{tab:main_results_promise12}{{4}{11}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Per-case DSC distributions on ACDC, BTCV\_cervix, and PROMISE12. Each point corresponds to one test case, and boxes summarize the interquartile range. SAM3-Scribble shows higher and more stable DSC distributions than the static scribble-supervised baselines on ACDC and PROMISE12, while BTCV\_cervix shows positive but less statistically stable differences due to its smaller test set.}}{12}{}\protected@file@percent }
+\newlabel{fig:per_case_dsc_distribution}{{3}{12}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Ablation on scribble-compatible objectives}{12}{}\protected@file@percent }
+\newlabel{sec:objective_ablation}{{5.1}{12}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Ablation study of box and GIoU regression losses under scribble supervision. The matcher uses the final no-geometric setting for all variants. DSC, IoU, and NSD are macro-averaged over ACDC, BTCV\_cervix, and PROMISE12 and reported as percentages; HD95 is reported in millimeters.}}{13}{}\protected@file@percent }
+\newlabel{tab:regression_ablation}{{5}{13}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Ablation study of Hungarian matching costs under scribble supervision. All variants use the same training and evaluation protocol; only the classification, box, and GIoU matching costs are changed. DSC, IoU, and NSD are macro-averaged over ACDC, BTCV\_cervix, and PROMISE12 and reported as percentages; HD95 is reported in millimeters.}}{13}{}\protected@file@percent }
+\newlabel{tab:matcher_ablation}{{6}{13}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Ablation on parameter-efficient adaptation}{13}{}\protected@file@percent }
+\newlabel{sec:lora_ablation}{{5.2}{13}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Ablation study of LoRA adaptation scope. DSC, IoU, and NSD are macro-averaged over ACDC, BTCV\_cervix, and PROMISE12 and reported as percentages; HD95 is reported in millimeters. All variants use rank $8$ and alpha $16$ when LoRA modules are present.}}{14}{}\protected@file@percent }
+\newlabel{tab:lora_scope_ablation}{{7}{14}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Qualitative analysis}{14}{}\protected@file@percent }
+\newlabel{sec:qualitative_analysis}{{5.3}{14}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Qualitative comparison on ACDC, BTCV\_cervix, and PROMISE12. From left to right: input image, SAT-Pro, ScribFormer, ScribbleBench, EFFDNet, SAM3-Scribble, and ground truth. Zoomed regions are outlined in yellow.}}{15}{}\protected@file@percent }
+\newlabel{fig:qualitative_comparison}{{4}{15}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Discussion}{15}{}\protected@file@percent }
+\newlabel{sec:discussion}{{6}{15}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{16}{}\protected@file@percent }
+\bibstyle{elsarticle-num}
+\bibdata{references}
+\bibcite{ronneberger2015unet}{{1}{}{{}}{{}}}
+\bibcite{isensee2021nnunet}{{2}{}{{}}{{}}}
+\bibcite{kirillov2023sam}{{3}{}{{}}{{}}}
+\bibcite{carion2025sam3}{{4}{}{{}}{{}}}
+\bibcite{zhao2025biomedparse}{{5}{}{{}}{{}}}
+\bibcite{zhao2025sat}{{6}{}{{}}{{}}}
+\bibcite{rokuss2026voxtell}{{7}{}{{}}{{}}}
+\bibcite{han2024DMSPS}{{8}{}{{}}{{}}}
+\bibcite{li2024ScribFormer}{{9}{}{{}}{{}}}
+\bibcite{liu2025effdnet}{{10}{}{{}}{{}}}
+\bibcite{gotkowski2025scribblebench}{{11}{}{{}}{{}}}
+\bibcite{carion2020detr}{{12}{}{{}}{{}}}
+\bibcite{hatamizadeh2022unetr}{{13}{}{{}}{{}}}
+\bibcite{rezatofighi2019giou}{{14}{}{{}}{{}}}
+\bibcite{hu2021lora}{{15}{}{{}}{{}}}
+\bibcite{bernard2018acdc}{{16}{}{{}}{{}}}
+\bibcite{landman2015btcv}{{17}{}{{}}{{}}}
+\bibcite{litjens2014promise}{{18}{}{{}}{{}}}
+\bibcite{zhang2023samed}{{19}{}{{}}{{}}}
+\bibcite{wu2025medicalsamadapter}{{20}{}{{}}{{}}}
+\bibcite{cheng2023sammed2d}{{21}{}{{}}{{}}}
+\bibcite{ma2024medsam}{{22}{}{{}}{{}}}
+\bibcite{gong2024threedsamadapter}{{23}{}{{}}{{}}}
+\bibcite{chen2023masam}{{24}{}{{}}{{}}}
+\bibcite{ma2025medsam2}{{25}{}{{}}{{}}}
+\bibcite{lin2016ScribbleSup}{{26}{}{{}}{{}}}
+\bibcite{wang2018deepigeos}{{27}{}{{}}{{}}}
+\bibcite{zhang2022cyclemix}{{28}{}{{}}{{}}}
+\bibcite{chen2025crossimage}{{29}{}{{}}{{}}}
+\bibcite{zhang2025medcl}{{30}{}{{}}{{}}}
+\bibcite{zhang2024modelmix}{{31}{}{{}}{{}}}
+\bibcite{boettcher2024scribblesforall}{{32}{}{{}}{{}}}
+\bibcite{zhang2026zscribbleseg}{{33}{}{{}}{{}}}
+\bibcite{kuhn1955hungarian}{{34}{}{{}}{{}}}
+\bibcite{Lin2017focal}{{35}{}{{}}{{}}}
+\bibcite{milletari2016dice}{{36}{}{{}}{{}}}
+\bibcite{valvano2021scribbles}{{37}{}{{}}{{}}}
+\bibcite{piegl2012nurbs}{{38}{}{{}}{{}}}
+\bibcite{zhao2025boltzmann}{{39}{}{{}}{{}}}
+\providecommand\NAT@force@numbers{}\NAT@force@numbers
+\gdef \@abspage@last{23}

@@ -198,6 +198,21 @@ def validate_param_group_params(
     )
 
 
+def _format_parameter_match_log(
+    match_key: str,
+    matching_parameters: Set[str],
+    max_examples: int = 5,
+) -> str:
+    """Format a compact parameter-match log line for large models."""
+    sorted_params = sorted(matching_parameters)
+    examples = sorted_params[:max_examples]
+    suffix = "" if len(sorted_params) <= max_examples else ", ..."
+    return (
+        f"Matches for {match_key}: {len(sorted_params)} params"
+        f" | examples={examples}{suffix}"
+    )
+
+
 def unix_module_cls_pattern_to_parameter_names(
     filter_module_cls_names: List[str],
     module_cls_to_param_names: Dict[Type, str],
@@ -225,7 +240,10 @@ def unix_module_cls_pattern_to_parameter_names(
             f"module_cls_name {module_cls_name} does not contain any parameters in the model"
         )
         logging.info(
-            f"Matches for module_cls_name [{module_cls_name}]: {matching_parameters} "
+            _format_parameter_match_log(
+                f"module_cls_name [{module_cls_name}]",
+                matching_parameters,
+            )
         )
         allowed_parameter_names.append(matching_parameters)
     return set.union(*allowed_parameter_names)
@@ -252,7 +270,12 @@ def unix_param_pattern_to_parameter_names(
         assert len(matching_parameters) >= 1, (
             f"param_name {param_name} does not match any parameters in the model"
         )
-        logging.info(f"Matches for param_name [{param_name}]: {matching_parameters}")
+        logging.info(
+            _format_parameter_match_log(
+                f"param_name [{param_name}]",
+                matching_parameters,
+            )
+        )
         allowed_parameter_names.append(matching_parameters)
     return set.union(*allowed_parameter_names)
 

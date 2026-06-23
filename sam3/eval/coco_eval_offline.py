@@ -11,8 +11,12 @@ we may need to split the inference process for a given image in several chunks.
 """
 
 import logging
+import contextlib
+import io
 from collections import defaultdict
+from typing import Optional
 
+import numpy as np
 import torch
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -133,11 +137,57 @@ class CocoEvaluatorOfflineWithPredFileEvaluators:
         tide: bool = True,
         iou_type: str = "bbox",
         positive_split=False,
+        output_metrics: Optional[list[str]] = None,
+        print_summary: bool = True,
+        output_dice: bool = False,
     ):
         self.gt_path = gt_path
         self.tide_enabled = HAS_TIDE and tide
         self.positive_split = positive_split
         self.iou_type = iou_type
+        self.output_metrics = output_metrics
+        self.print_summary = print_summary
+        self.output_dice = output_dice
+
+    def _compute_mean_dice(self, coco_dt):
+        gt_by_img_cat = defaultdict(list)
+        for ann in self.gt.dataset.get("annotations", []):
+            gt_by_img_cat[(ann["image_id"], ann["category_id"])].append(ann)
+
+        dt_by_img_cat = defaultdict(list)
+        for ann in coco_dt.dataset.get("annotations", []):
+            dt_by_img_cat[(ann["image_id"], ann["category_id"])].append(ann)
+
+        dice_scores = []
+        for key, gt_anns in gt_by_img_cat.items():
+            image_id, category_id = key
+            image_info = self.gt.imgs[image_id]
+            height = image_info["height"]
+            width = image_info["width"]
+
+            gt_mask = np.zeros((height, width), dtype=bool)
+            for ann in gt_anns:
+                gt_mask |= self.gt.annToMask(ann).astype(bool)
+
+            pred_mask = np.zeros((height, width), dtype=bool)
+            dt_anns = dt_by_img_cat.get((image_id, category_id), [])
+            if dt_anns:
+                best_dt = max(dt_anns, key=lambda ann: ann.get("score", 0.0))
+                pred_mask = coco_dt.annToMask(best_dt).astype(bool)
+
+            gt_area = gt_mask.sum()
+            pred_area = pred_mask.sum()
+            if gt_area == 0:
+                continue
+            if pred_area == 0:
+                dice_scores.append(0.0)
+                continue
+            intersection = np.logical_and(gt_mask, pred_mask).sum()
+            dice_scores.append((2.0 * intersection) / (gt_area + pred_area))
+
+        if not dice_scores:
+            return 0.0
+        return float(np.mean(dice_scores))
 
     def evaluate(self, dumped_file):
         if not is_main_process():
@@ -157,11 +207,21 @@ class CocoEvaluatorOfflineWithPredFileEvaluators:
         )
         coco_eval.evaluate()
         coco_eval.accumulate()
-        coco_eval.summarize()
+        if self.print_summary:
+            coco_eval.summarize()
+        else:
+            with contextlib.redirect_stdout(io.StringIO()):
+                coco_eval.summarize()
 
         outs = {}
         for i, value in enumerate(coco_eval.stats):
-            outs[f"coco_eval_{self.iou_type}_{COCO_METRICS[i]}"] = value
+            metric_name = COCO_METRICS[i]
+            if self.output_metrics is not None and metric_name not in self.output_metrics:
+                continue
+            outs[f"coco_eval_{self.iou_type}_{metric_name}"] = value
+
+        if self.output_dice and self.iou_type == "segm":
+            outs[f"coco_eval_{self.iou_type}_Dice"] = self._compute_mean_dice(cocoDt)
 
         if self.tide_enabled:
             logging.info("Coco evaluator: Loading TIDE")

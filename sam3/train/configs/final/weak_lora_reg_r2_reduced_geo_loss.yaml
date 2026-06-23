@@ -1,0 +1,38 @@
+# @package _global_
+# Box/GIoU regression loss ablation R2.
+# Inherits the proposed weak SAM3-Scribble setup and only restores a reduced
+# box/GIoU regression loss. Matcher geometry costs remain disabled.
+defaults:
+  - weak_lora
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/cmpb/ablation_reg_r2_reduced_geo_loss
+
+mixed_train:
+  loss:
+    loss_fns_find:
+      - _target_: sam3.train.loss.loss_fns.Boxes
+        weight_dict:
+          loss_bbox: 1.0
+          loss_giou: 1.0
+      - _target_: sam3.train.loss.loss_fns.IABCEMdetr
+        weak_loss: False
+        weight_dict:
+          loss_ce: 20.0
+          presence_loss: 20.0
+        pos_weight: 10.0
+        alpha: -1
+        gamma: 2
+        use_presence: True
+        pos_focal: false
+        pad_n_queries: 200
+        pad_scale_pos: 1.0
+      - _target_: sam3.train.loss.loss_fns.PartialMasks
+        focal_alpha: 0.25
+        focal_gamma: 2.0
+        ignore_index: 255
+        weight_dict:
+          loss_mask: 200.0
+          loss_dice: 10.0
+        compute_aux: false

@@ -118,6 +118,8 @@ class CheckpointConf:
     save_list: List[int] = field(default_factory=list)
     model_weight_initializer: Any = None
     save_best_meters: List[str] = None
+    save_best_combined_meter: Optional[Dict[str, Any]] = None
+    save_best_combined_meters: Optional[List[Dict[str, Any]]] = None
     skip_saving_parameters: List[str] = field(default_factory=list)
     initialize_after_preemption: Optional[bool] = None
     # if not None, training will be resumed from this checkpoint
@@ -128,6 +130,16 @@ class CheckpointConf:
             with_skip_saving = len(self.skip_saving_parameters) > 0
             self.initialize_after_preemption = with_skip_saving
         return self
+
+
+@dataclass
+class EarlyStoppingConf:
+    enabled: bool = False
+    monitor: str = "val_mean_segmentation_coco_eval_segm_Dice"
+    mode: str = "max"
+    patience: int = 6
+    min_delta: float = 0.002
+    min_epochs: int = 12
 
 
 @dataclass
@@ -173,6 +185,7 @@ class Trainer:
         skip_first_val: bool = False,
         skip_saving_ckpts: bool = False,
         empty_gpu_mem_cache_after_eval: bool = True,
+        early_stopping: Optional[Dict[str, Any]] = None,
         gradient_accumulation_steps: int = 1,
         # 渐进式训练参数
         enable_progressive_training: bool = False,
@@ -210,6 +223,16 @@ class Trainer:
         self.skip_first_val = skip_first_val
         self.skip_saving_ckpts = skip_saving_ckpts
         self.empty_gpu_mem_cache_after_eval = empty_gpu_mem_cache_after_eval
+        self.early_stopping_conf = EarlyStoppingConf(**(early_stopping or {}))
+        if self.early_stopping_conf.mode not in ["max", "min"]:
+            raise ValueError(
+                f"Unsupported early stopping mode: {self.early_stopping_conf.mode}"
+            )
+        self.early_stopping_state = {
+            "best": None,
+            "num_bad_validations": 0,
+        }
+        self.early_stop_triggered = False
         
         # 渐进式训练参数
         self.enable_progressive_training = enable_progressive_training
@@ -401,6 +424,7 @@ class Trainer:
             "steps": self.steps,
             "time_elapsed": self.time_elapsed_meter.val,
             "best_meter_values": self.best_meter_values,
+            "early_stopping_state": self.early_stopping_state,
         }
         if self.optim_conf.amp.enabled:
             checkpoint["scaler"] = self.scaler.state_dict()
@@ -492,6 +516,9 @@ class Trainer:
             self.scaler.load_state_dict(checkpoint["scaler"])
 
         self.best_meter_values = checkpoint.get("best_meter_values", {})
+        self.early_stopping_state = checkpoint.get(
+            "early_stopping_state", self.early_stopping_state
+        )
 
         if "train_dataset" in checkpoint and self.train_dataset is not None:
             self.train_dataset.load_checkpoint_state(checkpoint["train_dataset"])
@@ -600,7 +627,8 @@ class Trainer:
                     self.run_val()
                     self.epoch += 1
             self.run_train()
-            self.run_val()
+            if not self.early_stop_triggered:
+                self.run_val()
         elif self.mode == "val":
             self.run_val()
         elif self.mode == "train_only":
@@ -668,10 +696,12 @@ class Trainer:
             del dataloader
             gc.collect()
 
+            should_stop = False
             # Run val, not running on last epoch since will run after the
             # loop anyway
             if self.is_intermediate_val_epoch(self.epoch):
-                self.run_val()
+                val_outs = self.run_val()
+                should_stop = self._should_stop_early(val_outs)
                 if torch.cuda.is_available() and self.empty_gpu_mem_cache_after_eval:
                     # release memory buffers held by the model during eval (which typically
                     # involves a lot more frames in video grounding that during training)
@@ -685,9 +715,18 @@ class Trainer:
                 ) as f:
                     f.write(json.dumps(self.best_meter_values) + "\n")
 
+            if should_stop:
+                logging.info(
+                    "Early stopping triggered at epoch %s.",
+                    self.epoch,
+                )
+                self.early_stop_triggered = True
+                break
+
             self.epoch += 1
         # epoch was incremented in the loop but the val step runs out of the loop
-        self.epoch -= 1
+        if not self.early_stop_triggered:
+            self.epoch -= 1
 
     def _run_inference_and_update_bbox(self):
         """
@@ -907,7 +946,7 @@ class Trainer:
                 logging.info(f"Epoch {current_epoch}: [{phase_name}] 更新Matcher权重: class={target_w['cost_class']}, bbox={target_w['cost_bbox']}, giou={target_w['cost_giou']}")
     def run_val(self):
         if not self.val_dataset:
-            return
+            return None
 
         dataloader = self.val_dataset.get_loader(epoch=int(self.epoch))
         outs = self.val_epoch(dataloader, phase=Phase.VAL)
@@ -921,6 +960,58 @@ class Trainer:
                 "a",
             ) as f:
                 f.write(json.dumps(outs) + "\n")
+        return outs
+
+    def _should_stop_early(self, val_outs: Optional[Dict[str, Any]]) -> bool:
+        conf = self.early_stopping_conf
+        stop = False
+        if self.distributed_rank == 0 and conf.enabled:
+            monitor_key = os.path.join("Meters_train", conf.monitor)
+            monitor_value = None if val_outs is None else val_outs.get(monitor_key)
+            if monitor_value is None:
+                logging.warning(
+                    "Early stopping monitor %s not found in validation outputs.",
+                    monitor_key,
+                )
+            else:
+                monitor_value = float(monitor_value)
+                best = self.early_stopping_state.get("best")
+                improved = (
+                    best is None
+                    or (conf.mode == "max" and monitor_value > best + conf.min_delta)
+                    or (conf.mode == "min" and monitor_value < best - conf.min_delta)
+                )
+                if improved:
+                    self.early_stopping_state["best"] = monitor_value
+                    self.early_stopping_state["num_bad_validations"] = 0
+                    logging.info(
+                        "Early stopping monitor improved: %s=%s",
+                        conf.monitor,
+                        monitor_value,
+                    )
+                else:
+                    self.early_stopping_state["num_bad_validations"] += 1
+                    logging.info(
+                        "Early stopping monitor did not improve: %s=%s, best=%s, bad_validations=%s/%s",
+                        conf.monitor,
+                        monitor_value,
+                        best,
+                        self.early_stopping_state["num_bad_validations"],
+                        conf.patience,
+                    )
+                stop = (
+                    int(self.epoch) >= conf.min_epochs
+                    and self.early_stopping_state["num_bad_validations"]
+                    >= conf.patience
+                )
+
+        if is_dist_avail_and_initialized():
+            stop_tensor = torch.tensor(
+                [int(stop)], dtype=torch.int, device=self.device
+            )
+            dist.broadcast(stop_tensor, src=0)
+            stop = bool(stop_tensor.item())
+        return stop
 
     def val_epoch(self, val_loader, phase):
         batch_time = AverageMeter("Batch Time", self.device, ":.2f")
@@ -1256,6 +1347,7 @@ class Trainer:
         logging.info("Synchronizing meters")
         out_dict = {}
         checkpoint_save_keys = []
+        current_meter_values = {}
         for key, meter in self._get_meters(phases).items():
             meter_output = meter.compute_synced()
 
@@ -1269,11 +1361,11 @@ class Trainer:
             # -----------------------------------------------------------
             for meter_subkey, meter_value in meter_output.items():
                 out_dict[os.path.join("Meters_train", key, meter_subkey)] = meter_value
+                tracked_meter_key = os.path.join(key, meter_subkey)
+                current_meter_values[tracked_meter_key] = meter_value
 
                 if is_better_check is None:
                     continue
-
-                tracked_meter_key = os.path.join(key, meter_subkey)
 
                 # 检查是否打破纪录
                 if tracked_meter_key not in self.best_meter_values or is_better_check(
@@ -1301,6 +1393,48 @@ class Trainer:
                             checkpoint_save_keys.append(tracked_meter_key.replace("/", "_"))
                         
                         # --- 修改结束 ---
+
+        combined_confs = []
+        if self.checkpoint_conf.save_best_combined_meter is not None:
+            combined_confs.append(self.checkpoint_conf.save_best_combined_meter)
+        if self.checkpoint_conf.save_best_combined_meters is not None:
+            combined_confs.extend(self.checkpoint_conf.save_best_combined_meters)
+
+        for combined_conf in combined_confs:
+            if self.distributed_rank == 0:
+                metric_keys = combined_conf.get("metric_keys", [])
+                missing_keys = [k for k in metric_keys if k not in current_meter_values]
+                if missing_keys:
+                    logging.warning(
+                        "Skipping combined best checkpoint because metrics are missing: %s",
+                        missing_keys,
+                    )
+                else:
+                    combined_name = combined_conf.get("name", "combined_metric")
+                    combined_mode = combined_conf.get("mode", "max")
+                    if combined_mode not in ["max", "min"]:
+                        raise ValueError(
+                            f"Unsupported combined best meter mode: {combined_mode}"
+                        )
+                    values = [current_meter_values[k] for k in metric_keys]
+                    combined_value = sum(values) / len(values)
+                    out_dict[os.path.join("Meters_train", combined_name)] = combined_value
+
+                    old_value = self.best_meter_values.get(combined_name)
+                    is_better = (
+                        old_value is None
+                        or (combined_mode == "max" and combined_value > old_value)
+                        or (combined_mode == "min" and combined_value < old_value)
+                    )
+                    if is_better:
+                        self.best_meter_values[combined_name] = combined_value
+                        logging.info(
+                            "New best found for %s: %s from %s",
+                            combined_name,
+                            combined_value,
+                            dict(zip(metric_keys, values)),
+                        )
+                        checkpoint_save_keys.append(combined_name.replace("/", "_"))
 
         # 执行保存
         if len(checkpoint_save_keys) > 0:
@@ -1453,9 +1587,13 @@ def print_model_summary(model: torch.nn.Module, log_dir: str = ""):
     )
     total_parameters = sum(p.numel() for p in model.parameters(**param_kwargs))
     non_trainable_parameters = total_parameters - trainable_parameters
+    output_fpath = os.path.join(log_dir, "model.txt") if log_dir else ""
     logging.info("==" * 10)
     logging.info(f"Summary for model {type(model)}")
-    logging.info(f"Model is {model}")
+    if output_fpath:
+        logging.info(f"Model structure saved to {output_fpath}")
+    else:
+        logging.info("Model structure file path not provided; skipping model dump.")
     logging.info(f"\tTotal parameters {get_human_readable_count(total_parameters)}")
     logging.info(
         f"\tTrainable parameters {get_human_readable_count(trainable_parameters)}"
@@ -1465,8 +1603,7 @@ def print_model_summary(model: torch.nn.Module, log_dir: str = ""):
     )
     logging.info("==" * 10)
 
-    if log_dir:
-        output_fpath = os.path.join(log_dir, "model.txt")
+    if output_fpath:
         with g_pathmgr.open(output_fpath, "w") as f:
             print(model, file=f)
 

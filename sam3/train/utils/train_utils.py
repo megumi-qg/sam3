@@ -144,13 +144,32 @@ def get_amp_type(amp_type: Optional[str] = None):
 
 
 def log_env_variables():
-    env_keys = sorted(list(os.environ.keys()))
-    st = ""
-    for k in env_keys:
-        v = os.environ[k]
-        st += f"{k}={v}\n"
-    logging.info("Logging ENV_VARIABLES")
-    logging.info(st)
+    if os.environ.get("SAM3_LOG_FULL_ENV", "0") == "1":
+        env_keys = sorted(list(os.environ.keys()))
+        st = ""
+        for k in env_keys:
+            v = os.environ[k]
+            st += f"{k}={v}\n"
+        logging.info("Logging ENV_VARIABLES")
+        logging.info(st)
+        return
+
+    summary_keys = [
+        "CONDA_DEFAULT_ENV",
+        "CONDA_PREFIX",
+        "CUDA_VISIBLE_DEVICES",
+        "LOCAL_RANK",
+        "RANK",
+        "WORLD_SIZE",
+        "MASTER_ADDR",
+        "MASTER_PORT",
+    ]
+    summary = {
+        k: os.environ[k]
+        for k in summary_keys
+        if k in os.environ
+    }
+    logging.info("Environment summary: %s", summary)
 
 
 class AverageMeter:

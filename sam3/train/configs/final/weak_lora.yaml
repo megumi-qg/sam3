@@ -1,8 +1,12 @@
 # @package _global_
-# ACDC + BTCV + Promise12 三数据集 弱监督 + LoRA 微调 SAM3
-# 训练集使用 scribble_annotations.coco.json，验证集使用 image_annotations.coco.json
-# 弱监督：PartialMasks (ignore_index=255) + Box loss=0 + Matcher 调整
-# LoRA：只训练 LoRA 参数，冻结其余权重
+# ACDC + BTCV + PROMISE12 三数据集 弱监督 + hybrid LoRA 微调 SAM3
+# 训练集使用 train/scribble_annotations.coco.json，模型选择使用 val/image_annotations.coco.json
+# test split 仅用于最终评估，不在训练期间作为验证集使用
+# 弱监督：PartialMasks (ignore_index=255) + Box loss=0 + Matcher 几何 cost=0
+# Encoder/Transformer 使用 LoRA；轻量 task heads (score head, segmentation head) 全量微调
+# 训练集采用平衡采样 multiplier：ACDC=3、BTCV=1、PROMISE12=3
+# 有效训练图像约为 ACDC 3966、BTCV 3768、PROMISE12 3246；验证集不重复采样
+# 早停监控三数据集平均 Dice：min_epochs=12, patience=6 validations, min_delta=0.002
 defaults:
   - _self_
 
@@ -10,10 +14,10 @@ defaults:
 # Paths Configuration
 # ============================================================================
 paths:
-  acdc_data_root: /home/gaoqi/dataset/using/acdc4
-  btcv_data_root: /home/gaoqi/dataset/using/btcv_2
-  promise12_data_root: /home/gaoqi/dataset/using/promise12_3
-  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/final/weak_lora_acdc_btcv_promise12
+  acdc_data_root: /home/gaoqi/dataset/using/acdc/processed/sam3_png_coco_fullframes_100_cmpb_clean
+  btcv_data_root: /home/gaoqi/dataset/using/btcv/processed/png_coco_sam3_slices_cmpb_clean
+  promise12_data_root: /home/gaoqi/dataset/using/promise12/processed/png_coco_sam3_cmpb_clean
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12
   bpe_path: /home/gaoqi/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
   pretrained_checkpoint: /home/gaoqi/official_ckpt/sam3_hf/sam3.pt
 
@@ -145,13 +149,13 @@ scratch:
     use_original_sizes_box: true
     use_original_sizes_mask: true
     use_presence: ${scratch.use_presence_eval}
-  # Matcher (弱监督：提高分类权重，降低 bbox 权重)
+  # Matcher (弱监督：禁用 scribble-derived 几何匹配 cost)
   matcher:
     _target_: sam3.train.matcher.BinaryHungarianMatcherV2
     focal: true
-    cost_class: 5.0
-    cost_bbox: 1.0
-    cost_giou: 1.0
+    cost_class: 2.0
+    cost_bbox: 0.0
+    cost_giou: 0.0
     alpha: 0.25
     gamma: 2
     stable: False
@@ -200,6 +204,13 @@ trainer:
   accelerator: cuda
   seed_value: 123
   val_epoch_freq: 2
+  early_stopping:
+    enabled: true
+    monitor: "val_mean_segmentation_coco_eval_segm_Dice"
+    mode: "max"
+    min_epochs: 12
+    patience: 6
+    min_delta: 0.002
   mode: train
   gradient_accumulation_steps: ${scratch.gradient_accumulation_steps}
   distributed:
@@ -221,7 +232,7 @@ trainer:
             transforms: ${mixed_train.train_transforms}
             load_segmentation: ${scratch.enable_segmentation}
             max_ann_per_img: 500000
-            multiplier: 1
+            multiplier: 3
             max_train_queries: 50000
             max_val_queries: 50000
             training: true
@@ -245,7 +256,7 @@ trainer:
             transforms: ${mixed_train.train_transforms}
             load_segmentation: ${scratch.enable_segmentation}
             max_ann_per_img: 500000
-            multiplier: 1
+            multiplier: 3
             max_train_queries: 50000
             max_val_queries: 50000
             training: true
@@ -271,8 +282,8 @@ trainer:
               include_negatives: true
               category_chunk_size: 10
               _partial_: true
-            img_folder: ${paths.acdc_data_root}/test/
-            ann_file: ${paths.acdc_data_root}/test/image_annotations.coco.json
+            img_folder: ${paths.acdc_data_root}/val/
+            ann_file: ${paths.acdc_data_root}/val/image_annotations.coco.json
             transforms: ${mixed_train.val_transforms}
             max_ann_per_img: 100000
             multiplier: 1
@@ -298,8 +309,8 @@ trainer:
               include_negatives: true
               category_chunk_size: 10
               _partial_: true
-            img_folder: ${paths.btcv_data_root}/test/
-            ann_file: ${paths.btcv_data_root}/test/image_annotations.coco.json
+            img_folder: ${paths.btcv_data_root}/val/
+            ann_file: ${paths.btcv_data_root}/val/image_annotations.coco.json
             transforms: ${mixed_train.val_transforms}
             max_ann_per_img: 100000
             multiplier: 1
@@ -325,8 +336,8 @@ trainer:
               include_negatives: true
               category_chunk_size: 10
               _partial_: true
-            img_folder: ${paths.promise12_data_root}/test/
-            ann_file: ${paths.promise12_data_root}/test/image_annotations.coco.json
+            img_folder: ${paths.promise12_data_root}/val/
+            ann_file: ${paths.promise12_data_root}/val/image_annotations.coco.json
             transforms: ${mixed_train.val_transforms}
             max_ann_per_img: 100000
             multiplier: 1
@@ -343,7 +354,7 @@ trainer:
             dict_key: promise12
             with_seg_masks: ${scratch.enable_segmentation}
 
-  # LoRA 微调 SAM3 模型
+  # Hybrid LoRA 微调 SAM3 模型
   model:
     _target_: sam3.model_builder.build_sam3_image_model
     bpe_path: ${paths.bpe_path}
@@ -362,24 +373,14 @@ trainer:
       - geometry_encoder
       - detr_encoder
       - detr_decoder
+    # 轻量 task-specific heads 使用全量微调，和 full_lora.yaml 保持一致
+    lora_unfreeze_components:
       - mask_decoder
+      - dot_prod_scoring
 
   meters:
     val:
       acdc:
-        detection:
-          _target_: sam3.eval.coco_writer.PredictionDumper
-          iou_type: "bbox"
-          dump_dir: ${launcher.experiment_log_dir}/dumps/acdc
-          merge_predictions: True
-          postprocessor: ${scratch.original_box_postprocessor}
-          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
-          maxdets: 100
-          pred_file_evaluators:
-            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.acdc_data_root}/test/image_annotations.coco.json
-              tide: False
-              iou_type: "bbox"
         segmentation:
           _target_: sam3.eval.coco_writer.PredictionDumper
           iou_type: "segm"
@@ -390,23 +391,13 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.acdc_data_root}/test/image_annotations.coco.json
+              gt_path: ${paths.acdc_data_root}/val/image_annotations.coco.json
               tide: False
               iou_type: "segm"
+              output_metrics: ["AP"]
+              output_dice: True
+              print_summary: False
       btcv:
-        detection:
-          _target_: sam3.eval.coco_writer.PredictionDumper
-          iou_type: "bbox"
-          dump_dir: ${launcher.experiment_log_dir}/dumps/btcv
-          merge_predictions: True
-          postprocessor: ${scratch.original_box_postprocessor}
-          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
-          maxdets: 100
-          pred_file_evaluators:
-            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.btcv_data_root}/test/image_annotations.coco.json
-              tide: False
-              iou_type: "bbox"
         segmentation:
           _target_: sam3.eval.coco_writer.PredictionDumper
           iou_type: "segm"
@@ -417,23 +408,13 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.btcv_data_root}/test/image_annotations.coco.json
+              gt_path: ${paths.btcv_data_root}/val/image_annotations.coco.json
               tide: False
               iou_type: "segm"
+              output_metrics: ["AP"]
+              output_dice: True
+              print_summary: False
       promise12:
-        detection:
-          _target_: sam3.eval.coco_writer.PredictionDumper
-          iou_type: "bbox"
-          dump_dir: ${launcher.experiment_log_dir}/dumps/promise12
-          merge_predictions: True
-          postprocessor: ${scratch.original_box_postprocessor}
-          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
-          maxdets: 100
-          pred_file_evaluators:
-            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.promise12_data_root}/test/image_annotations.coco.json
-              tide: False
-              iou_type: "bbox"
         segmentation:
           _target_: sam3.eval.coco_writer.PredictionDumper
           iou_type: "segm"
@@ -444,11 +425,14 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.promise12_data_root}/test/image_annotations.coco.json
+              gt_path: ${paths.promise12_data_root}/val/image_annotations.coco.json
               tide: False
               iou_type: "segm"
+              output_metrics: ["AP"]
+              output_dice: True
+              print_summary: False
 
-  # LoRA 模式下只优化 LoRA 参数
+  # Hybrid LoRA: 优化 LoRA 参数 + score/segmentation heads
   optim:
     amp:
       enabled: True
@@ -463,6 +447,8 @@ trainer:
     param_allowlist_patterns:
       - "*lora_A*"
       - "*lora_B*"
+      - "segmentation_head.*"
+      - "dot_prod_scoring.*"
     options:
       lr:
         - scheduler:
@@ -474,6 +460,22 @@ trainer:
           param_names:
             - "*lora_A*"
             - "*lora_B*"
+        - scheduler:
+            _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+            base_lr: ${scratch.lr_lora}
+            timescale: ${scratch.scheduler_timescale}
+            warmup_steps: ${scratch.scheduler_warmup}
+            cooldown_steps: ${scratch.scheduler_cooldown}
+          param_names:
+            - "segmentation_head.*"
+        - scheduler:
+            _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+            base_lr: ${scratch.lr_lora}
+            timescale: ${scratch.scheduler_timescale}
+            warmup_steps: ${scratch.scheduler_warmup}
+            cooldown_steps: ${scratch.scheduler_cooldown}
+          param_names:
+            - "dot_prod_scoring.*"
       weight_decay:
         - scheduler:
             _target_: fvcore.common.param_scheduler.ConstantParamScheduler
@@ -482,13 +484,20 @@ trainer:
   checkpoint:
     save_dir: ${launcher.experiment_log_dir}/checkpoints
     save_freq: 5
-    save_best_meters:
-      - "val_acdc/detection"
-      - "val_acdc/segmentation"
-      - "val_btcv/detection"
-      - "val_btcv/segmentation"
-      - "val_promise12/detection"
-      - "val_promise12/segmentation"
+    save_best_meters: []
+    save_best_combined_meters:
+      - name: "val_mean_segmentation_coco_eval_segm_AP"
+        mode: "max"
+        metric_keys:
+          - "val_acdc/segmentation/coco_eval_segm_AP"
+          - "val_btcv/segmentation/coco_eval_segm_AP"
+          - "val_promise12/segmentation/coco_eval_segm_AP"
+      - name: "val_mean_segmentation_coco_eval_segm_Dice"
+        mode: "max"
+        metric_keys:
+          - "val_acdc/segmentation/coco_eval_segm_Dice"
+          - "val_btcv/segmentation/coco_eval_segm_Dice"
+          - "val_promise12/segmentation/coco_eval_segm_Dice"
 
   logging:
     tensorboard_writer:

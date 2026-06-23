@@ -1,0 +1,353 @@
+dataset,method,scope,structure,source_structure,metric,mean,std,n_cases,source_file
+ACDC,ScribbleBench,per_structure,left ventricle,left_ventricle,dsc,0.8538,0.1532,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,left ventricle,left_ventricle,hd95,86.03,76.86,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,left ventricle,left_ventricle,iou,0.7702,0.1914,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,left ventricle,left_ventricle,nsd,0.8215,0.1869,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,myocardium,myocardium,dsc,0.8551,0.0461,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,myocardium,myocardium,hd95,70.13,63.61,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,myocardium,myocardium,iou,0.7497,0.0696,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,myocardium,myocardium,nsd,0.8846,0.0762,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,overall,overall,,dsc,0.8472,0.1009,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,overall,overall,,hd95,69.45,56.35,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,overall,overall,,iou,0.7536,0.1213,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,overall,overall,,nsd,0.8457,0.13,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,right ventricle,right_ventricle,dsc,0.8327,0.1677,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,right ventricle,right_ventricle,hd95,52.18,68.32,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,right ventricle,right_ventricle,iou,0.7409,0.1944,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,ScribbleBench,per_structure,right ventricle,right_ventricle,nsd,0.8308,0.1689,30,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,EFFDNet,per_structure,left ventricle,LV,dsc,0.9303,0.0558,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,left ventricle,LV,hd95,7.76,18.87,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,left ventricle,LV,iou,0.8742,0.0871,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,left ventricle,LV,nsd,0.9451,0.0632,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,myocardium,MYO,dsc,0.8852,0.0224,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,myocardium,MYO,hd95,4.24,6.69,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,myocardium,MYO,iou,0.7948,0.0361,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,myocardium,MYO,nsd,0.9445,0.0365,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,overall,overall,,dsc,0.8957,0.0506,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,overall,overall,,hd95,10.75,14.09,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,overall,overall,,iou,0.8177,0.0703,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,overall,overall,,nsd,0.923,0.0645,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,right ventricle,RV,dsc,0.8715,0.1008,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,right ventricle,RV,hd95,20.25,37.81,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,right ventricle,RV,iou,0.784,0.1324,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,EFFDNet,per_structure,right ventricle,RV,nsd,0.8792,0.108,30,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,left ventricle,LV,dsc,0.9078,0.0514,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,left ventricle,LV,hd95,4.96,5.56,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,left ventricle,LV,iou,0.8349,0.0803,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,left ventricle,LV,nsd,0.8974,0.0717,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,myocardium,MYO,dsc,0.8186,0.0678,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,myocardium,MYO,hd95,58.93,81.93,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,myocardium,MYO,iou,0.6979,0.0911,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,myocardium,MYO,nsd,0.8711,0.0818,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,overall,overall,,dsc,0.8554,0.0576,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,overall,overall,,hd95,23.74,27.42,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,overall,overall,,iou,0.7564,0.0774,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,overall,overall,,nsd,0.8604,0.0743,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,right ventricle,RV,dsc,0.8398,0.1093,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,right ventricle,RV,hd95,7.33,4.21,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,right ventricle,RV,iou,0.7362,0.1376,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,per_structure,right ventricle,RV,nsd,0.8126,0.1189,30,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,BiomedParse v2,per_structure,left ventricle,left ventricle,dsc,0.9604,0.0182,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,left ventricle,left ventricle,hd95,1.58,0.16,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,left ventricle,left ventricle,iou,0.9244,0.0333,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,left ventricle,left ventricle,nsd,0.9912,0.0086,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,myocardium,myocardium,dsc,0.9221,0.0289,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,myocardium,myocardium,hd95,1.6,0.24,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,myocardium,myocardium,iou,0.8567,0.0486,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,myocardium,myocardium,nsd,0.9896,0.0109,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,overall,overall,,dsc,0.8597,0.1039,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,overall,overall,,hd95,5.5,5.58,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,overall,overall,,iou,0.7944,0.1084,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,overall,overall,,nsd,0.9005,0.1024,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,right ventricle,right ventricle,dsc,0.6966,0.3008,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,right ventricle,right ventricle,hd95,14.61,17.18,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,right ventricle,right ventricle,iou,0.6021,0.3087,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,BiomedParse v2,per_structure,right ventricle,right ventricle,nsd,0.7206,0.3047,30,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,VoxTell,per_structure,left ventricle,left ventricular cavity,dsc,0.9178,0.0497,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,left ventricle,left ventricular cavity,hd95,1.28,0.69,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,left ventricle,left ventricular cavity,iou,0.8518,0.0815,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,left ventricle,left ventricular cavity,nsd,0.9923,0.0138,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,myocardium,left ventricular myocardium,dsc,0.8448,0.0408,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,myocardium,left ventricular myocardium,hd95,1.2,0.3,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,myocardium,left ventricular myocardium,iou,0.7334,0.0605,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,myocardium,left ventricular myocardium,nsd,0.993,0.0068,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,overall,overall,,dsc,0.8703,0.0335,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,overall,overall,,hd95,1.4,0.4,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,overall,overall,,iou,0.7756,0.0514,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,overall,overall,,nsd,0.9875,0.0087,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,right ventricle,right ventricle,dsc,0.8483,0.0641,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,right ventricle,right ventricle,hd95,1.71,0.69,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,right ventricle,right ventricle,iou,0.7418,0.0948,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,VoxTell,per_structure,right ventricle,right ventricle,nsd,0.9772,0.0152,30,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,left ventricle,left heart ventricle,dsc,0.9388,0.0244,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,left ventricle,left heart ventricle,hd95,2.38,0.48,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,left ventricle,left heart ventricle,iou,0.8855,0.0426,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,left ventricle,left heart ventricle,nsd,0.9444,0.0269,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,myocardium,myocardium,dsc,0.8787,0.0321,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,myocardium,myocardium,hd95,2.68,0.77,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,myocardium,myocardium,iou,0.785,0.0503,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,myocardium,myocardium,nsd,0.9254,0.0321,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,overall,overall,,dsc,0.908,0.015,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,overall,overall,,hd95,2.77,0.51,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,overall,overall,,iou,0.8339,0.0242,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,overall,overall,,nsd,0.9169,0.0276,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,right ventricle,right heart ventricle,dsc,0.9067,0.0366,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,right ventricle,right heart ventricle,hd95,3.23,0.72,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,right ventricle,right heart ventricle,iou,0.8312,0.0579,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAT-Pro,per_structure,right ventricle,right heart ventricle,nsd,0.881,0.0434,30,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAM3-Full,per_structure,left ventricle,left ventricle,dsc,0.9517,0.0394,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,left ventricle,left ventricle,hd95,2.17,2.32,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,left ventricle,left ventricle,iou,0.9104,0.0667,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,left ventricle,left ventricle,nsd,0.9757,0.0381,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,myocardium,myocardium,dsc,0.9182,0.0192,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,myocardium,myocardium,hd95,2.27,2.11,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,myocardium,myocardium,iou,0.8493,0.033,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,myocardium,myocardium,nsd,0.981,0.02,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,overall,overall,,dsc,0.9293,0.0281,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,overall,overall,,hd95,3.07,2.3,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,overall,overall,,iou,0.8709,0.0461,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,overall,overall,,nsd,0.9657,0.0308,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,right ventricle,right ventricle,dsc,0.9179,0.0561,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,right ventricle,right ventricle,hd95,4.78,3.98,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,right ventricle,right ventricle,iou,0.853,0.0902,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Full,per_structure,right ventricle,right ventricle,nsd,0.9405,0.0561,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,left ventricle,left ventricle,dsc,0.9395,0.0392,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,left ventricle,left ventricle,hd95,3.75,6.66,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,left ventricle,left ventricle,iou,0.8882,0.0655,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,left ventricle,left ventricle,nsd,0.9635,0.0442,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,myocardium,myocardium,dsc,0.9036,0.0257,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,myocardium,myocardium,hd95,2.39,2.1,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,myocardium,myocardium,iou,0.8252,0.0423,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,myocardium,myocardium,nsd,0.9686,0.0263,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,overall,overall,,dsc,0.9161,0.0364,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,overall,overall,,hd95,3.47,3.13,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,overall,overall,,iou,0.8494,0.0543,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,overall,overall,,nsd,0.9542,0.0422,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,right ventricle,right ventricle,dsc,0.9053,0.0778,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,right ventricle,right ventricle,hd95,4.27,4.22,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,right ventricle,right ventricle,iou,0.8347,0.1092,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,per_structure,right ventricle,right ventricle,nsd,0.9306,0.0731,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+BTCV_cervix,ScribbleBench,per_structure,bladder,bladder,dsc,0.9449,0.0123,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,bladder,bladder,hd95,3.11,0.8,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,bladder,bladder,iou,0.8958,0.0222,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,bladder,bladder,nsd,0.8569,0.0559,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,overall,overall,,dsc,0.7468,0.0298,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,overall,overall,,hd95,24.17,9.89,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,overall,overall,,iou,0.6222,0.0357,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,overall,overall,,nsd,0.6202,0.0736,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,rectum,rectum,dsc,0.7102,0.119,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,rectum,rectum,hd95,30.15,24.87,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,rectum,rectum,iou,0.5636,0.1409,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,rectum,rectum,nsd,0.629,0.1277,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,small bowel,small_bowel,dsc,0.5496,0.0919,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,small bowel,small_bowel,hd95,44.15,32.07,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,small bowel,small_bowel,iou,0.3843,0.0856,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,small bowel,small_bowel,nsd,0.3724,0.0823,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,uterus,uterus,dsc,0.7827,0.044,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,uterus,uterus,hd95,19.27,11.54,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,uterus,uterus,iou,0.6451,0.0598,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,ScribbleBench,per_structure,uterus,uterus,nsd,0.6225,0.0987,6,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,EFFDNet,per_structure,bladder,class_1,dsc,0.8927,0.1046,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,bladder,class_1,hd95,39.14,65.46,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,bladder,class_1,iou,0.8201,0.1478,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,bladder,class_1,nsd,0.7517,0.212,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,overall,overall,,dsc,0.6875,0.0974,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,overall,overall,,hd95,39.88,36.53,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,overall,overall,,iou,0.5523,0.1063,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,overall,overall,,nsd,0.5159,0.1292,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,rectum,class_3,dsc,0.6552,0.0902,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,rectum,class_3,hd95,39.02,39.97,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,rectum,class_3,iou,0.4943,0.1054,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,rectum,class_3,nsd,0.4852,0.0799,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,small bowel,class_4,dsc,0.5267,0.1332,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,small bowel,class_4,hd95,45.85,22.97,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,small bowel,class_4,iou,0.3698,0.1373,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,small bowel,class_4,nsd,0.3311,0.1247,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,uterus,class_2,dsc,0.6757,0.1421,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,uterus,class_2,hd95,35.5,39.11,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,uterus,class_2,iou,0.525,0.1381,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,EFFDNet,per_structure,uterus,class_2,nsd,0.4956,0.1456,6,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,bladder,class_1,dsc,0.8978,0.058,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,bladder,class_1,hd95,16.14,29.43,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,bladder,class_1,iou,0.8184,0.0893,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,bladder,class_1,nsd,0.6599,0.1637,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,overall,overall,,dsc,0.6414,0.0687,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,overall,overall,,hd95,34.23,18.86,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,overall,overall,,iou,0.5049,0.0724,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,overall,overall,,nsd,0.4241,0.0854,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,rectum,class_3,dsc,0.5931,0.1341,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,rectum,class_3,hd95,47.04,41.73,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,rectum,class_3,iou,0.4339,0.1552,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,rectum,class_3,nsd,0.385,0.1288,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,small bowel,class_4,dsc,0.4129,0.1569,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,small bowel,class_4,hd95,50.64,28.36,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,small bowel,class_4,iou,0.2709,0.1311,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,small bowel,class_4,nsd,0.2505,0.0736,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,uterus,class_2,dsc,0.6617,0.0507,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,uterus,class_2,hd95,23.11,6.73,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,uterus,class_2,iou,0.4962,0.0563,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,per_structure,uterus,class_2,nsd,0.4011,0.0814,6,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,BiomedParse v2,per_structure,bladder,Bladder,dsc,0.9455,0.0143,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,bladder,Bladder,hd95,3.05,0.58,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,bladder,Bladder,iou,0.8969,0.0256,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,bladder,Bladder,nsd,0.8596,0.0522,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,overall,overall,,dsc,0.3643,0.0468,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,overall,overall,,hd95,81.6,31.73,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,overall,overall,,iou,0.3038,0.0316,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,overall,overall,,nsd,0.2939,0.0396,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,rectum,Rectum,dsc,0.0,0.0,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,rectum,Rectum,hd95,277.53,85.55,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,rectum,Rectum,iou,0.0,0.0,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,rectum,Rectum,nsd,0.0,0.0,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,small bowel,Small bowel,dsc,0.3624,0.1511,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,small bowel,Small bowel,hd95,89.71,36.25,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,small bowel,Small bowel,iou,0.2304,0.1177,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,small bowel,Small bowel,nsd,0.2161,0.0948,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,uterus,Uterus,dsc,0.1492,0.1612,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,uterus,Uterus,hd95,53.39,15.58,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,uterus,Uterus,iou,0.0879,0.1006,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,BiomedParse v2,per_structure,uterus,Uterus,nsd,0.0998,0.1146,6,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,VoxTell,per_structure,bladder,urinary bladder,dsc,0.9489,0.0147,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,bladder,urinary bladder,hd95,2.84,0.61,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,bladder,urinary bladder,iou,0.9031,0.0264,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,bladder,urinary bladder,nsd,0.8878,0.0574,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,overall,overall,,dsc,0.822,0.0217,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,overall,overall,,hd95,22.58,6.53,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,overall,overall,,iou,0.7123,0.0325,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,overall,overall,,nsd,0.6942,0.0595,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,rectum,rectum,dsc,0.8179,0.0667,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,rectum,rectum,hd95,21.43,23.22,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,rectum,rectum,iou,0.6972,0.0929,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,rectum,rectum,nsd,0.7297,0.0875,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,small bowel,small bowel,dsc,0.6764,0.065,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,small bowel,small bowel,hd95,59.01,38.07,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,small bowel,small bowel,iou,0.5148,0.0749,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,small bowel,small bowel,nsd,0.4466,0.0548,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,uterus,uterus,dsc,0.8448,0.0493,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,uterus,uterus,hd95,7.03,4.32,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,uterus,uterus,iou,0.7343,0.0711,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,VoxTell,per_structure,uterus,uterus,nsd,0.7128,0.1313,6,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,bladder,urinary bladder,dsc,0.9355,0.0204,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,bladder,urinary bladder,hd95,3.69,1.19,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,bladder,urinary bladder,iou,0.8795,0.0355,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,bladder,urinary bladder,nsd,0.8382,0.0812,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,overall,overall,,dsc,0.7086,0.0539,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,overall,overall,,hd95,33.39,18.3,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,overall,overall,,iou,0.5759,0.0601,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,overall,overall,,nsd,0.5499,0.0801,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,rectum,rectum,dsc,0.697,0.1223,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,rectum,rectum,hd95,43.02,61.17,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,rectum,rectum,iou,0.5459,0.1414,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,rectum,rectum,nsd,0.5832,0.104,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,small bowel,small bowel,dsc,0.5251,0.1064,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,small bowel,small bowel,hd95,62.76,22.48,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,small bowel,small bowel,iou,0.3622,0.1021,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,small bowel,small bowel,nsd,0.3356,0.1058,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,uterus,uterus,dsc,0.6769,0.0776,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,uterus,uterus,hd95,24.1,6.87,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,uterus,uterus,iou,0.5161,0.0916,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,per_structure,uterus,uterus,nsd,0.4425,0.1058,6,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAM3-Full,per_structure,bladder,bladder,dsc,0.9549,0.0095,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,bladder,bladder,hd95,2.49,0.33,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,bladder,bladder,iou,0.9139,0.0174,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,bladder,bladder,nsd,0.9222,0.032,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,overall,overall,,dsc,0.7505,0.0239,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,overall,overall,,hd95,22.34,6.86,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,overall,overall,,iou,0.6304,0.0309,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,overall,overall,,nsd,0.6623,0.0472,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,rectum,rectum,dsc,0.7315,0.1093,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,rectum,rectum,hd95,33.18,23.37,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,rectum,rectum,iou,0.5885,0.1386,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,rectum,rectum,nsd,0.6576,0.0982,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,small bowel,small bowel,dsc,0.5315,0.0947,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,small bowel,small bowel,hd95,39.73,15.95,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,small bowel,small bowel,iou,0.3681,0.0961,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,small bowel,small bowel,nsd,0.3988,0.061,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,uterus,uterus,dsc,0.784,0.075,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,uterus,uterus,hd95,13.94,9.21,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,uterus,uterus,iou,0.6509,0.1012,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Full,per_structure,uterus,uterus,nsd,0.6707,0.1283,6,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,bladder,bladder,dsc,0.9548,0.009,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,bladder,bladder,hd95,2.45,0.3,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,bladder,bladder,iou,0.9136,0.0165,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,bladder,bladder,nsd,0.9202,0.0332,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,overall,overall,,dsc,0.7684,0.0229,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,overall,overall,,hd95,22.01,6.19,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,overall,overall,,iou,0.6451,0.0297,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,overall,overall,,nsd,0.6605,0.0366,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,rectum,rectum,dsc,0.7354,0.0932,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,rectum,rectum,hd95,33.5,19.6,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,rectum,rectum,iou,0.5907,0.1246,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,rectum,rectum,nsd,0.6575,0.0841,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,small bowel,small bowel,dsc,0.6305,0.1002,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,small bowel,small bowel,hd95,35.31,19.01,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,small bowel,small bowel,iou,0.4687,0.1133,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,small bowel,small bowel,nsd,0.475,0.0594,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,uterus,uterus,dsc,0.753,0.0615,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,uterus,uterus,hd95,16.79,7.1,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,uterus,uterus,iou,0.6075,0.076,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,per_structure,uterus,uterus,nsd,0.5891,0.0819,6,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+PROMISE12,ScribbleBench,overall,overall,,dsc,0.889,0.029,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,ScribbleBench,overall,overall,,hd95,4.79,1.78,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,ScribbleBench,overall,overall,,iou,0.8014,0.0462,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,ScribbleBench,overall,overall,,nsd,0.8201,0.0592,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,ScribbleBench,per_structure,prostate,prostate,dsc,0.889,0.029,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,ScribbleBench,per_structure,prostate,prostate,hd95,4.79,1.78,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,ScribbleBench,per_structure,prostate,prostate,iou,0.8014,0.0462,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,ScribbleBench,per_structure,prostate,prostate,nsd,0.8201,0.0592,30,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,EFFDNet,overall,overall,,dsc,0.8769,0.0371,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,EFFDNet,overall,overall,,hd95,10.67,17.39,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,EFFDNet,overall,overall,,iou,0.7827,0.0574,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,EFFDNet,overall,overall,,nsd,0.7919,0.082,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,EFFDNet,per_structure,prostate,Prostate,dsc,0.8769,0.0371,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,EFFDNet,per_structure,prostate,Prostate,hd95,10.67,17.39,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,EFFDNet,per_structure,prostate,Prostate,iou,0.7827,0.0574,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,EFFDNet,per_structure,prostate,Prostate,nsd,0.7919,0.082,30,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,overall,overall,,dsc,0.7813,0.0806,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,overall,overall,,hd95,12.91,9.14,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,overall,overall,,iou,0.6478,0.1051,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,overall,overall,,nsd,0.5978,0.1346,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,per_structure,prostate,prostate,dsc,0.7813,0.0806,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,per_structure,prostate,prostate,hd95,12.91,9.14,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,per_structure,prostate,prostate,iou,0.6478,0.1051,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,per_structure,prostate,prostate,nsd,0.5978,0.1346,30,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,BiomedParse v2,overall,overall,,dsc,0.8597,0.0631,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,BiomedParse v2,overall,overall,,hd95,14.78,13.63,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,BiomedParse v2,overall,overall,,iou,0.759,0.0929,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,BiomedParse v2,overall,overall,,nsd,0.7601,0.1193,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,BiomedParse v2,per_structure,prostate,Prostate,dsc,0.8597,0.0631,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,BiomedParse v2,per_structure,prostate,Prostate,hd95,14.78,13.63,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,BiomedParse v2,per_structure,prostate,Prostate,iou,0.759,0.0929,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,BiomedParse v2,per_structure,prostate,Prostate,nsd,0.7601,0.1193,30,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,VoxTell,overall,overall,,dsc,0.8081,0.1397,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,VoxTell,overall,overall,,hd95,27.61,31.18,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,VoxTell,overall,overall,,iou,0.6987,0.1773,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,VoxTell,overall,overall,,nsd,0.7106,0.1887,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,VoxTell,per_structure,prostate,prostate,dsc,0.8081,0.1397,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,VoxTell,per_structure,prostate,prostate,hd95,27.61,31.18,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,VoxTell,per_structure,prostate,prostate,iou,0.6987,0.1773,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,VoxTell,per_structure,prostate,prostate,nsd,0.7106,0.1887,30,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,SAT-Pro,overall,overall,,dsc,0.8802,0.0373,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAT-Pro,overall,overall,,hd95,4.15,1.21,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAT-Pro,overall,overall,,iou,0.7879,0.058,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAT-Pro,overall,overall,,nsd,0.7982,0.0853,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAT-Pro,per_structure,prostate,prostate,dsc,0.8802,0.0373,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAT-Pro,per_structure,prostate,prostate,hd95,4.15,1.21,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAT-Pro,per_structure,prostate,prostate,iou,0.7879,0.058,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAT-Pro,per_structure,prostate,prostate,nsd,0.7982,0.0853,30,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAM3-Full,overall,overall,,dsc,0.9153,0.0298,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Full,overall,overall,,hd95,6.05,6.76,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Full,overall,overall,,iou,0.8452,0.0495,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Full,overall,overall,,nsd,0.8739,0.0738,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Full,per_structure,prostate,Prostate,dsc,0.9153,0.0298,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Full,per_structure,prostate,Prostate,hd95,6.05,6.76,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Full,per_structure,prostate,Prostate,iou,0.8452,0.0495,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Full,per_structure,prostate,Prostate,nsd,0.8739,0.0738,30,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,overall,overall,,dsc,0.9036,0.0345,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,overall,overall,,hd95,5.95,6.22,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,overall,overall,,iou,0.8258,0.0556,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,overall,overall,,nsd,0.8499,0.0729,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,per_structure,prostate,Prostate,dsc,0.9036,0.0345,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,per_structure,prostate,Prostate,hd95,5.95,6.22,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,per_structure,prostate,Prostate,iou,0.8258,0.0556,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,per_structure,prostate,Prostate,nsd,0.8499,0.0729,30,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json

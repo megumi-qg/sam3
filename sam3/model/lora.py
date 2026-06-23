@@ -148,11 +148,10 @@ def apply_lora_to_sam3(
         target_prefixes = [
             LORA_COMPONENT_PREFIXES[c] for c in target_components if c in LORA_COMPONENT_PREFIXES
         ]
-    if not target_prefixes:
-        return []
     targets = set(target_prefixes)
     replacements = []
-    _apply_lora_to_module(model, "", targets, r, lora_alpha, replacements)
+    if targets:
+        _apply_lora_to_module(model, "", targets, r, lora_alpha, replacements)
     replaced_paths = [path for path, _ in replacements]
 
     if freeze_non_lora:

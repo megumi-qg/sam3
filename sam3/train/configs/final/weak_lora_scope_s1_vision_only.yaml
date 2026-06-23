@@ -1,0 +1,18 @@
+# @package _global_
+# LoRA scope ablation S1: vision encoder LoRA plus fully trainable task heads.
+defaults:
+  - weak_lora
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/cmpb/ablation_lora_scope_s1_vision_only
+
+trainer:
+  model:
+    lora_r: 8
+    lora_alpha: 16.0
+    lora_target_components:
+      - vision_encoder
+    lora_unfreeze_components:
+      - mask_decoder
+      - dot_prod_scoring

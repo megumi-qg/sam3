@@ -1,0 +1,19 @@
+# @package _global_
+# LoRA scope ablation S2: DETR encoder/decoder LoRA plus fully trainable task heads.
+defaults:
+  - weak_lora
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/cmpb/ablation_lora_scope_s2_detr_only
+
+trainer:
+  model:
+    lora_r: 8
+    lora_alpha: 16.0
+    lora_target_components:
+      - detr_encoder
+      - detr_decoder
+    lora_unfreeze_components:
+      - mask_decoder
+      - dot_prod_scoring

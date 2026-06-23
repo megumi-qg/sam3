@@ -5,6 +5,7 @@
 """Dataset class for modulated detection"""
 
 import json
+import logging
 import os
 import random
 import sys
@@ -24,6 +25,8 @@ from sam3.model.box_ops import box_xywh_to_xyxy
 from torchvision.datasets.vision import VisionDataset
 
 from .coco_json_loaders import COCO_FROM_JSON
+
+logger = logging.getLogger(__name__)
 
 # 在 import 部分添加
 from pycocotools import mask as maskUtils
@@ -583,11 +586,17 @@ class Sam3ImageDataset(CustomCocoDetectionAPI):
         self.max_ann_per_img = max_ann_per_img
         self.max_train_queries = max_train_queries
         self.max_val_queries = max_val_queries
+        self.multiplier = max(int(multiplier), 1)
 
         self.repeat_factors = torch.ones(len(self.ids), dtype=torch.float32)
 
-        self.repeat_factors *= multiplier
-        print(f"Raw dataset length = {len(self.ids)}")
+        self.repeat_factors *= self.multiplier
+        logger.info(
+            "Raw dataset length = %d, multiplier = %d, effective length = %d",
+            len(self.ids),
+            self.multiplier,
+            len(self),
+        )
 
         self._MAX_RETRIES = 100
         
@@ -596,9 +605,14 @@ class Sam3ImageDataset(CustomCocoDetectionAPI):
         self.inferred_bbox_cache: Dict[int, List[float]] = {}
 
     def __getitem__(self, idx):
+        idx = idx % len(self.ids)
         return self.__orig_getitem__(idx)
 
+    def __len__(self) -> int:
+        return len(self.ids) * self.multiplier
+
     def __orig_getitem__(self, idx):
+        idx = idx % len(self.ids)
         for _ in range(self._MAX_RETRIES):
             try:
                 datapoint = super(Sam3ImageDataset, self).__getitem__(idx)
@@ -632,7 +646,7 @@ class Sam3ImageDataset(CustomCocoDetectionAPI):
                 sys.stderr.write(f"ERROR: got loading error on datapoint {idx}\n")
                 sys.stderr.write(f"Exception: {error}\n")
                 sys.stderr.write(traceback.format_exc())
-                idx = (idx + 1) % len(self)
+                idx = (idx + 1) % len(self.ids)
         else:
             raise RuntimeError(
                 f"Failed {self._MAX_RETRIES} times trying to load an image."

@@ -147,7 +147,9 @@ def extract_patient_frame(img_file):
     return None, None, None, None
 
 
-# 与 train_lora.yaml 一致的 LoRA 配置，用于加载 LoRA 微调后的 checkpoint
+# 与当前 CMPB hybrid LoRA 训练配置一致的 LoRA 配置，用于加载 LoRA 微调后的 checkpoint。
+# Encoder/Transformer 使用 LoRA；mask_decoder 与 dot_prod_scoring 是普通全量微调参数，
+# 因此不应放入 lora_target_components，否则推理模型结构会和训练 checkpoint 不一致。
 DEFAULT_LORA_R = 8
 DEFAULT_LORA_ALPHA = 16.0
 DEFAULT_LORA_TARGET_COMPONENTS = [
@@ -156,8 +158,18 @@ DEFAULT_LORA_TARGET_COMPONENTS = [
     "geometry_encoder",
     "detr_encoder",
     "detr_decoder",
-    "mask_decoder",
 ]
+
+
+def parse_lora_target_components(value):
+    if value is None:
+        return None
+    value = value.strip()
+    if value == "":
+        return None
+    if value.lower() in {"none", "empty", "heads-only", "headsonly"}:
+        return []
+    return [part.strip() for part in value.split(",") if part.strip()]
 
 
 def _is_lora_checkpoint(state_dict):
@@ -457,7 +469,7 @@ def main():
         "--confidence_threshold",
         type=float,
         default=0.7,
-        help="Sam3Processor 置信度阈值，低于此分数的预测将被过滤。评估时若 Dice/IoU 全为 0 可尝试设为 0.0（默认 0.0）",
+        help="Sam3Processor 置信度阈值，低于此分数的预测将被过滤。评估时若 Dice/IoU 全为 0 可尝试设为 0.0（默认 0.7）",
     )
     parser.add_argument(
         "--output_dir",
@@ -512,6 +524,15 @@ def main():
         default=DEFAULT_LORA_ALPHA,
         help=f"LoRA alpha，需与训练时一致（默认 {DEFAULT_LORA_ALPHA}）",
     )
+    parser.add_argument(
+        "--lora_target_components",
+        type=str,
+        default=None,
+        help=(
+            "逗号分隔的 LoRA target components，需与训练时一致。"
+            "默认使用 CMPB hybrid LoRA scope；heads-only/none 表示不注入 LoRA。"
+        ),
+    )
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -549,6 +570,7 @@ def main():
         use_lora=args.use_lora,
         lora_r=args.lora_r,
         lora_alpha=args.lora_alpha,
+        lora_target_components=parse_lora_target_components(args.lora_target_components),
     )
 
     print("Loading COCO JSON ...")

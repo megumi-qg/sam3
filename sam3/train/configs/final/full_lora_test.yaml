@@ -1,0 +1,62 @@
+# @package _global_
+# CMPB final test config for the full-supervision hybrid LoRA model.
+# Loads the Dice-best checkpoint and evaluates ACDC/BTCV/PROMISE12 test splits.
+defaults:
+  - full_lora
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12_test_dice
+
+trainer:
+  mode: val
+  checkpoint:
+    save_dir: ${launcher.experiment_log_dir}/checkpoints
+    resume_from: /home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/checkpoints/val_mean_segmentation_coco_eval_segm_Dice.pt
+  data:
+    val:
+      val_datasets:
+        acdc:
+          dataset:
+            img_folder: ${paths.acdc_data_root}/test/
+            ann_file: ${paths.acdc_data_root}/test/image_annotations.coco.json
+        btcv:
+          dataset:
+            img_folder: ${paths.btcv_data_root}/test/
+            ann_file: ${paths.btcv_data_root}/test/image_annotations.coco.json
+        promise12:
+          dataset:
+            img_folder: ${paths.promise12_data_root}/test/
+            ann_file: ${paths.promise12_data_root}/test/image_annotations.coco.json
+  meters:
+    val:
+      acdc:
+        segmentation:
+          pred_file_evaluators:
+            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+              gt_path: ${paths.acdc_data_root}/test/image_annotations.coco.json
+              tide: False
+              iou_type: "segm"
+              output_metrics: ["AP"]
+              output_dice: True
+              print_summary: False
+      btcv:
+        segmentation:
+          pred_file_evaluators:
+            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+              gt_path: ${paths.btcv_data_root}/test/image_annotations.coco.json
+              tide: False
+              iou_type: "segm"
+              output_metrics: ["AP"]
+              output_dice: True
+              print_summary: False
+      promise12:
+        segmentation:
+          pred_file_evaluators:
+            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+              gt_path: ${paths.promise12_data_root}/test/image_annotations.coco.json
+              tide: False
+              iou_type: "segm"
+              output_metrics: ["AP"]
+              output_dice: True
+              print_summary: False

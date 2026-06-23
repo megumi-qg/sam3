@@ -26,10 +26,10 @@ It uses Hydra configuration management to handle complex training setups.
 The training script supports several command line arguments:
 
 CUDA_VISIBLE_DEVICES=3,4 nohup python sam3/train/train.py \
-    -c configs/final/weak_lora_1.yaml \
+    -c configs/final/weak_lora.yaml \
     --use-cluster 0 \
     --num-gpus 2 \
-    > weak_lora_1.log 2>&1 &
+    > weak_lora.log 2>&1 &
 
 CUDA_VISIBLE_DEVICES=1 python sam3/train/train.py \
     -c configs/acdc/acdc_train_weak.yaml \
@@ -172,23 +172,20 @@ def main(args) -> None:
         cfg.launcher.experiment_log_dir = os.path.join(
             os.getcwd(), "sam3_logs", args.config
         )
-    print("###################### Train App Config ####################")
-    print(OmegaConf.to_yaml(cfg))
-    print("############################################################")
 
     add_pythonpath_to_sys_path()
     makedir(cfg.launcher.experiment_log_dir)
-    with g_pathmgr.open(
-        os.path.join(cfg.launcher.experiment_log_dir, "config.yaml"), "w"
-    ) as f:
+    config_fpath = os.path.join(cfg.launcher.experiment_log_dir, "config.yaml")
+    with g_pathmgr.open(config_fpath, "w") as f:
         f.write(OmegaConf.to_yaml(cfg))
 
     cfg_resolved = OmegaConf.to_container(cfg, resolve=False)
     cfg_resolved = OmegaConf.create(cfg_resolved)
 
-    with g_pathmgr.open(
-        os.path.join(cfg.launcher.experiment_log_dir, "config_resolved.yaml"), "w"
-    ) as f:
+    resolved_config_fpath = os.path.join(
+        cfg.launcher.experiment_log_dir, "config_resolved.yaml"
+    )
+    with g_pathmgr.open(resolved_config_fpath, "w") as f:
         f.write(OmegaConf.to_yaml(cfg_resolved, resolve=True))
 
     submitit_conf = cfg.get("submitit", None)
@@ -196,6 +193,8 @@ def main(args) -> None:
 
     experiment_log_dir = cfg.launcher.experiment_log_dir
     print(f"Experiment Log Dir:\n{experiment_log_dir}")
+    print(f"Saved config to:\n{config_fpath}")
+    print(f"Saved resolved config to:\n{resolved_config_fpath}")
     submitit_dir = os.path.join(experiment_log_dir, "submitit_logs")
 
     # Prioritize cmd line args

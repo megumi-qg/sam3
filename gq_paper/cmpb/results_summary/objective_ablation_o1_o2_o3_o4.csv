@@ -1,0 +1,17 @@
+id,variant,matcher,dataset,n_cases,iou,dsc,hd95,nsd,iou_std,dsc_std,hd95_std,nsd_std
+O1,Original matcher,2/5/2,ACDC,30,0.8463,0.9132,3.42,0.9513,0.0616,0.045,3.17,0.052
+O1,Original matcher,2/5/2,BTCV_cervix,6,0.6479,0.7707,21.98,0.6561,0.0315,0.0256,6.2,0.0457
+O1,Original matcher,2/5/2,PROMISE12,30,0.8231,0.9017,6.26,0.8447,0.0614,0.0385,6.55,0.0808
+O1,Original matcher,2/5/2,Average,,0.7724,0.8619,10.55,0.8174,,,,
+O2,No geometric matcher,2/0/0,ACDC,30,0.8494,0.9161,3.47,0.9542,0.0543,0.0364,3.13,0.0422
+O2,No geometric matcher,2/0/0,BTCV_cervix,6,0.6451,0.7684,22.01,0.6605,0.0297,0.0229,6.19,0.0366
+O2,No geometric matcher,2/0/0,PROMISE12,30,0.8258,0.9036,5.95,0.8499,0.0556,0.0345,6.22,0.0729
+O2,No geometric matcher,2/0/0,Average,,0.7735,0.8627,10.48,0.8215,,,,
+O3,Reduced geometric matcher,2/1/1,ACDC,30,0.8488,0.9157,3.4,0.9533,0.0566,0.038,3.12,0.0436
+O3,Reduced geometric matcher,2/1/1,BTCV_cervix,6,0.6414,0.7649,22.19,0.6533,0.0333,0.026,5.99,0.051
+O3,Reduced geometric matcher,2/1/1,PROMISE12,30,0.8251,0.9029,6.37,0.8483,0.0605,0.0375,7.29,0.0795
+O3,Reduced geometric matcher,2/1/1,Average,,0.7718,0.8612,10.65,0.8183,,,,
+O4,Rebalanced matcher ablation,5/1/1,ACDC,30,0.8424,0.9117,3.65,0.9492,0.0584,0.039,3.92,0.0469
+O4,Rebalanced matcher ablation,5/1/1,BTCV_cervix,6,0.6363,0.76,22.78,0.6528,0.03,0.0231,5.72,0.0472
+O4,Rebalanced matcher ablation,5/1/1,PROMISE12,30,0.8252,0.9031,6.27,0.8486,0.0578,0.0359,6.72,0.0763
+O4,Rebalanced matcher ablation,5/1/1,Average,,0.768,0.8583,10.9,0.8169,,,,

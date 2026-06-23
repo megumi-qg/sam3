@@ -3,6 +3,7 @@
 # pyre-unsafe
 
 import os
+import logging
 from typing import List, Optional
 
 # import pkg_resources
@@ -47,6 +48,7 @@ from sam3.model.vl_combiner import SAM3VLBackbone
 from sam3.model.lora import apply_lora_to_sam3
 from sam3.sam.transformer import RoPEAttention
 
+logger = logging.getLogger(__name__)
 
 # Setup TensorFloat-32 for Ampere GPUs if available
 def _setup_tf32() -> None:
@@ -673,7 +675,7 @@ def build_sam3_image_model(
             unfreeze_components=lora_unfreeze_components,
         )
         if replaced:
-            print(f"LoRA injected into {len(replaced)} linear layers")
+            logger.info("LoRA injected into %s linear layers", len(replaced))
 
     # Setup device and mode
     model = _setup_device_and_mode(model, device, eval_mode)

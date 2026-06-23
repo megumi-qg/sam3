@@ -155,6 +155,10 @@ Thumbs.db
 # Gao Qi
 rf100-vl/
 dataset/
+gq_outputs/
+gq_experiment/**
+!gq_experiment/**/
+!gq_experiment/**/README.md
 
 # Experiment directories - ignore everything except config.yaml and logs/
 # Ignore specific directories and files in experiment subdirectories

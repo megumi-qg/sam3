@@ -1,0 +1,46 @@
+# @package _global_
+# LoRA scope ablation S3: no LoRA adapters, only task heads are trainable.
+# This relies on apply_lora_to_sam3 freezing non-head parameters even when the
+# target component list is empty.
+defaults:
+  - weak_lora
+  - _self_
+
+paths:
+  experiment_log_dir: /home/gaoqi/sam3/gq_experiment/cmpb/ablation_lora_scope_s3_heads_only
+
+trainer:
+  model:
+    use_lora: true
+    lora_r: 8
+    lora_alpha: 16.0
+    lora_target_components: []
+    lora_unfreeze_components:
+      - mask_decoder
+      - dot_prod_scoring
+  optim:
+    param_allowlist_patterns:
+      - "segmentation_head.*"
+      - "dot_prod_scoring.*"
+    options:
+      lr:
+        - scheduler:
+            _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+            base_lr: ${scratch.lr_lora}
+            timescale: ${scratch.scheduler_timescale}
+            warmup_steps: ${scratch.scheduler_warmup}
+            cooldown_steps: ${scratch.scheduler_cooldown}
+          param_names:
+            - "segmentation_head.*"
+        - scheduler:
+            _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+            base_lr: ${scratch.lr_lora}
+            timescale: ${scratch.scheduler_timescale}
+            warmup_steps: ${scratch.scheduler_warmup}
+            cooldown_steps: ${scratch.scheduler_cooldown}
+          param_names:
+            - "dot_prod_scoring.*"
+      weight_decay:
+        - scheduler:
+            _target_: fvcore.common.param_scheduler.ConstantParamScheduler
+            value: ${scratch.wd}

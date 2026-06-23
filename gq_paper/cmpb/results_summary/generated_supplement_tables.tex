@@ -1,0 +1,114 @@
+\section*{Supplementary per-structure results}
+Tables~\ref{tab:supp_per_structure_acdc}--\ref{tab:supp_per_structure_promise12} report per-structure results for each dataset. DSC, IoU, and NSD are shown as percentages; HD95 is reported in millimeters.
+
+\begin{table}[!p]
+\centering
+\caption{Per-structure quantitative results on ACDC. Values are reported as mean $\pm$ standard deviation.}
+\label{tab:supp_per_structure_acdc}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l l c c c c}
+\toprule
+\textbf{Structure} & \textbf{Method} & \textbf{DSC (\%)} $\uparrow$ & \textbf{HD95} $\downarrow$ & \textbf{IoU (\%)} $\uparrow$ & \textbf{NSD (\%)} $\uparrow$ \\
+\midrule
+left ventricle & BiomedParse-v2 & \cellcolor{gray!20}96.04 $\pm$ 1.82 & \cellcolor{gray!20}1.58 $\pm$ 0.16 & \cellcolor{gray!20}92.44 $\pm$ 3.33 & \cellcolor{gray!20}99.12 $\pm$ 0.86 \\
+ & VoxTell & \cellcolor{gray!20}91.78 $\pm$ 4.97 & \cellcolor{gray!20}1.28 $\pm$ 0.69 & \cellcolor{gray!20}85.18 $\pm$ 8.15 & \cellcolor{gray!20}99.23 $\pm$ 1.38 \\
+ & SAT-Pro & \cellcolor{gray!20}93.88 $\pm$ 2.44 & \cellcolor{gray!20}2.38 $\pm$ 0.48 & \cellcolor{gray!20}88.55 $\pm$ 4.26 & \cellcolor{gray!20}94.44 $\pm$ 2.69 \\
+ & ScribFormer & 90.78 $\pm$ 5.14 & 4.96 $\pm$ 5.56 & 83.49 $\pm$ 8.03 & 89.74 $\pm$ 7.17 \\
+ & ScribbleBench & 85.38 $\pm$ 15.32 & 86.03 $\pm$ 76.86 & 77.02 $\pm$ 19.14 & 82.15 $\pm$ 18.69 \\
+ & EFFDNet & 93.03 $\pm$ 5.58 & 7.76 $\pm$ 18.87 & 87.42 $\pm$ 8.71 & 94.51 $\pm$ 6.32 \\
+ & SAM3-Scribble & 93.95 $\pm$ 3.92 & 3.75 $\pm$ 6.66 & 88.82 $\pm$ 6.55 & 96.35 $\pm$ 4.42 \\
+ & SAM3-Full & 95.17 $\pm$ 3.94 & 2.17 $\pm$ 2.32 & 91.04 $\pm$ 6.67 & 97.57 $\pm$ 3.81 \\
+myocardium & BiomedParse-v2 & \cellcolor{gray!20}92.21 $\pm$ 2.89 & \cellcolor{gray!20}1.60 $\pm$ 0.24 & \cellcolor{gray!20}85.67 $\pm$ 4.86 & \cellcolor{gray!20}98.96 $\pm$ 1.09 \\
+ & VoxTell & \cellcolor{gray!20}84.48 $\pm$ 4.08 & \cellcolor{gray!20}1.20 $\pm$ 0.30 & \cellcolor{gray!20}73.34 $\pm$ 6.05 & \cellcolor{gray!20}99.30 $\pm$ 0.68 \\
+ & SAT-Pro & \cellcolor{gray!20}87.87 $\pm$ 3.21 & \cellcolor{gray!20}2.68 $\pm$ 0.77 & \cellcolor{gray!20}78.50 $\pm$ 5.03 & \cellcolor{gray!20}92.54 $\pm$ 3.21 \\
+ & ScribFormer & 81.86 $\pm$ 6.78 & 58.93 $\pm$ 81.93 & 69.79 $\pm$ 9.11 & 87.11 $\pm$ 8.18 \\
+ & ScribbleBench & 85.51 $\pm$ 4.61 & 70.13 $\pm$ 63.61 & 74.97 $\pm$ 6.96 & 88.46 $\pm$ 7.62 \\
+ & EFFDNet & 88.52 $\pm$ 2.24 & 4.24 $\pm$ 6.69 & 79.48 $\pm$ 3.61 & 94.45 $\pm$ 3.65 \\
+ & SAM3-Scribble & 90.36 $\pm$ 2.57 & 2.39 $\pm$ 2.10 & 82.52 $\pm$ 4.23 & 96.86 $\pm$ 2.63 \\
+ & SAM3-Full & 91.82 $\pm$ 1.92 & 2.27 $\pm$ 2.11 & 84.93 $\pm$ 3.30 & 98.10 $\pm$ 2.00 \\
+right ventricle & BiomedParse-v2 & \cellcolor{gray!20}69.66 $\pm$ 30.08 & \cellcolor{gray!20}14.61 $\pm$ 17.18 & \cellcolor{gray!20}60.21 $\pm$ 30.87 & \cellcolor{gray!20}72.06 $\pm$ 30.47 \\
+ & VoxTell & \cellcolor{gray!20}84.83 $\pm$ 6.41 & \cellcolor{gray!20}1.71 $\pm$ 0.69 & \cellcolor{gray!20}74.18 $\pm$ 9.48 & \cellcolor{gray!20}97.72 $\pm$ 1.52 \\
+ & SAT-Pro & \cellcolor{gray!20}90.67 $\pm$ 3.66 & \cellcolor{gray!20}3.23 $\pm$ 0.72 & \cellcolor{gray!20}83.12 $\pm$ 5.79 & \cellcolor{gray!20}88.10 $\pm$ 4.34 \\
+ & ScribFormer & 83.98 $\pm$ 10.93 & 7.33 $\pm$ 4.21 & 73.62 $\pm$ 13.76 & 81.26 $\pm$ 11.89 \\
+ & ScribbleBench & 83.27 $\pm$ 16.77 & 52.18 $\pm$ 68.32 & 74.09 $\pm$ 19.44 & 83.08 $\pm$ 16.89 \\
+ & EFFDNet & 87.15 $\pm$ 10.08 & 20.25 $\pm$ 37.81 & 78.40 $\pm$ 13.24 & 87.92 $\pm$ 10.80 \\
+ & SAM3-Scribble & 90.53 $\pm$ 7.78 & 4.27 $\pm$ 4.22 & 83.47 $\pm$ 10.92 & 93.06 $\pm$ 7.31 \\
+ & SAM3-Full & 91.79 $\pm$ 5.61 & 4.78 $\pm$ 3.98 & 85.30 $\pm$ 9.02 & 94.05 $\pm$ 5.61 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[!p]
+\centering
+\caption{Per-structure quantitative results on BTCV\_cervix. Values are reported as mean $\pm$ standard deviation.}
+\label{tab:supp_per_structure_btcv}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l l c c c c}
+\toprule
+\textbf{Structure} & \textbf{Method} & \textbf{DSC (\%)} $\uparrow$ & \textbf{HD95} $\downarrow$ & \textbf{IoU (\%)} $\uparrow$ & \textbf{NSD (\%)} $\uparrow$ \\
+\midrule
+bladder & BiomedParse-v2 & \cellcolor{gray!20}94.55 $\pm$ 1.43 & \cellcolor{gray!20}3.05 $\pm$ 0.58 & \cellcolor{gray!20}89.69 $\pm$ 2.56 & \cellcolor{gray!20}85.96 $\pm$ 5.22 \\
+ & VoxTell & \cellcolor{gray!20}94.89 $\pm$ 1.47 & \cellcolor{gray!20}2.84 $\pm$ 0.61 & \cellcolor{gray!20}90.31 $\pm$ 2.64 & \cellcolor{gray!20}88.78 $\pm$ 5.74 \\
+ & SAT-Pro & 93.55 $\pm$ 2.04 & 3.69 $\pm$ 1.19 & 87.95 $\pm$ 3.55 & 83.82 $\pm$ 8.12 \\
+ & ScribFormer & 89.78 $\pm$ 5.80 & 16.14 $\pm$ 29.43 & 81.84 $\pm$ 8.93 & 65.99 $\pm$ 16.37 \\
+ & ScribbleBench & 94.49 $\pm$ 1.23 & 3.11 $\pm$ 0.80 & 89.58 $\pm$ 2.22 & 85.69 $\pm$ 5.59 \\
+ & EFFDNet & 89.27 $\pm$ 10.46 & 39.14 $\pm$ 65.46 & 82.01 $\pm$ 14.78 & 75.17 $\pm$ 21.20 \\
+ & SAM3-Scribble & 95.48 $\pm$ 0.90 & 2.45 $\pm$ 0.30 & 91.36 $\pm$ 1.65 & 92.02 $\pm$ 3.32 \\
+ & SAM3-Full & 95.49 $\pm$ 0.95 & 2.49 $\pm$ 0.33 & 91.39 $\pm$ 1.74 & 92.22 $\pm$ 3.20 \\
+rectum & BiomedParse-v2 & \cellcolor{gray!20}0.00 $\pm$ 0.00 & \cellcolor{gray!20}277.53 $\pm$ 85.55 & \cellcolor{gray!20}0.00 $\pm$ 0.00 & \cellcolor{gray!20}0.00 $\pm$ 0.00 \\
+ & VoxTell & \cellcolor{gray!20}81.79 $\pm$ 6.67 & \cellcolor{gray!20}21.43 $\pm$ 23.22 & \cellcolor{gray!20}69.72 $\pm$ 9.29 & \cellcolor{gray!20}72.97 $\pm$ 8.75 \\
+ & SAT-Pro & 69.70 $\pm$ 12.23 & 43.02 $\pm$ 61.17 & 54.59 $\pm$ 14.14 & 58.32 $\pm$ 10.40 \\
+ & ScribFormer & 59.31 $\pm$ 13.41 & 47.04 $\pm$ 41.73 & 43.39 $\pm$ 15.52 & 38.50 $\pm$ 12.88 \\
+ & ScribbleBench & 71.02 $\pm$ 11.90 & 30.15 $\pm$ 24.87 & 56.36 $\pm$ 14.09 & 62.90 $\pm$ 12.77 \\
+ & EFFDNet & 65.52 $\pm$ 9.02 & 39.02 $\pm$ 39.97 & 49.43 $\pm$ 10.54 & 48.52 $\pm$ 7.99 \\
+ & SAM3-Scribble & 73.54 $\pm$ 9.32 & 33.50 $\pm$ 19.60 & 59.07 $\pm$ 12.46 & 65.75 $\pm$ 8.41 \\
+ & SAM3-Full & 73.15 $\pm$ 10.93 & 33.18 $\pm$ 23.37 & 58.85 $\pm$ 13.86 & 65.76 $\pm$ 9.82 \\
+small bowel & BiomedParse-v2 & \cellcolor{gray!20}36.24 $\pm$ 15.11 & \cellcolor{gray!20}89.71 $\pm$ 36.25 & \cellcolor{gray!20}23.04 $\pm$ 11.77 & \cellcolor{gray!20}21.61 $\pm$ 9.48 \\
+ & VoxTell & \cellcolor{gray!20}67.64 $\pm$ 6.50 & \cellcolor{gray!20}59.01 $\pm$ 38.07 & \cellcolor{gray!20}51.48 $\pm$ 7.49 & \cellcolor{gray!20}44.66 $\pm$ 5.48 \\
+ & SAT-Pro & 52.51 $\pm$ 10.64 & 62.76 $\pm$ 22.48 & 36.22 $\pm$ 10.21 & 33.56 $\pm$ 10.58 \\
+ & ScribFormer & 41.29 $\pm$ 15.69 & 50.64 $\pm$ 28.36 & 27.09 $\pm$ 13.11 & 25.05 $\pm$ 7.36 \\
+ & ScribbleBench & 54.96 $\pm$ 9.19 & 44.15 $\pm$ 32.07 & 38.43 $\pm$ 8.56 & 37.24 $\pm$ 8.23 \\
+ & EFFDNet & 52.67 $\pm$ 13.32 & 45.85 $\pm$ 22.97 & 36.98 $\pm$ 13.73 & 33.11 $\pm$ 12.47 \\
+ & SAM3-Scribble & 63.05 $\pm$ 10.02 & 35.31 $\pm$ 19.01 & 46.87 $\pm$ 11.33 & 47.50 $\pm$ 5.94 \\
+ & SAM3-Full & 53.15 $\pm$ 9.47 & 39.73 $\pm$ 15.95 & 36.81 $\pm$ 9.61 & 39.88 $\pm$ 6.10 \\
+uterus & BiomedParse-v2 & \cellcolor{gray!20}14.92 $\pm$ 16.12 & \cellcolor{gray!20}53.39 $\pm$ 15.58 & \cellcolor{gray!20}8.79 $\pm$ 10.06 & \cellcolor{gray!20}9.98 $\pm$ 11.46 \\
+ & VoxTell & \cellcolor{gray!20}84.48 $\pm$ 4.93 & \cellcolor{gray!20}7.03 $\pm$ 4.32 & \cellcolor{gray!20}73.43 $\pm$ 7.11 & \cellcolor{gray!20}71.28 $\pm$ 13.13 \\
+ & SAT-Pro & 67.69 $\pm$ 7.76 & 24.10 $\pm$ 6.87 & 51.61 $\pm$ 9.16 & 44.25 $\pm$ 10.58 \\
+ & ScribFormer & 66.17 $\pm$ 5.07 & 23.11 $\pm$ 6.73 & 49.62 $\pm$ 5.63 & 40.11 $\pm$ 8.14 \\
+ & ScribbleBench & 78.27 $\pm$ 4.40 & 19.27 $\pm$ 11.54 & 64.51 $\pm$ 5.98 & 62.25 $\pm$ 9.87 \\
+ & EFFDNet & 67.57 $\pm$ 14.21 & 35.50 $\pm$ 39.11 & 52.50 $\pm$ 13.81 & 49.56 $\pm$ 14.56 \\
+ & SAM3-Scribble & 75.30 $\pm$ 6.15 & 16.79 $\pm$ 7.10 & 60.75 $\pm$ 7.60 & 58.91 $\pm$ 8.19 \\
+ & SAM3-Full & 78.40 $\pm$ 7.50 & 13.94 $\pm$ 9.21 & 65.09 $\pm$ 10.12 & 67.07 $\pm$ 12.83 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[!p]
+\centering
+\caption{Per-structure quantitative results on PROMISE12. Values are reported as mean $\pm$ standard deviation.}
+\label{tab:supp_per_structure_promise12}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l l c c c c}
+\toprule
+\textbf{Structure} & \textbf{Method} & \textbf{DSC (\%)} $\uparrow$ & \textbf{HD95} $\downarrow$ & \textbf{IoU (\%)} $\uparrow$ & \textbf{NSD (\%)} $\uparrow$ \\
+\midrule
+prostate & BiomedParse-v2 & \cellcolor{gray!20}85.97 $\pm$ 6.31 & \cellcolor{gray!20}14.78 $\pm$ 13.63 & \cellcolor{gray!20}75.90 $\pm$ 9.29 & \cellcolor{gray!20}76.01 $\pm$ 11.93 \\
+ & VoxTell & \cellcolor{gray!20}80.81 $\pm$ 13.97 & \cellcolor{gray!20}27.61 $\pm$ 31.18 & \cellcolor{gray!20}69.87 $\pm$ 17.73 & \cellcolor{gray!20}71.06 $\pm$ 18.87 \\
+ & SAT-Pro & 88.02 $\pm$ 3.73 & 4.15 $\pm$ 1.21 & 78.79 $\pm$ 5.80 & 79.82 $\pm$ 8.53 \\
+ & ScribFormer & 78.13 $\pm$ 8.06 & 12.91 $\pm$ 9.14 & 64.78 $\pm$ 10.51 & 59.78 $\pm$ 13.46 \\
+ & ScribbleBench & 88.90 $\pm$ 2.90 & 4.79 $\pm$ 1.78 & 80.14 $\pm$ 4.62 & 82.01 $\pm$ 5.92 \\
+ & EFFDNet & 87.69 $\pm$ 3.71 & 10.67 $\pm$ 17.39 & 78.27 $\pm$ 5.74 & 79.19 $\pm$ 8.20 \\
+ & SAM3-Scribble & 90.36 $\pm$ 3.45 & 5.95 $\pm$ 6.22 & 82.58 $\pm$ 5.56 & 84.99 $\pm$ 7.29 \\
+ & SAM3-Full & 91.53 $\pm$ 2.98 & 6.05 $\pm$ 6.76 & 84.52 $\pm$ 4.95 & 87.39 $\pm$ 7.38 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

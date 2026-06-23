@@ -99,7 +99,7 @@ DATASET_CONFIG = {
     },
     "btcv_cervix": {
         "gt_replace": ("-Image.nii.gz", "-Mask.nii.gz"),
-        "categories": {1: "Structure_1", 2: "Structure_2", 3: "Structure_3", 4: "Structure_4"},
+        "categories": {1: "bladder", 2: "uterus", 3: "rectum", 4: "small bowel"},
     },
 }
 

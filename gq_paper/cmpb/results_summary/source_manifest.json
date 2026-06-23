@@ -1,0 +1,149 @@
+{
+  "sources": [
+    {
+      "method": "SAM3-Scribble",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json",
+      "exists": true
+    },
+    {
+      "method": "SAM3-Scribble",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json",
+      "exists": true
+    },
+    {
+      "method": "SAM3-Scribble",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json",
+      "exists": true
+    },
+    {
+      "method": "SAM3-Full",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json",
+      "exists": true
+    },
+    {
+      "method": "SAM3-Full",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json",
+      "exists": true
+    },
+    {
+      "method": "SAM3-Full",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json",
+      "exists": true
+    },
+    {
+      "method": "ScribFormer",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json",
+      "exists": true
+    },
+    {
+      "method": "ScribFormer",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json",
+      "exists": true
+    },
+    {
+      "method": "ScribFormer",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json",
+      "exists": true
+    },
+    {
+      "method": "EFFDNet",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json",
+      "exists": true
+    },
+    {
+      "method": "EFFDNet",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json",
+      "exists": true
+    },
+    {
+      "method": "EFFDNet",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json",
+      "exists": true
+    },
+    {
+      "method": "ScribbleBench",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json",
+      "exists": true
+    },
+    {
+      "method": "ScribbleBench",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json",
+      "exists": true
+    },
+    {
+      "method": "ScribbleBench",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json",
+      "exists": true
+    },
+    {
+      "method": "BiomedParse v2",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "BiomedParse v2",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "BiomedParse v2",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "VoxTell",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "VoxTell",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "VoxTell",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "SAT-Pro",
+      "dataset": "ACDC",
+      "source_file": "/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "SAT-Pro",
+      "dataset": "BTCV_cervix",
+      "source_file": "/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json",
+      "exists": true
+    },
+    {
+      "method": "SAT-Pro",
+      "dataset": "PROMISE12",
+      "source_file": "/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json",
+      "exists": true
+    }
+  ],
+  "missing": []
+}

@@ -1,0 +1,25 @@
+dataset,method,n_cases,iou_mean,iou_std,dsc_mean,dsc_std,hd95_mean,hd95_std,nsd_mean,nsd_std,source_file
+ACDC,ScribbleBench,30,0.7536,0.1213,0.8472,0.1009,69.45,56.35,0.8457,0.13,/home/gaoqi/dataset/nnU-Net/results/Dataset120_ACDCS_CMPB/test_eval_summary_sam3_metrics.json
+ACDC,EFFDNet,30,0.8177,0.0703,0.8957,0.0506,10.75,14.09,0.923,0.0645,/home/gaoqi/EFFDNet/model/ACDC_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+ACDC,ScribFormer,30,0.7564,0.0774,0.8554,0.0576,23.74,27.42,0.8604,0.0743,/home/gaoqi/ScribFormer/model/ACDC_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+ACDC,BiomedParse v2,30,0.7944,0.1084,0.8597,0.1039,5.5,5.58,0.9005,0.1024,/home/gaoqi/BiomedParse/gq_data/acdc/test/eval_results/acdc_v2_cmpb.json
+ACDC,VoxTell,30,0.7756,0.0514,0.8703,0.0335,1.4,0.4,0.9875,0.0087,/home/gaoqi/VoxTell/gq_result/acdc/cmpb_test/evaluation_results_acdc_cmpb.json
+ACDC,SAT-Pro,30,0.8339,0.0242,0.908,0.015,2.77,0.51,0.9169,0.0276,/home/gaoqi/SAT/gq_dataset/ACDC/test/results_pro_cmpb/results_acdc_cmpb.json
+ACDC,SAM3-Full,30,0.8709,0.0461,0.9293,0.0281,3.07,2.3,0.9657,0.0308,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+ACDC,SAM3-Scribble,30,0.8494,0.0543,0.9161,0.0364,3.47,3.13,0.9542,0.0422,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_acdc_0.7/evaluation_results_acdc.json
+BTCV_cervix,ScribbleBench,6,0.6222,0.0357,0.7468,0.0298,24.17,9.89,0.6202,0.0736,/home/gaoqi/dataset/nnU-Net/results/Dataset121_BTCVS_CMPB/test_eval_summary_sam3_metrics.json
+BTCV_cervix,EFFDNet,6,0.5523,0.1063,0.6875,0.0974,39.88,36.53,0.5159,0.1292,/home/gaoqi/EFFDNet/model/BTCV_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,ScribFormer,6,0.5049,0.0724,0.6414,0.0687,34.23,18.86,0.4241,0.0854,/home/gaoqi/ScribFormer/model/BTCV_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+BTCV_cervix,BiomedParse v2,6,0.3038,0.0316,0.3643,0.0468,81.6,31.73,0.2939,0.0396,/home/gaoqi/BiomedParse/gq_data/btcv/test/eval_results/btcv_cervix_v2_cmpb.json
+BTCV_cervix,VoxTell,6,0.7123,0.0325,0.822,0.0217,22.58,6.53,0.6942,0.0595,/home/gaoqi/VoxTell/gq_result/btcv/cmpb_test/evaluation_results_btcv_cmpb.json
+BTCV_cervix,SAT-Pro,6,0.5759,0.0601,0.7086,0.0539,33.39,18.3,0.5499,0.0801,/home/gaoqi/SAT/gq_dataset/BTCV/test/results_pro_cmpb/results_btcv_cmpb.json
+BTCV_cervix,SAM3-Full,6,0.6304,0.0309,0.7505,0.0239,22.34,6.86,0.6623,0.0472,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+BTCV_cervix,SAM3-Scribble,6,0.6451,0.0297,0.7684,0.0229,22.01,6.19,0.6605,0.0366,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_btcv_0.7/evaluation_results_btcv.json
+PROMISE12,ScribbleBench,30,0.8014,0.0462,0.889,0.029,4.79,1.78,0.8201,0.0592,/home/gaoqi/dataset/nnU-Net/results/Dataset122_PROMISES_CMPB/test_eval_summary_sam3_metrics.json
+PROMISE12,EFFDNet,30,0.7827,0.0574,0.8769,0.0371,10.67,17.39,0.7919,0.082,/home/gaoqi/EFFDNet/model/PROMISE12_CMPB/EFFDNet_cmpb/scribble/test_eval_summary.json
+PROMISE12,ScribFormer,30,0.6478,0.1051,0.7813,0.0806,12.91,9.14,0.5978,0.1346,/home/gaoqi/ScribFormer/model/PROMISE12_CMPB/scribformer_cmpb/scribble/test_eval_summary.json
+PROMISE12,BiomedParse v2,30,0.759,0.0929,0.8597,0.0631,14.78,13.63,0.7601,0.1193,/home/gaoqi/BiomedParse/gq_data/promise12/test/eval_results/promise12_v2_cmpb.json
+PROMISE12,VoxTell,30,0.6987,0.1773,0.8081,0.1397,27.61,31.18,0.7106,0.1887,/home/gaoqi/VoxTell/gq_result/promise12/cmpb_test/evaluation_results_promise12_cmpb.json
+PROMISE12,SAT-Pro,30,0.7879,0.058,0.8802,0.0373,4.15,1.21,0.7982,0.0853,/home/gaoqi/SAT/gq_dataset/PROMISE12/test/results_pro_cmpb/results_promise12_cmpb.json
+PROMISE12,SAM3-Full,30,0.8452,0.0495,0.9153,0.0298,6.05,6.76,0.8739,0.0738,/home/gaoqi/sam3/gq_experiment/cmpb/full_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
+PROMISE12,SAM3-Scribble,30,0.8258,0.0556,0.9036,0.0345,5.95,6.22,0.8499,0.0729,/home/gaoqi/sam3/gq_experiment/cmpb/weak_lora_acdc_btcv_promise12/inference_promise12_0.7/evaluation_results_promise12.json
