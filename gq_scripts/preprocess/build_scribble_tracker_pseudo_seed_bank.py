@@ -244,7 +244,12 @@ def main() -> None:
             if ann is None:
                 continue
 
-            prompt = ACDC_CATEGORY_ID_TO_PROMPT.get(category_id, category["name"])
+            # Prefer the dataset-local category name. Falling back by id is only
+            # valid for legacy ACDC JSONs without category names.
+            prompt = str(
+                category.get("name")
+                or ACDC_CATEGORY_ID_TO_PROMPT.get(category_id, category_id)
+            )
             frame_indices = [int(x) for x in ann.get("frame_indices", [])]
             if not frame_indices:
                 continue
